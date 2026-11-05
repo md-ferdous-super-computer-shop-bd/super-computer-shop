@@ -196,7 +196,7 @@ const fm=n=>'৳'+Math.round(n).toLocaleString('en-IN');
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const T=[['dash','ড্যাশবোর্ড'],['buy','ক্রয় (Purchase)'],['stock','স্টক'],['sell','বিক্রয় / মেমো'],['ord','অর্ডার'],['cust','কাস্টমার রিপোর্ট'],['acc','আয়-ব্যয়']];
-let tab='stock',cart=[],C={n:'',ph:'',ad:''};
+let tab='stock',cart=[],C={n:'',ph:''};
 const num=v=>parseFloat(v)||0;
 const findP=n=>S.p.find(p=>p.name.trim().toLowerCase()===String(n).trim().toLowerCase());
 const opts=()=>S.p.map(p=>`<option value="${esc(p.name)}">`).join('');
@@ -250,8 +250,7 @@ sell(){
   const t=cart.reduce((a,c)=>a+c.qty*c.price,0);
   return `<div class="card"><h2>নতুন বিক্রয়</h2><div class="f">
   <div><label>কাস্টমারের নাম</label><input id="cn" value="${esc(C.n)}" oninput="C.n=this.value"></div>
-  <div><label>মোবাইল</label><input id="cp" value="${esc(C.ph)}" oninput="C.ph=this.value"></div>
-  <div><label>ঠিকানা</label><input id="ca" value="${esc(C.ad||'')}" oninput="C.ad=this.value"></div></div>
+  <div><label>মোবাইল</label><input id="cp" value="${esc(C.ph)}" oninput="C.ph=this.value"></div></div>
   <div class="f" style="margin-top:10px">
   <div><label>পণ্য</label><select id="sp" onchange="sf()"><option value="">-- বাছুন --</option>${S.p.filter(p=>p.qty>0).map(p=>`<option value="${p.id}">${esc(p.name)}${p.sn?' ['+esc(p.sn)+']':''} (স্টক ${p.qty})</option>`).join('')}</select></div>
   <div><label>পিস</label><input id="sqty" type="number" min="1" value="1" oninput="slt()"></div>
@@ -315,11 +314,11 @@ function addCart(){const p=S.p.find(x=>x.id===$('#sp').value),qty=num($('#sqty')
   const used=cart.filter(c=>c.pid===p.id).reduce((a,c)=>a+c.qty,0);
   if(used+qty>p.qty)return alert('স্টকে মাত্র '+p.qty+' পিস আছে');
   cart.push({pid:p.id,name:p.name,qty,price:num($('#spr').value),cost:p.cost});R()}
-function mkSale(cust,ph,p,qty,price,paid,no,ad){const s={ad:ad||'',id:uid(),no:no!=null?no:S.n++,date:today(),cust:cust||'ওয়াক-ইন কাস্টমার',ph:ph||'',pid:p.id,name:p.name,qty,price,cost:p.cost,paid};
+function mkSale(cust,ph,p,qty,price,paid,no){const s={id:uid(),no:no!=null?no:S.n++,date:today(),cust:cust||'ওয়াক-ইন কাস্টমার',ph:ph||'',pid:p.id,name:p.name,qty,price,cost:p.cost,paid};
   p.qty-=qty;S.s.push(s);return s}
 function checkout(){let left=$('#paid').value===''?Infinity:num($('#paid').value),last,no=null;
-  cart.forEach(c=>{const p=S.p.find(x=>x.id===c.pid);if(!p)return;if(no===null)no=S.n++;const t=c.qty*c.price,pd=Math.min(t,left);left-=pd;last=mkSale(C.n.trim(),C.ph.trim(),p,c.qty,c.price,pd,no,C.ad.trim())});
-  cart=[];C={n:'',ph:'',ad:''};save();R();if(last)memo(last.id)}
+  cart.forEach(c=>{const p=S.p.find(x=>x.id===c.pid);if(!p)return;if(no===null)no=S.n++;const t=c.qty*c.price,pd=Math.min(t,left);left-=pd;last=mkSale(C.n.trim(),C.ph.trim(),p,c.qty,c.price,pd,no)});
+  cart=[];C={n:'',ph:''};save();R();if(last)memo(last.id)}
 function due(id){const s0=S.s.find(x=>x.id===id);if(!s0)return;const g=S.s.filter(x=>x.no===s0.no),d=g.reduce((a,x)=>a+tot(x)-x.paid,0),v=prompt('কত টাকা পেলেন? (বাকি '+d+')',d);if(v===null)return;
   let left=num(v);g.forEach(x=>{const k=Math.min(tot(x)-x.paid,left);if(k>0){x.paid+=k;left-=k}});save();R()}
 function memo(id){const s=S.s.find(x=>x.id===id);if(!s)return;$('#mm').className='m';
@@ -491,12 +490,11 @@ function memo(id){
   const rows=g.map(x=>{const p=S.p.find(y=>y.id===x.pid)||{},spec=[p.brand,p.model,p.sn&&'S/N: '+p.sn,p.cpu,p.ram,p.ssd,p.bat&&'Battery: '+p.bat].filter(Boolean).map(esc).join(' · ');
     return `<tr><td>${esc(x.name)}</td><td style='white-space:normal'>${spec||'-'}</td><td>${x.qty}</td><td>${fm(x.price)}</td><td>${fm(tot(x))}</td></tr>`}).join('');
   const war=g.map(x=>{const p=S.p.find(y=>y.id===x.pid)||{};return p.war?esc(x.name)+': '+esc(p.war):''}).filter(Boolean);
-  shw('m a4',`<div class='inv'>${hdr('INVOICE',s.no,s.date)}<div style='margin:12px 0'>কাস্টমার: <b>${esc(s.cust)}</b>${s.ph?' · '+esc(s.ph):''}${s.ad?'<br>ঠিকানা: '+esc(s.ad):''}</div>
+  shw('m a4',`<div class='inv'>${hdr('INVOICE',s.no,s.date)}<div style='margin:12px 0'>কাস্টমার: <b>${esc(s.cust)}</b>${s.ph?' · '+esc(s.ph):''}</div>
   <table style='width:100%'><tr><th>পণ্য</th><th>বিবরণ</th><th>পিস</th><th>দাম</th><th>মোট</th></tr>${rows}</table>
   <div style='text-align:right;margin-top:10px'>মোট: <b>${fm(T)}</b><br>পরিশোধ: ${fm(P)}<br>বাকি: <b>${fm(T-P)}</b></div>
   ${war.length?`<div style='margin-top:10px'>ওয়ারেন্টি: ${war.join(' | ')}</div>`:''}
-  <div style='margin-top:16px;font-size:12px;white-space:pre-line'><b>শর্তাবলি:</b>\n${esc(c.terms)}</div>
-  <div style='display:flex;justify-content:space-between;gap:30px;margin-top:56px;font-size:13px'><div style='flex:1;text-align:center;border-top:1px solid #000;padding-top:4px'>কাস্টমারের স্বাক্ষর<br><b>${esc(s.cust)}</b></div><div style='flex:1;text-align:center;border-top:1px solid #000;padding-top:4px'>মালিক / ম্যানেজারের স্বাক্ষর<br><b>${esc(c.owner||c.name)}</b></div></div></div>${pbar}`);
+  <div style='margin-top:16px;font-size:12px;white-space:pre-line'><b>শর্তাবলি:</b>\n${esc(c.terms)}</div></div>${pbar}`);
 }
 
 /* Servicing */
@@ -519,8 +517,7 @@ function svDel(id){if(confirm('এই সার্ভিস এন্ট্র�
 function svMemo(id){const v=S.sv.find(x=>x.id===id),c=cfg();
   shw('m a4',`<div class='inv'>${hdr('SERVICE MEMO','S-'+v.no,v.date)}<div style='margin:12px 0'>কাস্টমার: <b>${esc(v.cust)}</b> · ${esc(v.ph)}<br>ডিভাইস: ${esc([v.brand,v.model].filter(Boolean).join(' '))} ${v.sn?'· S/N: '+esc(v.sn):''}<br>সমস্যা: ${esc(v.prob)}<br>সাথে পাওয়া: ${esc(v.acc||'-')} · টেকনিশিয়ান: ${esc(v.tech||'-')}<br>অবস্থা: <b>${v.st}</b></div>
   <div style='text-align:right'>সার্ভিস চার্জ: ${fm(v.chg)}<br>পার্টস: ${fm(v.parts)}<br>মোট: <b>${fm(svt(v))}</b><br>পরিশোধ: ${fm(v.paid)}<br>বাকি: <b>${fm(svt(v)-v.paid)}</b></div>${v.war?`<div>ওয়ারেন্টি/নোট: ${esc(v.war)}</div>`:''}
-  <div style='margin-top:16px;font-size:12px;white-space:pre-line'><b>শর্তাবলি:</b>\n${esc(c.terms)}</div>
-  <div style='display:flex;justify-content:space-between;gap:30px;margin-top:56px;font-size:13px'><div style='flex:1;text-align:center;border-top:1px solid #000;padding-top:4px'>কাস্টমারের স্বাক্ষর<br><b>${esc(v.cust)}</b></div><div style='flex:1;text-align:center;border-top:1px solid #000;padding-top:4px'>মালিক / ম্যানেজারের স্বাক্ষর<br><b>${esc(c.owner||c.name)}</b></div></div></div>${pbar}`)}
+  <div style='margin-top:16px;font-size:12px;white-space:pre-line'><b>শর্তাবলি:</b>\n${esc(c.terms)}</div></div>${pbar}`)}
 
 /* Parcel & delivery */
 const PCS=['Pending','Packed','Dispatched','In Transit','Delivered','Cancelled'];

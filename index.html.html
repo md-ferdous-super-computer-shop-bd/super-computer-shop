@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ল্যাপটপ শপ ম্যানেজার</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f6f9;--card:#fff;--ink:#16263a;--mut:#64748b;--line:#dde3ea;--ac:#0b6e6e;--acx:#fff;--bad:#c2410c;--ok:#15803d;--hd:#16263a;--hdx:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1621;--card:#16212f;--ink:#e6edf5;--mut:#93a3b6;--line:#26364a;--ac:#2cb5b0;--acx:#06201f;--bad:#fb923c;--ok:#4ade80;--hd:#0a1119;--hdx:#e6edf5}}
+:root[data-theme="dark"]{--bg:#0e1621;--card:#16212f;--ink:#e6edf5;--mut:#93a3b6;--line:#26364a;--ac:#2cb5b0;--acx:#06201f;--bad:#fb923c;--ok:#4ade80;--hd:#0a1119;--hdx:#e6edf5}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 'Hind Siliguri','Noto Sans Bengali','Kalpurush',sans-serif}
+header{background:var(--hd);color:var(--hdx);padding:12px 14px 0;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+header h1{font-size:19px;margin:0 0 8px;font-weight:700}
+nav{display:flex;gap:4px;overflow-x:auto;padding-bottom:0}
+nav button{flex:none;background:none;border:0;color:var(--hdx);opacity:.7;padding:9px 12px;font:inherit;font-weight:500;border-bottom:3px solid transparent;cursor:pointer}
+nav button.on{opacity:1;border-color:var(--ac);font-weight:700}
+main{max-width:980px;margin:0 auto;padding:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+h2{font-size:17px;margin:0 0 10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.st{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.st small{color:var(--mut);display:block}
+.st b{font-size:22px}
+.f{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;align-items:end}
+label{font-size:13px;color:var(--mut);display:block}
+input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+button.b{background:var(--ac);color:var(--acx);border:0;border-radius:8px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer}
+button.g{background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:5px 10px;font:inherit;cursor:pointer}
+button.x{background:none;border:0;color:var(--bad);cursor:pointer;font:inherit}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--mut);font-weight:500;font-size:13px}
+td.n,th.n{text-align:right}
+.bad{color:var(--bad)}.ok{color:var(--ok)}.mut{color:var(--mut)}
+.hint{font-size:13px;color:var(--ok);margin-top:4px;min-height:18px}
+details{border-bottom:1px solid var(--line);padding:8px 0}
+summary{cursor:pointer;font-weight:600}
+#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20;overflow:auto;padding:16px}
+#modal .m{background:#fff;color:#111;max-width:420px;margin:0 auto;padding:18px;border-radius:10px}
+#modal table td,#modal table th{color:#111;border-color:#ccc}
+@media print{body>*:not(#modal){display:none!important}#modal{position:static;background:none;padding:0;display:block!important}.noprint{display:none!important}}
+:root:root:root{--bg:#0b1730;--card:#12213f;--ink:#e8eefc;--mut:#8fa3c7;--line:#223559;--ac:#22d3ee;--acx:#04212b;--bad:#f87171;--ok:#4ade80;--wn:#fb923c;--sb:#07102a}
+body{background:var(--bg);color:var(--ink)}
+#app{display:flex;min-height:100vh}
+#sb{width:250px;flex:none;background:var(--sb);border-right:1px solid var(--line);position:sticky;top:0;height:100vh;overflow-y:auto;transition:width .2s;z-index:30;padding-bottom:16px}
+#sb.c{width:68px}
+.lg{display:flex;align-items:center;gap:10px;padding:16px 14px}
+.lg b{font-size:15px;line-height:1.2;display:block}.lg small{color:var(--mut);font-size:11px}
+#sb.c .tx,#sb.c .lg div{display:none}
+.mi{display:flex;align-items:center;gap:12px;width:calc(100% - 16px);margin:2px 8px;padding:10px 12px;border:0;background:none;color:var(--mut);font:inherit;border-radius:10px;cursor:pointer;text-align:left;transition:background .15s,color .15s}
+.mi:hover{background:rgba(34,211,238,.08);color:var(--ink)}
+.mi.on{background:linear-gradient(90deg,rgba(34,211,238,.22),rgba(47,91,234,.18));color:var(--ac);font-weight:700;box-shadow:inset 3px 0 0 var(--ac)}
+.mi span:first-child{font-size:18px;width:22px;text-align:center;flex:none}
+#ct{flex:1;min-width:0}
+#tp{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--sb);position:sticky;top:0;z-index:10}
+#tp h1{font-size:18px;margin:0;flex:1}
+#tp small{color:var(--mut);font-size:12px}
+.ib{background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer;font:inherit}
+#bn,#ov{display:none}
+button.b{background:linear-gradient(90deg,#22d3ee,#2f5bea);color:#fff}
+.card,.st{box-shadow:0 4px 18px rgba(0,0,0,.25)}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.pc{display:none}
+.pcard{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--bg)}
+.bd{font-size:12px;font-weight:600;white-space:nowrap}
+#modal{z-index:40}
+#modal .m.dk{background:var(--card);color:var(--ink);max-width:700px}
+#modal .m.wd{max-width:900px}
+#ov.o{display:block;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:28}
+@media(max-width:820px){
+#sb{position:fixed;left:0;top:0;transform:translateX(-100%);width:270px!important}
+#sb.o{transform:none}
+#sb.c .tx{display:inline}#sb.c .lg div{display:block}
+#bn{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--sb);border-top:1px solid var(--line);z-index:25;padding-bottom:env(safe-area-inset-bottom,0px)}
+#bn button{flex:1;background:none;border:0;color:var(--mut);padding:8px 2px;font:inherit;font-size:12px;cursor:pointer}
+#bn button.on{color:var(--ac)}
+main{padding-bottom:90px}
+.dt{display:none}.pc{display:block}
+button.g,button.b,button.x{min-height:40px}
+}
+.lg img{width:46px;height:46px;border-radius:50%;flex:none;box-shadow:0 0 0 2px #d4a017}
+.hd{background:linear-gradient(135deg,#143a86,#0f2147)}
+.hp{margin:14px 10px 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;color:var(--mut);font-size:13px}.hp b{display:block;color:var(--ink);font-size:15px}
+button.pu{background:linear-gradient(90deg,#7c3aed,#9333ea)}
+button.gr{background:linear-gradient(90deg,#15803d,#16a34a)}
+.ic{border:0;border-radius:6px;padding:5px 8px;cursor:pointer;color:#fff;background:#2563eb;font:inherit}.ic.rd{background:#dc2626}.ic.ed{background:#475569}
+.pill{padding:2px 10px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;white-space:nowrap}.pa{background:#16a34a}.psd{background:#dc2626}.pl2{background:#ea580c}
+.tl{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.tile{border-radius:12px;padding:14px;color:#fff}.tile small{opacity:.85;display:block}.tile b{font-size:22px}
+.t1{background:linear-gradient(135deg,#1d4ed8,#2563eb)}.t2{background:linear-gradient(135deg,#15803d,#16a34a)}.t3{background:linear-gradient(135deg,#b91c1c,#dc2626)}.t4{background:linear-gradient(135deg,#5b21b6,#7c3aed)}
+.ow{color:var(--mut);font-size:14px}
+@media(max-width:820px){.ow{display:none}}
+textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+.th{width:32px;height:24px;object-fit:cover;border-radius:4px;vertical-align:middle}
+#modal .m.a4{max-width:794px;color:#111}
+.inv table{width:100%}
+@media print{@page{size:A4;margin:12mm}}
+#lgn{position:fixed;inset:0;z-index:100;background:#0b1730;display:flex;align-items:center;justify-content:center;padding:16px}
+#lgn .bx{background:#12213f;border:1px solid #223559;border-radius:14px;padding:26px 22px;width:100%;max-width:380px;color:#e8eefc;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+#lgn img{width:72px;height:72px;border-radius:50%;display:block;margin:0 auto 10px;box-shadow:0 0 0 2px #d4a017}
+#lgn h2{text-align:center;margin:0 0 4px;font-size:20px}
+#lgn p.s{text-align:center;color:#8fa3c7;margin:0 0 16px;font-size:13px}
+#lgn label{color:#8fa3c7;margin-top:10px}
+#lgn input{background:#0b1730;color:#e8eefc;border:1px solid #223559}
+#lgn button.b{width:100%;margin-top:16px}
+#lgn .er{color:#f87171;font-size:13px;min-height:18px;margin-top:10px;text-align:center}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<div id="app"><aside id="sb"></aside><div id="ct"><div id="tp"><button class="ib" onclick="tg()">☰</button><h1 id="pt"></h1><small id="st">লোড হচ্ছে...</small><span class="ow">👤 Md Ferdaus</span><button class="ib" onclick="go('set')">⚙️</button><button class="ib" title="লগআউট" onclick="logout()">⎋</button></div>
+<main id="v"></main></div></div><nav id="bn"></nav><div id="ov" onclick="tg()"></div>
+<div id="modal"><div class="m" id="mm"></div></div>
+<div id="lgn"><form class="bx" onsubmit="return doLogin(event)"><img id="lgi" alt=""><h2>SUPER COMPUTER SHOP</h2><p class="s">ম্যানেজমেন্ট সফটওয়্যারে লগইন করুন</p><label>ইমেইল</label><input id="lem" type="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required><label>পাসওয়ার্ড</label><input id="lpw" type="password" autocomplete="off" autocapitalize="none" autocorrect="off" required><label style="display:flex;gap:6px;align-items:center;margin-top:8px;cursor:pointer"><input type="checkbox" style="width:auto" onchange="document.getElementById('lpw').type=this.checked?'text':'password'"> পাসওয়ার্ড দেখাও</label><button class="b" id="lbt">লগইন</button><div class="er" id="ler"></div><div style="text-align:center;margin-top:10px"><a href="#" onclick="return resetPw()" style="color:#d4a017;font-size:13px">পাসওয়ার্ড ভুলে গেছি / নতুন সেট করব</a></div></form></div>
+<script>
+const K='lapshop_v1',CL=['p','pu','s','o','e','sv','pc','co','cp','cf'];
+let S={p:[],pu:[],s:[],o:[],e:[],sv:[],pc:[],co:[],cp:[],cf:[],n:1},DB=null,snap={},busy=false,pending=false;
+const setSt=t=>{const e=document.getElementById('st');if(e)e.textContent=t};
+const loc=()=>{try{return JSON.parse(localStorage.getItem(K))}catch(e){return null}};
+async function save(){
+  if(!DB){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}return}
+  if(busy){pending=true;return}
+  busy=true;setSt('সেভ হচ্ছে...');
+  try{do{pending=false;const jobs=[],ns={},del=[];
+    CL.forEach(c=>{const ids=new Set();
+      S[c].forEach(it=>{const k=c+'/'+it.id,j=JSON.stringify(it);ids.add(k);if(snap[k]!==j){ns[k]=j;jobs.push(DB.collection(c).doc(it.id).set(JSON.parse(JSON.stringify(it))))}});
+      Object.keys(snap).filter(k=>k.startsWith(c+'/')&&!ids.has(k)).forEach(k=>{del.push(k);jobs.push(DB.collection(c).doc(k.slice(c.length+1)).delete())})});
+    const mj=JSON.stringify(S.n);if(snap.n!==mj){ns.n=mj;jobs.push(DB.doc('meta/main').set({n:S.n}))}
+    await Promise.all(jobs);Object.assign(snap,ns);del.forEach(k=>delete snap[k])}while(pending);
+    setSt('✓ অনলাইনে সেভ হয়েছে')}catch(e){setSt('⚠ সেভ হয়নি, ইন্টারনেট দেখুন')}
+  busy=false}
+async function load(first){
+  if(!DB)return;
+  try{
+    const [sn,m]=await Promise.race([Promise.all([Promise.all(CL.map(c=>DB.collection(c).get())),DB.doc('meta/main').get()]),new Promise((_,r)=>setTimeout(()=>r(0),10000))]);
+    const T2={p:[],pu:[],s:[],o:[],e:[],sv:[],pc:[],co:[],cp:[],cf:[],n:1},sp={};
+    CL.forEach((c,i)=>sn[i].docs.forEach(d=>{const v=d.data();T2[c].push(v);sp[c+'/'+d.id]=JSON.stringify(v)}));
+    T2.n=m.exists?m.data().n:Math.max(0,...T2.s.map(s=>s.no))+1;sp.n=JSON.stringify(T2.n);
+    const L=loc();
+    if(first&&!T2.p.length&&!T2.s.length&&L&&(L.p.length||L.s.length)){S=L;snap={};await save();setSt('✓ এই ডিভাইসের পুরনো ডেটা অনলাইনে তোলা হয়েছে')}
+    else{S=T2;snap=sp;setSt('✓ অনলাইনে সেভ আছে')}
+    R()
+  }catch(e){if(first){DB=null;S=loc()||S;setSt('⚠ অনলাইন ডেটাবেস পাওয়া যায়নি, শুধু এই ডিভাইসে সেভ হচ্ছে');R()}}
+}
+const FBC={apiKey:"AIzaSyCALif1Eso_UIVDII_hpsBwmyvFC4ALSvM",authDomain:"super-computer-shop.firebaseapp.com",projectId:"super-computer-shop",storageBucket:"super-computer-shop.firebasestorage.app",messagingSenderId:"712090906456",appId:"1:712090906456:web:20a854eca0f5a65fe2ff2d"};
+let AUTH=null,started=false;
+function lerr(t){const e=document.getElementById('ler');if(e)e.textContent=t}
+function doLogin(e){
+  if(e&&e.preventDefault)e.preventDefault();
+  const b=document.getElementById('lbt');lerr('');document.getElementById('ler').style.color='';
+  if(!AUTH){lerr('Firebase লোড হয়নি। ইন্টারনেট দেখুন, পেজ রিফ্রেশ করুন (Ctrl+F5)। VPN/অ্যাড-ব্লকার থাকলে বন্ধ করে দেখুন।');return false}
+  b.disabled=true;b.textContent='অপেক্ষা করুন...';
+  const m={'auth/invalid-credential':'ইমেইল বা পাসওয়ার্ড ভুল','auth/invalid-login-credentials':'ইমেইল বা পাসওয়ার্ড ভুল','auth/wrong-password':'পাসওয়ার্ড ভুল','auth/user-not-found':'এই ইমেইলে ইউজার নেই','auth/invalid-email':'ইমেইলের বানান ঠিক নেই','auth/too-many-requests':'অনেকবার ভুল হয়েছে, একটু পরে চেষ্টা করুন','auth/network-request-failed':'ইন্টারনেট সংযোগ নেই','auth/operation-not-allowed':'Firebase-এ Email/Password চালু নেই','auth/unauthorized-domain':'এই ডোমেইন Firebase-এর Authorized domains-এ যোগ করা নেই','auth/api-key-not-valid.-please-pass-a-valid-api-key.':'apiKey ভুল'};
+  try{
+    AUTH.signInWithEmailAndPassword(document.getElementById('lem').value.trim().toLowerCase(),document.getElementById('lpw').value)
+      .catch(x=>lerr(m[x.code]||('লগইন হয়নি: '+(x.code||x.message))))
+      .finally(()=>{b.disabled=false;b.textContent='লগইন'})
+  }catch(x){lerr('ত্রুটি: '+x.message);b.disabled=false;b.textContent='লগইন'}
+  return false}
+function resetPw(){
+  const em=document.getElementById('lem').value.trim().toLowerCase();
+  if(!AUTH){lerr('Firebase লোড হয়নি');return false}
+  if(!em){lerr('আগে উপরের ঘরে আপনার ইমেইল লিখুন, তারপর এই লিংকে চাপুন');return false}
+  AUTH.sendPasswordResetEmail(em).then(()=>{const e=document.getElementById('ler');e.style.color='#4ade80';e.textContent='রিসেট লিংক পাঠানো হয়েছে। Gmail-এর Inbox ও Spam দেখুন, লিংকে ঢুকে নতুন পাসওয়ার্ড দিন।'}).catch(x=>lerr('পাঠানো যায়নি: '+(x.code||x.message)));
+  return false}
+function logout(){if(confirm('লগআউট করবেন?'))AUTH.signOut().then(()=>location.reload())}
+async function init(){
+  try{document.getElementById('lgi').src=LOGO}catch(x){}
+  if(typeof firebase==='undefined'){lerr('Firebase লোড হয়নি। ইন্টারনেট দেখুন, পেজ রিফ্রেশ করুন (Ctrl+F5)। VPN/অ্যাড-ব্লকার থাকলে বন্ধ করে দেখুন।');return}
+  try{firebase.initializeApp(FBC);AUTH=firebase.auth()}catch(x){lerr('Firebase চালু হয়নি: '+x.message);return}
+  AUTH.onAuthStateChanged(async u=>{
+    const lg=document.getElementById('lgn');
+    if(!u){DB=null;lg.style.display='flex';return}
+    lg.style.display='none';
+    DB=firebase.firestore();R();
+    await load(true);
+    if(!started){started=true;document.addEventListener('visibilitychange',()=>{if(!document.hidden&&DB&&!busy&&!document.querySelector('input:focus'))load(false)})}
+  });
+}
+const $=s=>document.querySelector(s);
+const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fm=n=>'৳'+Math.round(n).toLocaleString('en-IN');
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const T=[['dash','ড্যাশবোর্ড'],['buy','ক্রয় (Purchase)'],['stock','স্টক'],['sell','বিক্রয় / মেমো'],['ord','অর্ডার'],['cust','কাস্টমার রিপোর্ট'],['acc','আয়-ব্যয়']];
+let tab='stock',cart=[],C={n:'',ph:''};
+const num=v=>parseFloat(v)||0;
+const findP=n=>S.p.find(p=>p.name.trim().toLowerCase()===String(n).trim().toLowerCase());
+const opts=()=>S.p.map(p=>`<option value="${esc(p.name)}">`).join('');
+const tot=s=>s.qty*s.price;
+
+function R(){
+  $('#nav').innerHTML=T.map(t=>`<button class="${t[0]===tab?'on':''}" onclick="go('${t[0]}')">${t[1]}</button>`).join('');
+  $('#v').innerHTML=V[tab]();
+  if(tab==='stock')rows();if(tab==='serv')svRows();if(tab==='parcel')pcRows();
+}
+function go(t){tab=t;R();scrollTo(0,0)}
+
+const V={
+dash(){
+  const sales=S.s.reduce((a,s)=>a+tot(s),0),paid=S.s.reduce((a,s)=>a+s.paid,0);
+  const cogs=S.s.reduce((a,s)=>a+s.qty*s.cost,0),exp=S.e.reduce((a,e)=>a+e.amt,0),buy=S.pu.reduce((a,b)=>a+b.qty*b.cost,0);
+  const ts=S.s.filter(s=>s.date===today()).reduce((a,s)=>a+tot(s),0);
+  const sv=S.p.reduce((a,p)=>a+p.qty*p.cost,0);
+  const pend=S.o.filter(o=>o.st==='pending').length;
+  const low=S.p.filter(p=>p.qty<=2);
+  return `<div class="grid">
+  <div class="st"><small>আজকের বিক্রি</small><b>${fm(ts)}</b></div>
+  <div class="st"><small>মোট বিক্রি</small><b>${fm(sales)}</b></div>
+  <div class="st"><small>মোট ক্রয়</small><b>${fm(buy)}</b></div>
+  <div class="st"><small>অন্যান্য খরচ</small><b>${fm(exp)}</b></div>
+  <div class="st"><small>আনুমানিক লাভ</small><b class="${sales-cogs-exp<0?'bad':'ok'}">${fm(sales-cogs-exp)}</b></div>
+  <div class="st"><small>কাস্টমারের কাছে বাকি</small><b class="bad">${fm(sales-paid)}</b></div>
+  <div class="st"><small>স্টকের মূল্য</small><b>${fm(sv)}</b></div>
+  <div class="st" onclick="go('ord')" style="cursor:pointer"><small>অপেক্ষমাণ অর্ডার</small><b>${pend}টি</b></div></div>
+  <div class="card"><h2>স্টক কম (২ বা কম)</h2>${low.length?low.map(p=>`<div>${esc(p.name)} — <b class="bad">${p.qty} পিস</b></div>`).join(''):'<span class="mut">কোনো পণ্যের স্টক কম নয়।</span>'}</div>
+  ${S.p.length?'':'<div class="card">শুরু করতে <b>ক্রয়</b> ট্যাবে গিয়ে প্রথম পণ্য কিনুন (এন্ট্রি দিন)।</div>'}`;
+},
+buy(){
+  return `<div class="card"><h2>নতুন ক্রয়</h2>
+  <form onsubmit="addBuy(event)"><div class="f">
+  <div><label>পণ্যের নাম</label><input id="bn" list="pl" required oninput="bh()" autocomplete="off"><datalist id="pl">${opts()}</datalist><div class="hint" id="bhint"></div></div>
+  <div><label>সাপ্লায়ার</label><input id="bs" list="cl"><datalist id="cl">${S.co.map(c=>`<option value="${esc(c.name)}">`).join('')}</datalist></div><div><label>পরিশোধ (খালি = পুরোটা)</label><input id="bpd" type="number" min="0"></div>
+  <div><label>পরিমাণ (পিস)</label><input id="bq" type="number" min="1" required></div>
+  <div><label>কেনা দাম (প্রতি পিস)</label><input id="bc" type="number" min="0" required></div>
+  <div><label>বিক্রয় দাম (প্রতি পিস)</label><input id="bp" type="number" min="0"></div>
+  <div><label>তারিখ</label><input id="bd" type="date" value="${today()}"></div>
+  <button class="b">ক্রয় সেভ করুন</button></div></form></div>
+  <div class="card"><h2>ক্রয়ের তালিকা</h2><div class="tw"><table><tr><th>তারিখ</th><th>পণ্য</th><th>সাপ্লায়ার</th><th class="n">পিস</th><th class="n">দাম</th><th class="n">মোট</th><th></th></tr>
+  ${S.pu.slice().reverse().map(b=>`<tr><td>${b.date}</td><td>${esc(b.name)}</td><td>${esc(b.sup)}</td><td class="n">${b.qty}</td><td class="n">${fm(b.cost)}</td><td class="n">${fm(b.qty*b.cost)}</td><td><button class="x" onclick="delBuy('${b.id}')">মুছুন</button></td></tr>`).join('')||'<tr><td colspan="7" class="mut">এখনও কোনো ক্রয় নেই।</td></tr>'}</table></div></div>`;
+},
+stock(){
+  return `<div class="card"><h2>স্টক শিট</h2><input id="sq" placeholder="পণ্য খুঁজুন..." oninput="rows()" style="margin-bottom:10px">
+  <div class="tw"><table><tr><th>পণ্য</th><th class="n">স্টক (পিস)</th><th class="n">কেনা দাম</th><th class="n">বিক্রয় দাম</th><th class="n">মূল্য</th></tr><tbody id="tb"></tbody></table></div></div>`;
+},
+sell(){
+  const t=cart.reduce((a,c)=>a+c.qty*c.price,0);
+  return `<div class="card"><h2>নতুন বিক্রয়</h2><div class="f">
+  <div><label>কাস্টমারের নাম</label><input id="cn" value="${esc(C.n)}" oninput="C.n=this.value"></div>
+  <div><label>মোবাইল</label><input id="cp" value="${esc(C.ph)}" oninput="C.ph=this.value"></div></div>
+  <div class="f" style="margin-top:10px">
+  <div><label>পণ্য</label><select id="sp" onchange="sf()"><option value="">-- বাছুন --</option>${S.p.filter(p=>p.qty>0).map(p=>`<option value="${p.id}">${esc(p.name)}${p.sn?' ['+esc(p.sn)+']':''} (স্টক ${p.qty})</option>`).join('')}</select></div>
+  <div><label>পিস</label><input id="sqty" type="number" min="1" value="1"></div>
+  <div><label>দাম (প্রতি পিস)</label><input id="spr" type="number" min="0"></div>
+  <button class="b" onclick="addCart()">যোগ করুন</button></div></div>
+  <div class="card"><h2>কার্ট — প্রতিটি পণ্যের আলাদা মেমো হবে</h2>
+  ${cart.length?`<div class="tw"><table>${cart.map((c,i)=>`<tr><td>${esc(c.name)}</td><td class="n">${c.qty} × ${fm(c.price)}</td><td class="n">${fm(c.qty*c.price)}</td><td><button class="x" onclick="cart.splice(${i},1);R()">বাদ</button></td></tr>`).join('')}</table></div>
+  <div class="f" style="margin-top:10px"><div><label>মোট ${fm(t)} — পরিশোধ (খালি = পুরোটা)</label><input id="paid" type="number" min="0"></div><button class="b" onclick="checkout()">মেমো তৈরি করুন</button></div>`:'<span class="mut">কার্ট খালি। উপর থেকে পণ্য যোগ করুন।</span>'}</div>
+  <div class="card"><h2>মেমো তালিকা</h2><div class="tw"><table><tr><th>মেমো</th><th>তারিখ</th><th>কাস্টমার</th><th>পণ্য</th><th class="n">মোট</th><th class="n">বাকি</th><th></th></tr>
+  ${S.s.slice().reverse().slice(0,60).map(s=>`<tr><td>#${s.no}</td><td>${s.date}</td><td>${esc(s.cust)}</td><td>${esc(s.name)} × ${s.qty}</td><td class="n">${fm(tot(s))}</td><td class="n ${tot(s)-s.paid>0?'bad':''}">${fm(tot(s)-s.paid)}</td><td><button class="g" onclick="memo('${s.id}')">দেখুন / প্রিন্ট</button> <button class='x' onclick="delSale('${s.id}')">🗑 মুছুন</button></td></tr>`).join('')||'<tr><td colspan="7" class="mut">এখনও কোনো মেমো নেই।</td></tr>'}</table></div></div>`;
+},
+ord(){
+  return `<div class="card"><h2>কাস্টমার অর্ডার নিন</h2><form onsubmit="addOrd(event)"><div class="f">
+  <div><label>কাস্টমারের নাম</label><input id="on" required></div>
+  <div><label>মোবাইল</label><input id="op"></div>
+  <div><label>পণ্য</label><input id="oi" list="pl" required autocomplete="off"><datalist id="pl">${opts()}</datalist></div>
+  <div><label>পিস</label><input id="oq" type="number" min="1" value="1" required></div>
+  <div><label>নোট</label><input id="ono"></div>
+  <button class="b">অর্ডার সেভ</button></div></form></div>
+  <div class="card"><h2>অর্ডার তালিকা</h2><div class="tw"><table><tr><th>তারিখ</th><th>কাস্টমার</th><th>পণ্য</th><th>নোট</th><th>অবস্থা</th><th></th></tr>
+  ${S.o.slice().reverse().map(o=>`<tr><td>${o.date}</td><td>${esc(o.cust)}<br><span class="mut">${esc(o.ph)}</span></td><td>${esc(o.name)} × ${o.qty}</td><td>${esc(o.note)}</td><td class="${o.st==='pending'?'bad':'ok'}">${o.st==='pending'?'অপেক্ষমাণ':'ডেলিভারি হয়েছে'}</td><td>${o.st==='pending'?`<button class="g" onclick="deliver('${o.id}')">ডেলিভারি</button> `:''}<button class="x" onclick="delOrd('${o.id}')">মুছুন</button></td></tr>`).join('')||'<tr><td colspan="6" class="mut">কোনো অর্ডার নেই।</td></tr>'}</table></div></div>`;
+},
+cust(){
+  const m={};
+  S.s.forEach(s=>{const k=(s.ph||s.cust||'অজানা').trim();(m[k]=m[k]||{n:s.cust,ph:s.ph,l:[]}).l.push(s)});
+  const list=CUL=Object.values(m).sort((a,b)=>b.l.reduce((x,s)=>x+tot(s),0)-a.l.reduce((x,s)=>x+tot(s),0));
+  return `<div class="card"><h2>কাস্টমার রিপোর্ট</h2>${list.map((c,ci)=>{const t=c.l.reduce((a,s)=>a+tot(s),0),p=c.l.reduce((a,s)=>a+s.paid,0),pc=c.l.reduce((a,s)=>a+s.qty,0);
+  return `<details><summary>${esc(c.n||'নাম নেই')} ${c.ph?'('+esc(c.ph)+')':''} — ${pc} পিস, ${fm(t)}${t-p>0?` <span class="bad">বাকি ${fm(t-p)}</span>`:''}</summary><div class="tw"><table>${c.l.slice().reverse().map(s=>`<tr><td>#${s.no}</td><td>${s.date}</td><td>${esc(s.name)} × ${s.qty}</td><td class="n">${fm(tot(s))}</td><td class="n">${fm(s.paid)}</td><td>${tot(s)-s.paid>0?`<button class="g" onclick="due('${s.id}')">বাকি নিন</button>`:''}</td></tr>`).join('')}</table></div><button class="x" onclick="delCust(${ci})">🗑 এই কাস্টমারের সব মেমো মুছুন</button></details>`}).join('')||'<span class="mut">এখনও কোনো বিক্রয় নেই।</span>'}</div>`;
+},
+acc(){
+  const L=[];
+  S.s.forEach(s=>s.paid>0&&L.push({d:s.date,t:`বিক্রি #${s.no}: ${s.name} (${s.cust})`,i:s.paid,x:0}));
+  S.pu.forEach(b=>L.push({d:b.date,t:`ক্রয়: ${b.name} × ${b.qty}`,i:0,x:b.paid==null?b.qty*b.cost:b.paid}));S.cp.forEach(c=>L.push({d:c.date,t:'কোম্পানিকে পেমেন্ট: '+((S.co.find(o=>o.id===c.co)||{}).name||''),i:0,x:c.amt}));S.sv.forEach(v=>{if(v.paid>0)L.push({d:v.date,t:'সার্ভিস S-'+v.no+': '+v.cust,i:v.paid,x:0});if(v.parts>0)L.push({d:v.date,t:'সার্ভিসের পার্টস S-'+v.no,i:0,x:v.parts})});
+  S.e.forEach(e=>L.push({d:e.date,t:e.title,i:0,x:e.amt,id:e.id}));
+  L.sort((a,b)=>b.d.localeCompare(a.d));
+  const I=L.reduce((a,l)=>a+l.i,0),X=L.reduce((a,l)=>a+l.x,0);
+  return `<div class="grid"><div class="st"><small>মোট আয় (নগদ পাওয়া)</small><b class="ok">${fm(I)}</b></div><div class="st"><small>মোট ব্যয়</small><b class="bad">${fm(X)}</b></div><div class="st"><small>ক্যাশ ব্যালেন্স</small><b>${fm(I-X)}</b></div></div>
+  <div class="card"><h2>খরচ যোগ করুন (ভাড়া, বেতন, বিল...)</h2><form onsubmit="addExp(event)"><div class="f">
+  <div><label>বিবরণ</label><input id="et" required></div><div><label>টাকা</label><input id="ea" type="number" min="1" required></div>
+  <div><label>তারিখ</label><input id="ed" type="date" value="${today()}"></div><button class="b">সেভ</button></div></form></div>
+  <div class="card"><h2>আয়-ব্যয়ের খাতা</h2><div class="tw"><table><tr><th>তারিখ</th><th>বিবরণ</th><th class="n">আয়</th><th class="n">ব্যয়</th><th></th></tr>
+  ${L.map(l=>`<tr><td>${l.d}</td><td>${esc(l.t)}</td><td class="n ok">${l.i?fm(l.i):''}</td><td class="n bad">${l.x?fm(l.x):''}</td><td>${l.id?`<button class="x" onclick="delExp('${l.id}')">মুছুন</button>`:''}</td></tr>`).join('')||'<tr><td colspan="5" class="mut">কোনো এন্ট্রি নেই।</td></tr>'}</table></div></div>`;
+}};
+
+function bh(){const p=findP($('#bn').value);$('#bhint').textContent=p?`এই নাম আছে — বর্তমান স্টক ${p.qty} পিস, এন্ট্রি দিলে স্টক বাড়বে`:'';if(p&&!$('#bp').value)$('#bp').value=p.price||''}
+function addBuy(e){e.preventDefault();
+  const name=$('#bn').value.trim(),qty=num($('#bq').value),cost=num($('#bc').value),price=$('#bp').value;
+  let p=findP(name);
+  if(!p){p={id:uid(),name,qty:0,cost:0,price:0};S.p.push(p)}
+  p.cost=(p.qty*p.cost+qty*cost)/(p.qty+qty);p.qty+=qty;if(price!=='')p.price=num(price);
+  S.pu.push({id:uid(),date:$('#bd').value||today(),sup:$('#bs').value.trim(),pid:p.id,name:p.name,qty,cost,paid:$('#bpd').value===''?qty*cost:num($('#bpd').value)});
+  save();R()}
+function delBuy(id){const b=S.pu.find(x=>x.id===id);if(!b||!confirm('এই ক্রয় মুছবেন? স্টক থেকে '+b.qty+' পিস কমবে।'))return;
+  const p=S.p.find(x=>x.id===b.pid);if(p)p.qty=Math.max(0,p.qty-b.qty);S.pu=S.pu.filter(x=>x.id!==id);save();R()}
+function rows(){const q=($('#sq')?$('#sq').value:'').toLowerCase();
+  $('#tb').innerHTML=S.p.filter(p=>p.name.toLowerCase().includes(q)).map(p=>`<tr><td>${esc(p.name)}</td><td class="n ${p.qty<=2?'bad':''}"><b>${p.qty}</b></td><td class="n">${fm(p.cost)}</td><td class="n">${fm(p.price)}</td><td class="n">${fm(p.qty*p.cost)}</td></tr>`).join('')||'<tr><td colspan="5" class="mut">কোনো পণ্য নেই।</td></tr>'}
+function sf(){const p=S.p.find(x=>x.id===$('#sp').value);$('#spr').value=p?p.price:''}
+function addCart(){const p=S.p.find(x=>x.id===$('#sp').value),qty=num($('#sqty').value);
+  if(!p||qty<1)return alert('পণ্য ও পিস দিন');
+  const used=cart.filter(c=>c.pid===p.id).reduce((a,c)=>a+c.qty,0);
+  if(used+qty>p.qty)return alert('স্টকে মাত্র '+p.qty+' পিস আছে');
+  cart.push({pid:p.id,name:p.name,qty,price:num($('#spr').value),cost:p.cost});R()}
+function mkSale(cust,ph,p,qty,price,paid){const s={id:uid(),no:S.n++,date:today(),cust:cust||'ওয়াক-ইন কাস্টমার',ph:ph||'',pid:p.id,name:p.name,qty,price,cost:p.cost,paid};
+  p.qty-=qty;S.s.push(s);return s}
+function checkout(){let left=$('#paid').value===''?Infinity:num($('#paid').value),last;
+  cart.forEach(c=>{const p=S.p.find(x=>x.id===c.pid);if(!p)return;const t=c.qty*c.price,pd=Math.min(t,left);left-=pd;last=mkSale(C.n.trim(),C.ph.trim(),p,c.qty,c.price,pd)});
+  cart=[];C={n:'',ph:''};save();R();if(last)memo(last.id)}
+function due(id){const s=S.s.find(x=>x.id===id),d=tot(s)-s.paid,v=prompt('কত টাকা পেলেন? (বাকি '+d+')',d);if(v===null)return;
+  s.paid=Math.min(tot(s),s.paid+num(v));save();R()}
+function memo(id){const s=S.s.find(x=>x.id===id);if(!s)return;$('#mm').className='m';
+  $('#mm').innerHTML=`<div style="text-align:center"><b style="font-size:20px">ক্যাশ মেমো</b><br>মেমো নং #${s.no} · ${s.date}</div><hr>
+  <div>কাস্টমার: <b>${esc(s.cust)}</b>${s.ph?'<br>মোবাইল: '+esc(s.ph):''}</div>
+  <table style="margin:10px 0;width:100%"><tr><th>পণ্য</th><th>পিস</th><th>দাম</th><th>মোট</th></tr><tr><td>${esc(s.name)}</td><td>${s.qty}</td><td>${fm(s.price)}</td><td>${fm(tot(s))}</td></tr></table>
+  <div style="text-align:right">মোট: <b>${fm(tot(s))}</b><br>পরিশোধ: ${fm(s.paid)}<br>বাকি: <b>${fm(tot(s)-s.paid)}</b></div>
+  <p style="text-align:center;margin:12px 0 0">ধন্যবাদ!</p>
+  <div class="noprint" style="display:flex;gap:8px;margin-top:14px"><button class="b" onclick="print()">প্রিন্ট</button><button class="g" style="color:#111" onclick="$('#modal').style.display='none'">বন্ধ করুন</button></div>`;
+  $('#modal').style.display='block'}
+function addOrd(e){e.preventDefault();S.o.push({id:uid(),date:today(),cust:$('#on').value.trim(),ph:$('#op').value.trim(),name:$('#oi').value.trim(),qty:num($('#oq').value),note:$('#ono').value.trim(),st:'pending'});save();R()}
+function deliver(id){const o=S.o.find(x=>x.id===id),p=findP(o.name);
+  if(!p)return alert('স্টকে এই পণ্য নেই। আগে ক্রয় এন্ট্রি দিন।');
+  if(p.qty<o.qty)return alert('স্টকে মাত্র '+p.qty+' পিস আছে');
+  const t=o.qty*p.price,v=prompt('মোট '+t+' টাকা। কত পরিশোধ করেছে?',t);if(v===null)return;
+  const s=mkSale(o.cust,o.ph,p,o.qty,p.price,Math.min(t,num(v)));o.st='done';save();R();memo(s.id)}
+function delOrd(id){if(confirm('অর্ডার মুছবেন?')){S.o=S.o.filter(x=>x.id!==id);save();R()}}
+function addExp(e){e.preventDefault();S.e.push({id:uid(),date:$('#ed').value||today(),title:$('#et').value.trim(),amt:num($('#ea').value)});save();R()}
+function delExp(id){S.e=S.e.filter(x=>x.id!==id);save();R()}
+/* ===== Premium UI ===== */
+const LOGO='data:image/jpeg;base64,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';
+const M=[['stock','📦','Product Stock'],['buy','🛒','Purchase'],['sell','💳','Sales'],['cust','👥','Customer Management'],['inv','🧾','Invoice & Memo'],['serv','🛠','Servicing'],['parcel','📮','Parcel & Delivery'],['ord','📋','Orders'],['comp','🏢','Company Management'],['acc','💰','Income & Expense'],['due','⏳','Due Management'],['rep','📊','Reports'],['set','⚙️','Settings']];
+['serv','parcel','comp','rep','set'].forEach(k=>{V[k]=()=>`<div class='card'><h2>${M.find(m=>m[0]===k)[2]}</h2><p class='mut'>এই অংশটি এখনও তৈরি হয়নি। পরের ধাপে যোগ হবে।</p></div>`});
+
+function R(){
+  CL.forEach(c=>{S[c]=S[c]||[]});
+  const nm=M.find(m=>m[0]===tab);
+  $('#sb').innerHTML=`<div class='lg'>${LOGO}<div><b>SUPER COMPUTER SHOP</b><small>ম্যানেজমেন্ট সফটওয়্যার</small></div></div>`+M.map(m=>`<button class='mi ${m[0]===tab?'on':''}' onclick="go('${m[0]}')"><span>${m[1]}</span><span class='tx'>${m[2]}</span></button>`).join('');
+  $('#pt').textContent=nm[2];
+  const B=[['stock','📦','স্টক'],['sell','💳','বিক্রয়'],['buy','🛒','ক্রয়'],['cust','👥','কাস্টমার']];
+  $('#bn').innerHTML=B.map(b=>`<button class='${b[0]===tab?'on':''}' onclick="go('${b[0]}')"><div style='font-size:20px'>${b[1]}</div>${b[2]}</button>`).join('')+`<button onclick='tg()'><div style='font-size:20px'>☰</div>মেনু</button>`;
+  $('#v').innerHTML=V[tab]();
+  if(tab==='stock')rows();if(tab==='serv')svRows();if(tab==='parcel')pcRows();
+}
+function tg(){if(innerWidth<=820){$('#sb').classList.toggle('o');$('#ov').classList.toggle('o')}else $('#sb').classList.toggle('c')}
+function go(t){tab=t;$('#sb').classList.remove('o');$('#ov').classList.remove('o');R();scrollTo(0,0)}
+function cm(){$('#modal').style.display='none'}
+function shw(cls,html){$('#mm').className=cls;$('#mm').innerHTML=html;$('#modal').style.display='block'}
+
+let SF={q:'',b:'',st:''};
+const stat=p=>p.qty<=0?'s':(!p.sn&&p.qty<=2?'l':'a');
+const badge=p=>{const s=stat(p);return s==='s'?"<span class='bd' style='color:var(--bad)'>Sold</span>":s==='l'?"<span class='bd' style='color:var(--wn)'>Low ("+p.qty+")</span>":"<span class='bd' style='color:var(--ok)'>Available"+(p.sn?'':' ('+p.qty+')')+"</span>"};
+
+V.stock=()=>{
+  const brands=[...new Set(S.p.map(p=>p.brand).filter(Boolean))];
+  return `<div class='card'><div class='f' style='margin-bottom:12px'><button class='b' onclick='pf()'>+ ল্যাপটপ যোগ করুন</button><button class='g' onclick="go('buy')">+ এক্সেসরিজ ক্রয়</button><button class='g' onclick='ps()'>🖨 স্টক প্রিন্ট</button></div>
+  <div class='f'><div><label>খুঁজুন (নাম, সিরিয়াল, মডেল, ব্র্যান্ড)</label><input id='sq' value='${esc(SF.q)}' oninput='SF.q=this.value;rows()' placeholder='খুঁজুন...'></div>
+  <div><label>ব্র্যান্ড</label><select onchange='SF.b=this.value;rows()'><option value=''>সব</option>${brands.map(b=>`<option ${b===SF.b?'selected':''}>${esc(b)}</option>`).join('')}</select></div>
+  <div><label>অবস্থা</label><select onchange='SF.st=this.value;rows()'>${[['','সব'],['a','Available'],['s','Sold'],['l','Low Stock']].map(o=>`<option value='${o[0]}' ${o[0]===SF.st?'selected':''}>${o[1]}</option>`).join('')}</select></div></div></div>
+  <div class='card'><div class='tw dt'><table><tr><th>পণ্য</th><th>ব্র্যান্ড</th><th>মডেল</th><th>সিরিয়াল</th><th>প্রসেসর</th><th>RAM</th><th>SSD</th><th>ব্যাটারি</th><th class='n'>কেনা দাম</th><th class='n'>বিক্রয় দাম</th><th>অবস্থা</th><th>অ্যাকশন</th></tr><tbody id='tb'></tbody></table></div><div class='pc' id='cards'></div><div class='mut' id='cnt' style='margin-top:8px'></div></div>`};
+
+function rows(){
+  const q=SF.q.toLowerCase();
+  const L=S.p.filter(p=>(!q||[p.name,p.sn,p.model,p.brand].some(x=>String(x||'').toLowerCase().includes(q)))&&(!SF.b||p.brand===SF.b)&&(!SF.st||(SF.st==='a'?p.qty>0:stat(p)===SF.st)));
+  const acts=p=>`<button class='g' onclick="pv('${p.id}')">দেখুন</button> <button class='g' onclick="pf('${p.id}')">এডিট</button> <button class='x' onclick="pd('${p.id}')">মুছুন</button>`;
+  $('#tb').innerHTML=L.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.brand||'-')}</td><td>${esc(p.model||'-')}</td><td>${esc(p.sn||'-')}</td><td>${esc(p.cpu||'-')}</td><td>${esc(p.ram||'-')}</td><td>${esc(p.ssd||'-')}</td><td>${esc(p.bat||'-')}</td><td class='n'>${fm(p.cost)}</td><td class='n'>${fm(p.price)}</td><td>${badge(p)}</td><td>${acts(p)}</td></tr>`).join('')||"<tr><td colspan='12' class='mut'>কোনো পণ্য নেই।</td></tr>";
+  $('#cards').innerHTML=L.map(p=>`<div class='pcard'><div style='display:flex;justify-content:space-between;gap:8px'><b>${esc(p.name)}</b>${badge(p)}</div><div class='mut'>${esc([p.brand,p.model].filter(Boolean).join(' · '))}${p.sn?'<br>S/N: '+esc(p.sn):''}</div><div class='mut'>${esc([p.cpu,p.ram,p.ssd].filter(Boolean).join(' / '))}</div><div style='margin:6px 0'>বিক্রয়: <b>${fm(p.price)}</b></div>${acts(p)}</div>`).join('')||"<div class='mut'>কোনো পণ্য নেই।</div>";
+  $('#cnt').textContent=L.length+' টি পণ্য';
+}
+
+function pf(id){
+  PI=null;
+  const p=id?S.p.find(x=>x.id===id):{};if(!p)return;
+  const F=(k,l,t,req)=>`<div><label>${l}</label><input id='f_${k}' type='${t||'text'}' value='${esc(p[k]!=null?p[k]:(k==='date'?today():''))}' ${req?'required':''}></div>`;
+  shw('m dk',`<h2>${id?'ল্যাপটপ এডিট':'নতুন ল্যাপটপ'}</h2><form onsubmit="ps2(event,'${id||''}')"><div class='fg'>${F('name','পণ্যের নাম','text',1)}${F('brand','ব্র্যান্ড')}${F('model','মডেল')}${F('sn','সিরিয়াল নম্বর','text',1)}${F('cpu','প্রসেসর')}${F('ram','RAM')}${F('ssd','SSD / HDD')}${F('disp','ডিসপ্লে')}${F('bat','ব্যাটারি ব্যাকআপ')}
+  <div><label>টাচ</label><select id='f_touch'>${['Non-Touch','Touch'].map(c=>`<option ${p.touch===c?'selected':''}>${c}</option>`).join('')}</select></div>
+  <div><label>কন্ডিশন</label><select id='f_cond'>${['Used','New','Refurbished'].map(c=>`<option ${p.cond===c?'selected':''}>${c}</option>`).join('')}</select></div>
+  ${F('cost','কেনা দাম','number',1)}${F('price','বিক্রয় দাম','number',1)}${F('date','ক্রয়ের তারিখ','date')}${F('sup','সাপ্লায়ার')}${F('war','ওয়ারেন্টি')}${F('desc','বিবরণ')}<div><label>ছবি</label><input type='file' accept='image/*' onchange='imgPick(this)'></div></div>
+  <div style='display:flex;gap:8px;flex-wrap:wrap;margin-top:14px'><button class='b' value='s'>সেভ করুন</button>${id?'':"<button class='g' value='n'>সেভ ও আরেকটি যোগ</button>"}<button type='button' class='g' onclick='cm()'>বাতিল</button></div></form>`);
+}
+function ps2(e,id){
+  e.preventDefault();
+  const g=k=>$('#f_'+k).value.trim(),sn=g('sn');
+  if(S.p.some(x=>x.id!==id&&x.sn&&x.sn.toLowerCase()===sn.toLowerCase()))return alert('এই সিরিয়াল নম্বর আগে থেকেই আছে');
+  const d={name:g('name'),brand:g('brand'),model:g('model'),sn,cpu:g('cpu'),ram:g('ram'),ssd:g('ssd'),disp:g('disp'),bat:g('bat'),touch:g('touch'),cond:g('cond'),cost:num(g('cost')),price:num(g('price')),date:g('date')||today(),sup:g('sup'),war:g('war'),desc:g('desc')};if(PI!==null)d.img=PI;
+  if(id)Object.assign(S.p.find(x=>x.id===id),d);
+  else{const p=Object.assign({id:uid(),qty:1},d);S.p.push(p);S.pu.push({id:uid(),date:d.date,sup:d.sup,pid:p.id,name:d.name,qty:1,cost:d.cost,paid:d.cost})}
+  save();const again=e.submitter&&e.submitter.value==='n';
+  R();if(again)pf();else cm();
+}
+function pv(id){
+  const p=S.p.find(x=>x.id===id);if(!p)return;
+  const A=[['ব্র্যান্ড',p.brand],['মডেল',p.model],['সিরিয়াল',p.sn],['প্রসেসর',p.cpu],['RAM',p.ram],['SSD/HDD',p.ssd],['ডিসপ্লে',p.disp],['ব্যাটারি',p.bat],['টাচ',p.touch],['কন্ডিশন',p.cond],['কেনা দাম',fm(p.cost)],['বিক্রয় দাম',fm(p.price)],['ক্রয়ের তারিখ',p.date],['সাপ্লায়ার',p.sup],['ওয়ারেন্টি',p.war],['স্টক',p.qty+' পিস'],['বিবরণ',p.desc]];
+  shw('m dk',`${p.img?`<img src='${p.img}' style='max-width:100%;max-height:240px;border-radius:10px;margin-bottom:10px'>`:''}<h2>${esc(p.name)} ${badge(p)}</h2><div class='fg'>${A.map(r=>`<div><label>${r[0]}</label><div>${esc(r[1]||'-')}</div></div>`).join('')}</div><div style='margin-top:14px;display:flex;gap:8px'><button class='g' onclick="pf('${p.id}')">এডিট</button><button class='g' onclick='cm()'>বন্ধ করুন</button></div>`);
+}
+function pd(id){
+  const p=S.p.find(x=>x.id===id);if(!p)return;
+  if(S.s.some(s=>s.pid===id))return alert('এই পণ্যের বিক্রয় রেকর্ড আছে, তাই মোছা যাবে না।');
+  if(!confirm('"'+p.name+'" মুছবেন? এর ক্রয় এন্ট্রিও মুছে যাবে।'))return;
+  S.p=S.p.filter(x=>x.id!==id);S.pu=S.pu.filter(x=>x.pid!==id);save();R();
+}
+function ps(){
+  const L=S.p.filter(p=>p.qty>0);
+  shw('m wd',`<h2 style='color:#111'>স্টক তালিকা — ${today()}</h2><div class='tw'><table style='font-size:13px'><tr><th>পণ্য</th><th>মডেল</th><th>সিরিয়াল</th><th>কনফিগ</th><th>পিস</th><th>দাম</th></tr>${L.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.model||'-')}</td><td>${esc(p.sn||'-')}</td><td>${esc([p.cpu,p.ram,p.ssd].filter(Boolean).join(' / ')||'-')}</td><td>${p.qty}</td><td>${fm(p.price)}</td></tr>`).join('')}</table></div><div class='noprint' style='display:flex;gap:8px;margin-top:14px'><button class='b' onclick='print()'>প্রিন্ট</button><button class='g' style='color:#111' onclick='cm()'>বন্ধ করুন</button></div>`);
+}
+const memoRows=L=>L.map(s=>`<tr><td>#${s.no}</td><td>${s.date}</td><td>${esc(s.cust)}</td><td>${esc(s.name)} × ${s.qty}</td><td class='n'>${fm(tot(s))}</td><td class='n ${tot(s)-s.paid>0?'bad':''}'>${fm(tot(s)-s.paid)}</td><td><button class='g' onclick="memo('${s.id}')">দেখুন / প্রিন্ট</button> <button class='x' onclick="delSale('${s.id}')">🗑 মুছুন</button></td></tr>`).join('')||"<tr><td colspan='7' class='mut'>কিছু নেই।</td></tr>";
+V.inv=()=>`<div class='card'><h2>ইনভয়েস ও মেমো</h2><div class='tw'><table><tr><th>মেমো</th><th>তারিখ</th><th>কাস্টমার</th><th>পণ্য</th><th class='n'>মোট</th><th class='n'>বাকি</th><th></th></tr>${memoRows(S.s.slice().reverse())}</table></div></div>`;
+V.due=()=>{const L=S.s.filter(s=>tot(s)-s.paid>0).reverse();return `<div class='card'><h2>কাস্টমারের কাছে বাকি: <span class='bad'>${fm(L.reduce((a,s)=>a+tot(s)-s.paid,0))}</span></h2><div class='tw'><table><tr><th>মেমো</th><th>কাস্টমার</th><th>পণ্য</th><th class='n'>বাকি</th><th></th></tr>${L.map(s=>`<tr><td>#${s.no}</td><td>${esc(s.cust)}<br><span class='mut'>${esc(s.ph)}</span></td><td>${esc(s.name)}</td><td class='n bad'>${fm(tot(s)-s.paid)}</td><td><button class='g' onclick="due('${s.id}')">বাকি নিন</button></td></tr>`).join('')||"<tr><td colspan='5' class='mut'>কোনো বাকি নেই।</td></tr>"}</table></div></div>`};
+/* ===== Mockup-style stock page ===== */
+function R(){
+  CL.forEach(c=>{S[c]=S[c]||[]});
+  const nm=M.find(m=>m[0]===tab);
+  $('#sb').innerHTML=`<div class='lg'><img src='${LOGO}' alt='logo'><div><b>SUPER<br>COMPUTER SHOP</b><small>Shop Manager</small></div></div>`+M.map(m=>`<button class='mi ${m[0]===tab?'on':''}' onclick="go('${m[0]}')"><span>${m[1]}</span><span class='tx'>${m[2]}</span></button>`).join('')+`<div class='hp tx'>📞 Need Help?<b>01316843984</b></div>`;
+  $('#pt').textContent=nm[2];
+  const B=[['stock','📦','Stock'],['sell','💳','Sales'],['buy','🛒','Purchase'],['cust','👥','Customers']];
+  $('#bn').innerHTML=B.map(b=>`<button class='${b[0]===tab?'on':''}' onclick="go('${b[0]}')"><div style='font-size:20px'>${b[1]}</div>${b[2]}</button>`).join('')+`<button onclick='tg()'><div style='font-size:20px'>☰</div>More</button>`;
+  $('#v').innerHTML=V[tab]();
+  if(tab==='stock')rows();if(tab==='serv')svRows();if(tab==='parcel')pcRows();
+}
+SF.c='';
+const pill=p=>{const s=stat(p);return s==='s'?"<span class='pill psd'>Sold</span>":s==='l'?"<span class='pill pl2'>Low ("+p.qty+")</span>":"<span class='pill pa'>Available"+(p.sn?'':' ('+p.qty+')')+"</span>"};
+V.stock=()=>{
+  const brands=[...new Set(S.p.map(p=>p.brand).filter(Boolean))];
+  const sold=S.s.reduce((a,s)=>a+s.qty,0),av=S.p.reduce((a,p)=>a+Math.max(0,p.qty),0),val=S.p.reduce((a,p)=>a+Math.max(0,p.qty)*p.cost,0);
+  const sel=(label,key,list)=>`<div><label>${label}</label><select onchange='SF.${key}=this.value;rows()'>${list.map(o=>`<option value='${esc(o[0])}' ${o[0]===SF[key]?'selected':''}>${esc(o[1])}</option>`).join('')}</select></div>`;
+  return `<div class='card hd'><div style='display:flex;gap:10px;align-items:center;flex-wrap:wrap'><div style='flex:1;min-width:200px'><h2 style='margin:0;font-size:21px'>📦 Product Stock</h2><div class='mut'>আপনার ল্যাপটপ স্টক সহজে দেখুন ও পরিচালনা করুন</div></div>
+  <button class='b' onclick='pf()'>＋ Add Laptop</button><button class='b pu' onclick="go('buy')">＋ Add Accessories</button><button class='b gr' onclick='xl()'>⬇ Export Excel</button><button class='g' onclick='ps()'>🖨 Print Stock</button></div></div>
+  <div class='card'><div class='f'><div style='grid-column:span 2'><label>Search</label><input id='sq' value='${esc(SF.q)}' oninput='SF.q=this.value;rows()' placeholder='Product name, serial number or model...'></div>
+  ${sel('Brand','b',[['','All Brands']].concat(brands.map(b=>[b,b])))}${sel('Status','st',[['','All Status'],['a','Available'],['s','Sold'],['l','Low Stock']])}${sel('Condition','c',[['','All Condition'],['New','New'],['Used','Used'],['Refurbished','Refurbished']])}<button class='b' onclick='rows()'>🔍 Search</button></div></div>
+  <div class='card'><div class='tw dt'><table><tr><th>#</th><th>Product</th><th>Brand</th><th>Model</th><th>Serial Number</th><th>Processor</th><th>RAM</th><th>SSD</th><th>Battery</th><th class='n'>Price (৳)</th><th>Status</th><th>Action</th></tr><tbody id='tb'></tbody></table></div><div class='pc' id='cards'></div><div class='mut' id='cnt' style='margin-top:8px'></div></div>
+  <div class='grid tl'><div class='tile t1'><small>Total Stock</small><b>${av+sold} Pcs</b></div><div class='tile t2'><small>Available</small><b>${av} Pcs</b></div><div class='tile t3'><small>Sold</small><b>${sold} Pcs</b></div><div class='tile t4'><small>Stock Value</small><b>${fm(val)}</b></div></div>`};
+function rows(){
+  const q=SF.q.toLowerCase();
+  const L=S.p.filter(p=>(!q||[p.name,p.sn,p.model,p.brand].some(x=>String(x||'').toLowerCase().includes(q)))&&(!SF.b||p.brand===SF.b)&&(!SF.c||p.cond===SF.c)&&(!SF.st||(SF.st==='a'?p.qty>0:stat(p)===SF.st)));
+  const acts=p=>`<button class='ic' title='View' onclick="pv('${p.id}')">👁</button> <button class='ic ed' title='Edit' onclick="pf('${p.id}')">✏️</button> <button class='ic rd' title='Delete' onclick="pd('${p.id}')">🗑</button>`;
+  $('#tb').innerHTML=L.map((p,i)=>`<tr><td>${i+1}</td><td>${th(p)} ${esc(p.name)}</td><td>${esc(p.brand||'-')}</td><td>${esc(p.model||'-')}</td><td>${esc(p.sn||'-')}</td><td>${esc(p.cpu||'-')}</td><td>${esc(p.ram||'-')}</td><td>${esc(p.ssd||'-')}</td><td>${esc(p.bat||'-')}</td><td class='n'>${fm(p.price)}</td><td>${pill(p)}</td><td>${acts(p)}</td></tr>`).join('')||"<tr><td colspan='12' class='mut'>কোনো পণ্য নেই।</td></tr>";
+  $('#cards').innerHTML=L.map(p=>`<div class='pcard'><div style='display:flex;justify-content:space-between;gap:8px'><b>${th(p)} ${esc(p.name)}</b>${pill(p)}</div><div class='mut'>${p.sn?'S/N: '+esc(p.sn):''}${p.brand||p.model?'<br>'+esc([p.brand,p.model].filter(Boolean).join(' · ')):''}</div><div class='mut'>${esc([p.cpu,p.ram,p.ssd].filter(Boolean).join(' / '))}</div><div style='display:flex;justify-content:space-between;align-items:center;margin-top:8px'><b style='font-size:18px'>${fm(p.price)}</b><span>${acts(p)}</span></div></div>`).join('')||"<div class='mut'>কোনো পণ্য নেই।</div>";
+  $('#cnt').textContent=L.length+' items';
+}
+function dls(fn,data){const b=new Blob([data],{type:fn.endsWith('.json')?'application/json':'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
+function xl(){
+  const H=['Product','Brand','Model','Serial','Processor','RAM','SSD','Battery','Condition','Purchase Price','Sale Price','Qty','Status'];
+  const R2=S.p.map(p=>[p.name,p.brand,p.model,p.sn,p.cpu,p.ram,p.ssd,p.bat,p.cond,p.cost,p.price,p.qty,p.qty>0?'Available':'Sold']);
+  dls('stock-'+today()+'.csv','\ufeff'+[H].concat(R2).map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\r\n'));
+}
+/* ===== Modules: service, parcel, company, reports, settings, invoice ===== */
+const nx=a=>Math.max(0,...a.map(x=>x.no||0))+1;
+const pdv=b=>b.paid==null?b.qty*b.cost:b.paid;
+const CF0={name:'SUPER COMPUTER SHOP',owner:'Md Ferdaus',ph:'01316843984',addr:'Kazibari Mor, Bogura Sadar, Bogura',terms:'১. বিক্রিত পণ্য ফেরতযোগ্য নয়, তবে শপের নীতিমালায় বিশেষভাবে অনুমোদিত হলে ভিন্ন।\n২. ক্রেতা কেনার আগে পণ্য ভালোভাবে যাচাই করে নিতে পারবেন।\n৩. ১ বছর শপে ফ্রি সার্ভিসিং, সার্ভিসিং শর্ত সাপেক্ষে।\n৪. পরিবর্তিত যন্ত্রাংশ ও কম্পোনেন্টের দাম ক্রেতাকে বহন করতে হবে।\n৫. পণ্যের ওয়ারেন্টি শর্ত ইনভয়েসে উল্লেখ থাকবে।'};
+const cfg=()=>Object.assign({},CF0,S.cf.find(x=>x.id==='main')||{});
+let PI=null,GF=null,QQ={sv:'',pc:''},RP={f:'',t:''};
+const th=p=>p.img?`<img src='${p.img}' class='th'>`:'💻';
+function imgPick(el){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,320/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);PI=c.toDataURL('image/jpeg',.72)};im.src=r.result};r.readAsDataURL(f)}
+const csv=rows=>'\ufeff'+rows.map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+
+function gf(title,fl,fn,v){
+  v=v||{};GF={fl,fn};
+  shw('m dk',`<h2>${title}</h2><form onsubmit="return gfs(event)"><div class='fg'>${fl.map(f=>{const k=f[0],l=f[1],t=f[2],o=f[3],r=f[4],val=v[k]!=null?v[k]:'';
+    return `<div style='${t==='ta'?'grid-column:1/-1':''}'><label>${l}</label>`+(t==='sel'?`<select id='g_${k}'>${o.map(x=>`<option ${x===val?'selected':''}>${esc(x)}</option>`).join('')}</select>`:t==='ta'?`<textarea id='g_${k}' rows='4'>${esc(val)}</textarea>`:`<input id='g_${k}' type='${t||'text'}' value='${esc(val)}' ${r?'required':''}>`)+'</div>'}).join('')}</div><div style='display:flex;gap:8px;margin-top:14px'><button class='b'>সেভ করুন</button><button type='button' class='g' onclick='cm()'>বাতিল</button></div></form>`);
+}
+function gfs(e){e.preventDefault();const o={};GF.fl.forEach(f=>{const el=$('#g_'+f[0]);o[f[0]]=f[2]==='number'?num(el.value):el.value.trim()});GF.fn(o);cm();return false}
+
+const hdr=(t,no,d)=>{const c=cfg();return `<div style='display:flex;gap:14px;align-items:center;border-bottom:3px solid #0b1730;padding-bottom:10px'><img src='${LOGO}' style='width:70px;height:70px;border-radius:50%;flex:none'><div style='flex:1'><div style='font-size:22px;font-weight:700'>${esc(c.name)}</div><div style='font-size:13px'>মালিক: ${esc(c.owner)} · ফোন/WhatsApp: ${esc(c.ph)}<br>${esc(c.addr)}</div></div><div style='text-align:right'><b style='font-size:18px'>${t}</b><br>#${no}<br>${d}</div></div>`};
+const pbar=`<div class='noprint' style='display:flex;gap:8px;margin-top:16px'><button class='b' onclick='print()'>প্রিন্ট / PDF সেভ</button><button class='g' style='color:#111' onclick='cm()'>বন্ধ করুন</button></div>`;
+
+/* A4 invoice (never shows cost or profit) */
+function memo(id){
+  const s=S.s.find(x=>x.id===id);if(!s)return;const p=S.p.find(x=>x.id===s.pid)||{},c=cfg();
+  const spec=[p.brand,p.model,p.sn&&'S/N: '+p.sn,p.cpu,p.ram,p.ssd,p.bat&&'Battery: '+p.bat].filter(Boolean).map(esc).join(' · ');
+  shw('m a4',`<div class='inv'>${hdr('INVOICE',s.no,s.date)}<div style='margin:12px 0'>কাস্টমার: <b>${esc(s.cust)}</b>${s.ph?' · '+esc(s.ph):''}</div>
+  <table style='width:100%'><tr><th>পণ্য</th><th>বিবরণ</th><th>পিস</th><th>দাম</th><th>মোট</th></tr><tr><td>${esc(s.name)}</td><td style='white-space:normal'>${spec||'-'}</td><td>${s.qty}</td><td>${fm(s.price)}</td><td>${fm(tot(s))}</td></tr></table>
+  <div style='text-align:right;margin-top:10px'>মোট: <b>${fm(tot(s))}</b><br>পরিশোধ: ${fm(s.paid)}<br>বাকি: <b>${fm(tot(s)-s.paid)}</b></div>
+  ${p.war?`<div style='margin-top:10px'>ওয়ারেন্টি: ${esc(p.war)}</div>`:''}
+  <div style='margin-top:16px;font-size:12px;white-space:pre-line'><b>শর্তাবলি:</b>\n${esc(c.terms)}</div></div>${pbar}`);
+}
+
+/* Servicing */
+const SVS=['Received','Checking','Repairing','Waiting for Parts','Ready','Delivered','Cancelled'];
+const svt=v=>(v.chg||0)+(v.parts||0);
+V.serv=()=>`<div class='card'><div class='f'><div><label>খুঁজুন (আইডি, কাস্টমার, সিরিয়াল)</label><input value='${esc(QQ.sv)}' oninput='QQ.sv=this.value;svRows()'></div><button class='b' onclick='svEdit()'>＋ নতুন সার্ভিস</button></div></div><div class='card'><div class='tw'><table><tr><th>আইডি</th><th>তারিখ</th><th>কাস্টমার</th><th>ডিভাইস</th><th>অবস্থা</th><th class='n'>মোট</th><th class='n'>বাকি</th><th></th></tr><tbody id='svl'></tbody></table></div></div>`;
+function svRows(){
+  const q=QQ.sv.toLowerCase();
+  const L=S.sv.filter(v=>!q||[v.no,v.cust,v.sn,v.ph].some(x=>String(x||'').toLowerCase().includes(q))).reverse();
+  $('#svl').innerHTML=L.map(v=>`<tr><td>S-${v.no}</td><td>${v.date}</td><td>${esc(v.cust)}<br><span class='mut'>${esc(v.ph)}</span></td><td>${esc([v.brand,v.model].filter(Boolean).join(' '))}<br><span class='mut'>${esc(v.sn)}</span></td><td><select onchange="svSt('${v.id}',this.value)">${SVS.map(x=>`<option ${x===v.st?'selected':''}>${x}</option>`).join('')}</select></td><td class='n'>${fm(svt(v))}</td><td class='n ${svt(v)-v.paid>0?'bad':''}'>${fm(svt(v)-v.paid)}</td><td><button class='ic ed' onclick="svEdit('${v.id}')">✏️</button> <button class='ic' onclick="svPay('${v.id}')">💰</button> <button class='ic' onclick="svMemo('${v.id}')">🧾</button> <button class='ic rd' onclick="svDel('${v.id}')">🗑</button></td></tr>`).join('')||"<tr><td colspan='8' class='mut'>কোনো সার্ভিস নেই।</td></tr>";
+}
+const svf=[['cust','কাস্টমার','text',0,1],['ph','মোবাইল'],['brand','ল্যাপটপ ব্র্যান্ড'],['model','মডেল'],['sn','সিরিয়াল নম্বর'],['prob','সমস্যার বিবরণ','ta'],['acc','সাথে পাওয়া জিনিস'],['date','গ্রহণের তারিখ','date'],['tech','টেকনিশিয়ান'],['chg','সার্ভিস চার্জ (ফ্রি হলে ০)','number'],['parts','পার্টস খরচ','number'],['paid','এ পর্যন্ত পরিশোধ','number'],['st','অবস্থা','sel',SVS],['war','ওয়ারেন্টি / নোট']];
+function svEdit(id){
+  const v=id?S.sv.find(x=>x.id===id):{date:today(),st:'Received',chg:0,parts:0,paid:0};
+  gf(id?'সার্ভিস এডিট':'নতুন সার্ভিস',svf,o=>{if(id)Object.assign(S.sv.find(x=>x.id===id),o);else S.sv.push(Object.assign({id:uid(),no:nx(S.sv)},o));save();R()},v);
+}
+function svSt(id,st){S.sv.find(x=>x.id===id).st=st;save()}
+function svPay(id){const v=S.sv.find(x=>x.id===id),d=svt(v)-v.paid;if(d<=0)return alert('কোনো বাকি নেই');const a=prompt('কত টাকা পেলেন? (বাকি '+d+')',d);if(a===null)return;v.paid+=Math.min(d,num(a));save();R()}
+function svDel(id){if(confirm('এই সার্ভিস এন্ট্রি মুছবেন?')){S.sv=S.sv.filter(x=>x.id!==id);save();R()}}
+function svMemo(id){const v=S.sv.find(x=>x.id===id),c=cfg();
+  shw('m a4',`<div class='inv'>${hdr('SERVICE MEMO','S-'+v.no,v.date)}<div style='margin:12px 0'>কাস্টমার: <b>${esc(v.cust)}</b> · ${esc(v.ph)}<br>ডিভাইস: ${esc([v.brand,v.model].filter(Boolean).join(' '))} ${v.sn?'· S/N: '+esc(v.sn):''}<br>সমস্যা: ${esc(v.prob)}<br>সাথে পাওয়া: ${esc(v.acc||'-')} · টেকনিশিয়ান: ${esc(v.tech||'-')}<br>অবস্থা: <b>${v.st}</b></div>
+  <div style='text-align:right'>সার্ভিস চার্জ: ${fm(v.chg)}<br>পার্টস: ${fm(v.parts)}<br>মোট: <b>${fm(svt(v))}</b><br>পরিশোধ: ${fm(v.paid)}<br>বাকি: <b>${fm(svt(v)-v.paid)}</b></div>${v.war?`<div>ওয়ারেন্টি/নোট: ${esc(v.war)}</div>`:''}
+  <div style='margin-top:16px;font-size:12px;white-space:pre-line'><b>শর্তাবলি:</b>\n${esc(c.terms)}</div></div>${pbar}`)}
+
+/* Parcel & delivery */
+const PCS=['Pending','Packed','Dispatched','In Transit','Delivered','Cancelled'];
+V.parcel=()=>`<div class='card'><div class='f'><div><label>খুঁজুন (আইডি, কাস্টমার, ট্র্যাকিং)</label><input value='${esc(QQ.pc)}' oninput='QQ.pc=this.value;pcRows()'></div><button class='b' onclick='pcEdit()'>＋ নতুন পার্সেল</button></div></div><div class='card'><div class='tw'><table><tr><th>আইডি</th><th>তারিখ</th><th>কাস্টমার</th><th>পণ্য</th><th>কুরিয়ার</th><th>অবস্থা</th><th class='n'>চার্জ</th><th></th></tr><tbody id='pcl'></tbody></table></div></div>`;
+function pcRows(){
+  const q=QQ.pc.toLowerCase();
+  const L=S.pc.filter(v=>!q||[v.no,v.cust,v.track,v.ph].some(x=>String(x||'').toLowerCase().includes(q))).reverse();
+  $('#pcl').innerHTML=L.map(v=>`<tr><td>P-${v.no}</td><td>${v.date}</td><td>${esc(v.cust)}<br><span class='mut'>${esc(v.ph)}</span></td><td>${esc(v.prod)}<br><span class='mut'>${esc(v.sn)}</span></td><td>${esc(v.courier)}<br><span class='mut'>${esc(v.track)}</span></td><td><select onchange="pcSt('${v.id}',this.value)">${PCS.map(x=>`<option ${x===v.st?'selected':''}>${x}</option>`).join('')}</select></td><td class='n'>${fm((v.pch||0)+(v.dch||0))}</td><td><button class='ic ed' onclick="pcEdit('${v.id}')">✏️</button> <button class='ic' onclick="pcSlip('${v.id}')">🖨</button> <button class='ic rd' onclick="pcDel('${v.id}')">🗑</button></td></tr>`).join('')||"<tr><td colspan='8' class='mut'>কোনো পার্সেল নেই।</td></tr>";
+}
+const pcf=[['cust','কাস্টমার','text',0,1],['ph','মোবাইল'],['addr','ঠিকানা'],['prod','পণ্য'],['sn','সিরিয়াল'],['courier','কুরিয়ার'],['track','ট্র্যাকিং নম্বর'],['date','ডিসপ্যাচ তারিখ','date'],['ddate','ডেলিভারি তারিখ','date'],['pch','পার্সেল চার্জ','number'],['dch','ডেলিভারি চার্জ','number'],['st','অবস্থা','sel',PCS]];
+function pcEdit(id){const v=id?S.pc.find(x=>x.id===id):{date:today(),st:'Pending',pch:0,dch:0};
+  gf(id?'পার্সেল এডিট':'নতুন পার্সেল',pcf,o=>{if(id)Object.assign(S.pc.find(x=>x.id===id),o);else S.pc.push(Object.assign({id:uid(),no:nx(S.pc)},o));save();R()},v)}
+function pcSt(id,st){S.pc.find(x=>x.id===id).st=st;save()}
+function pcDel(id){if(confirm('এই পার্সেল মুছবেন?')){S.pc=S.pc.filter(x=>x.id!==id);save();R()}}
+function pcSlip(id){const v=S.pc.find(x=>x.id===id);
+  shw('m a4',`<div class='inv'>${hdr('PARCEL SLIP','P-'+v.no,v.date)}<div style='margin:12px 0;font-size:16px'><b>প্রাপক:</b> ${esc(v.cust)}<br>মোবাইল: ${esc(v.ph)}<br>ঠিকানা: ${esc(v.addr)}<br><br>পণ্য: ${esc(v.prod)} ${v.sn?'(S/N '+esc(v.sn)+')':''}<br>কুরিয়ার: ${esc(v.courier)} · ট্র্যাকিং: ${esc(v.track)}<br>অবস্থা: ${v.st}</div></div>${pbar}`)}
+
+/* Company / supplier accounts */
+const cob=c=>{const k=c.name.trim().toLowerCase(),pu=S.pu.filter(b=>(b.sup||'').trim().toLowerCase()===k),tp=pu.reduce((a,b)=>a+b.qty*b.cost,0),pp=pu.reduce((a,b)=>a+pdv(b),0),pays=S.cp.filter(x=>x.co===c.id),pa=pays.reduce((a,x)=>a+x.amt,0);return{pu,tp,pays,paid:pp+pa,due:tp-pp-pa}};
+V.comp=()=>`<div class='card'><button class='b' onclick='coEdit()'>＋ নতুন কোম্পানি / সাপ্লায়ার</button><p class='mut'>ক্রয়ের সময় সাপ্লায়ারের নাম কোম্পানির নামের সাথে মিললে হিসাব নিজে থেকে এখানে আসে।</p></div><div class='card'>${S.co.map(c=>{const o=cob(c);return `<details><summary>${esc(c.name)} — মোট ক্রয় ${fm(o.tp)}, পরিশোধ ${fm(o.paid)}, <span class='${o.due>0?'bad':''}'>বাকি ${fm(o.due)}</span></summary><div class='mut'>${esc([c.contact,c.ph,c.addr].filter(Boolean).join(' · '))}</div><div style='margin:8px 0;display:flex;gap:8px;flex-wrap:wrap'><button class='g' onclick="coPay('${c.id}')">পেমেন্ট দিন</button><button class='g' onclick="coEdit('${c.id}')">এডিট</button><button class='x' onclick="coDel('${c.id}')">মুছুন</button></div><div class='tw'><table>${o.pu.map(b=>`<tr><td>${b.date}</td><td>ক্রয়: ${esc(b.name)} × ${b.qty}</td><td class='n'>${fm(b.qty*b.cost)}</td></tr>`).join('')}${o.pays.map(x=>`<tr><td>${x.date}</td><td>পেমেন্ট দেওয়া</td><td class='n ok'>−${fm(x.amt)}</td></tr>`).join('')}</table></div></details>`}).join('')||"<span class='mut'>কোনো কোম্পানি নেই।</span>"}</div>`;
+function coEdit(id){const v=id?S.co.find(x=>x.id===id):{};
+  gf(id?'কোম্পানি এডিট':'নতুন কোম্পানি',[['name','কোম্পানির নাম','text',0,1],['contact','যোগাযোগ ব্যক্তি'],['ph','মোবাইল'],['addr','ঠিকানা']],o=>{if(id)Object.assign(S.co.find(x=>x.id===id),o);else S.co.push(Object.assign({id:uid()},o));save();R()},v)}
+function coPay(id){const c=S.co.find(x=>x.id===id),d=cob(c).due;if(d<=0)return alert('কোনো বাকি নেই');const a=prompt('কত টাকা দিলেন? (বাকি '+d+')',d);if(a===null)return;const n=Math.min(d,num(a));if(n>0){S.cp.push({id:uid(),date:today(),co:id,amt:n});save();R()}}
+function coDel(id){if(S.cp.some(x=>x.co===id))return alert('এই কোম্পানির পেমেন্ট রেকর্ড আছে, মোছা যাবে না।');if(confirm('কোম্পানি মুছবেন?')){S.co=S.co.filter(x=>x.id!==id);save();R()}}
+
+/* Reports */
+V.rep=()=>{
+  const ok=d=>(!RP.f||d>=RP.f)&&(!RP.t||d<=RP.t);
+  const s=S.s.filter(x=>ok(x.date)),pu=S.pu.filter(x=>ok(x.date)),sv=S.sv.filter(x=>ok(x.date));
+  const sal=s.reduce((a,x)=>a+tot(x),0),rec=s.reduce((a,x)=>a+x.paid,0),cogs=s.reduce((a,x)=>a+x.qty*x.cost,0),pur=pu.reduce((a,x)=>a+x.qty*x.cost,0);
+  const ex=S.e.filter(x=>ok(x.date)).reduce((a,x)=>a+x.amt,0),svi=sv.reduce((a,x)=>a+x.paid,0),svp=sv.reduce((a,x)=>a+x.parts,0),net=sal-cogs+svi-svp-ex;
+  const T3=[['t1','মোট বিক্রি',sal],['t2','বিক্রয় লাভ',sal-cogs],['t4','ক্রয়',pur],['t1','সার্ভিস আয়',svi],['t3','অন্যান্য খরচ',ex],['t2','নিট লাভ',net],['t3','কাস্টমারের বাকি',sal-rec],['t4','কোম্পানির বাকি',S.co.reduce((a,c)=>a+Math.max(0,cob(c).due),0)]];
+  return `<div class='card'><div class='f'><div><label>শুরুর তারিখ</label><input type='date' value='${RP.f}' onchange='RP.f=this.value;R()'></div><div><label>শেষ তারিখ</label><input type='date' value='${RP.t}' onchange='RP.t=this.value;R()'></div><button class='g' onclick="RP={f:'',t:''};R()">সব সময়</button><button class='b' onclick='rpx()'>⬇ বিক্রয় রিপোর্ট (Excel)</button></div></div>
+  <div class='grid tl'>${T3.map(t=>`<div class='tile ${t[0]}'><small>${t[1]}</small><b>${fm(t[2])}</b></div>`).join('')}</div>
+  <div class='card'><h2>বিক্রিত পণ্য</h2><div class='tw'><table><tr><th>মেমো</th><th>তারিখ</th><th>কাস্টমার</th><th>পণ্য</th><th class='n'>মোট</th><th class='n'>বাকি</th><th></th></tr>${memoRows(s.slice().reverse())}</table></div></div>
+  <div class='card'><h2>বর্তমান স্টকের মূল্য: ${fm(S.p.reduce((a,p)=>a+Math.max(0,p.qty)*p.cost,0))}</h2><p class='mut'>লাভ = বিক্রয় − কেনা দাম। নিট লাভ = বিক্রয় লাভ + সার্ভিস আয় − সার্ভিসের পার্টস − অন্যান্য খরচ।</p></div>`;
+};
+function rpx(){const ok=d=>(!RP.f||d>=RP.f)&&(!RP.t||d<=RP.t);dls('sales-report.csv',csv([['Memo','Date','Customer','Phone','Product','Qty','Price','Total','Paid','Due']].concat(S.s.filter(x=>ok(x.date)).map(x=>[x.no,x.date,x.cust,x.ph,x.name,x.qty,x.price,tot(x),x.paid,tot(x)-x.paid]))))}
+
+/* Settings, backup, restore */
+V.set=()=>{const c=cfg();return `<div class='card'><h2>দোকানের তথ্য ও ইনভয়েসের শর্ত</h2><p class='mut'>${esc(c.name)} · ${esc(c.owner)} · ${esc(c.ph)}<br>${esc(c.addr)}</p><button class='b' onclick='setEdit()'>এডিট করুন</button></div><div class='card'><h2>ব্যাকআপ ও রিস্টোর</h2><div class='f'><button class='b' onclick="dls('backup-'+today()+'.json',JSON.stringify(S))">⬇ ব্যাকআপ ডাউনলোড</button><div><label>ব্যাকআপ ফাইল থেকে রিস্টোর</label><input type='file' accept='.json' onchange='rs(this)'></div></div></div>`};
+function setEdit(){gf('সেটিংস',[['name','দোকানের নাম','text',0,1],['owner','মালিক'],['ph','ফোন / WhatsApp'],['addr','ঠিকানা'],['terms','ইনভয়েসের শর্তাবলি','ta']],o=>{const m=S.cf.find(x=>x.id==='main');if(m)Object.assign(m,o);else S.cf.push(Object.assign({id:'main'},o));save();R()},cfg())}
+function rs(el){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o.p||!o.s)throw 0;if(!confirm('বর্তমান সব ডেটা বদলে এই ব্যাকআপ বসবে। নিশ্চিত?'))return;S=o;CL.forEach(c=>{S[c]=S[c]||[]});S.n=S.n||nx(S.s);save();R()}catch(e){alert('ব্যাকআপ ফাইলটি ঠিক নেই')}};r.readAsText(f)}
+/* ===== Delete & cleanup ===== */
+let CUL=[];
+function delSale(id){
+  const s=S.s.find(x=>x.id===id);if(!s)return;
+  if(!confirm('মেমো #'+s.no+' ('+s.cust+' — '+s.name+') মুছবেন?'))return;
+  const p=S.p.find(x=>x.id===s.pid);
+  if(p&&confirm('পণ্যটা ('+s.qty+' পিস) স্টকে ফেরত যোগ করবেন?\nOK = ফেরত যোগ হবে (ভুল মেমো হলে)\nCancel = ফেরত যোগ হবে না'))p.qty+=s.qty;
+  S.s=S.s.filter(x=>x.id!==id);save();R();
+}
+function delCust(i){
+  const c=CUL[i];if(!c)return;
+  if(!confirm('"'+(c.n||'নাম নেই')+'" এর '+c.l.length+'টা মেমো মুছবেন?'))return;
+  const back=confirm('এই মেমোগুলোর পণ্য স্টকে ফেরত যোগ করবেন?\nOK = ফেরত যোগ হবে\nCancel = ফেরত যোগ হবে না');
+  if(back)c.l.forEach(s=>{const p=S.p.find(x=>x.id===s.pid);if(p)p.qty+=s.qty});
+  const ids=new Set(c.l.map(s=>s.id));S.s=S.s.filter(x=>!ids.has(x.id));save();R();
+}
+function pd(id){
+  const p=S.p.find(x=>x.id===id);if(!p)return;
+  const n=S.s.filter(s=>s.pid===id).length;
+  if(n){if(!confirm('"'+p.name+'" এর '+n+'টা বিক্রয় মেমো আছে। পণ্য, ক্রয় এন্ট্রি আর এই মেমোগুলো সব মুছবেন?'))return;S.s=S.s.filter(s=>s.pid!==id)}
+  else if(!confirm('"'+p.name+'" মুছবেন? এর ক্রয় এন্ট্রিও মুছে যাবে।'))return;
+  S.p=S.p.filter(x=>x.id!==id);S.pu=S.pu.filter(x=>x.pid!==id);save();R();
+}
+function clearOld(){
+  const d=$('#cod').value;if(!d)return alert('তারিখ বাছুন');
+  const K2=['s','pu','e','sv','pc','cp'],n=K2.reduce((a,c)=>a+S[c].filter(x=>x.date<d).length,0);
+  if(!n)return alert('এই তারিখের আগের কোনো রেকর্ড নেই');
+  if(!confirm(n+'টা পুরনো রেকর্ড (মেমো, ক্রয়, খরচ, সার্ভিস, পার্সেল, পেমেন্ট) মুছবে। স্টকের পণ্য থাকবে। রিপোর্ট ও বাকির হিসাব বদলে যাবে। আগে ব্যাকআপ নিয়েছেন?'))return;
+  K2.forEach(c=>{S[c]=S[c].filter(x=>!(x.date<d))});save();R();
+}
+const set0=V.set;
+V.set=()=>{const docs=CL.reduce((a,c)=>a+S[c].length,0),kb=Math.round(JSON.stringify(S).length/1024);
+  return set0()+`<div class='card'><h2>স্টোরেজ ও পুরনো ডেটা মুছুন</h2><p class='mut'>এখন মোট ${docs}টা রেকর্ড, প্রায় ${kb} KB (সীমা ২৫,০০০ রেকর্ড)। ছবি সবচেয়ে বেশি জায়গা নেয়। জায়গা বাঁচাতে পুরনো ছবি বাদ দিয়ে পণ্য এডিট করুন, অথবা নিচে পুরনো রেকর্ড মুছুন।</p><div class='f'><div><label>এই তারিখের আগের রেকর্ড মুছুন</label><input type='date' id='cod'></div><button class='x' onclick='clearOld()'>🗑 পুরনো রেকর্ড মুছুন</button></div></div>`};
+init();
+</script>
+</body>
+</html>

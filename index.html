@@ -382,19 +382,26 @@ function pf(id){
   PI=null;
   const p=id?S.p.find(x=>x.id===id):{};if(!p)return;
   const F=(k,l,t,req)=>`<div><label>${l}</label><input id='f_${k}' type='${t||'text'}' value='${esc(p[k]!=null?p[k]:(k==='date'?today():''))}' ${req?'required':''}></div>`;
-  shw('m dk',`<h2>${id?'ল্যাপটপ এডিট':'নতুন ল্যাপটপ'}</h2><form onsubmit="ps2(event,'${id||''}')"><div class='fg'>${F('name','পণ্যের নাম','text',1)}${F('brand','ব্র্যান্ড')}${F('model','মডেল')}${F('sn','সিরিয়াল নম্বর','text',1)}${F('cpu','প্রসেসর')}${F('ram','RAM')}${F('ssd','SSD / HDD')}${F('disp','ডিসপ্লে')}${F('bat','ব্যাটারি ব্যাকআপ')}
+  shw('m dk',`<h2>${id?'ল্যাপটপ এডিট':'নতুন ল্যাপটপ'}</h2><form onsubmit="ps2(event,'${id||''}')"><div class='fg'>${F('name','পণ্যের নাম','text',1)}${F('brand','ব্র্যান্ড')}${F('model','মডেল')}${F('sn','সিরিয়াল নম্বর (একাধিক পিস হলে ফাঁকা রাখুন)','text',0)}${F('cpu','প্রসেসর')}${F('ram','RAM')}${F('ssd','SSD / HDD')}${F('disp','ডিসপ্লে')}${F('bat','ব্যাটারি ব্যাকআপ')}
   <div><label>টাচ</label><select id='f_touch'>${['Non-Touch','Touch'].map(c=>`<option ${p.touch===c?'selected':''}>${c}</option>`).join('')}</select></div>
   <div><label>কন্ডিশন</label><select id='f_cond'>${['Used','New','Refurbished'].map(c=>`<option ${p.cond===c?'selected':''}>${c}</option>`).join('')}</select></div>
-  ${F('cost','কেনা দাম','number',1)}${F('price','বিক্রয় দাম','number',1)}${F('date','ক্রয়ের তারিখ','date')}${F('sup','সাপ্লায়ার')}${F('war','ওয়ারেন্টি')}${F('desc','বিবরণ')}<div><label>ছবি</label><input type='file' accept='image/*' onchange='imgPick(this)'></div></div>
+  ${id?'':`<div><label>পিস (একই পণ্য কয়টা)</label><input id='f_qty' type='number' min='1' step='1' value='1'></div>`}${F('cost','কেনা দাম (প্রতি পিস)','number',1)}${F('price','বিক্রয় দাম','number',1)}${F('date','ক্রয়ের তারিখ','date')}${F('sup','সাপ্লায়ার')}${F('war','ওয়ারেন্টি')}${F('desc','বিবরণ')}<div><label>ছবি</label><input type='file' accept='image/*' onchange='imgPick(this)'></div></div>
   <div style='display:flex;gap:8px;flex-wrap:wrap;margin-top:14px'><button class='b' value='s'>সেভ করুন</button>${id?'':"<button class='g' value='n'>সেভ ও আরেকটি যোগ</button>"}<button type='button' class='g' onclick='cm()'>বাতিল</button></div></form>`);
 }
 function ps2(e,id){
   e.preventDefault();
   const g=k=>$('#f_'+k).value.trim(),sn=g('sn');
-  if(S.p.some(x=>x.id!==id&&x.sn&&x.sn.toLowerCase()===sn.toLowerCase()))return alert('এই সিরিয়াল নম্বর আগে থেকেই আছে');
+  const qn=id?1:Math.max(1,Math.floor(num($('#f_qty')?$('#f_qty').value:1))||1);
+  if(!id&&qn>1&&sn)return alert('একাধিক পিস যোগ করতে সিরিয়াল নম্বর ফাঁকা রাখুন। প্রতিটির সিরিয়াল আলাদা হলে একটা একটা করে যোগ করুন (সেভ ও আরেকটি যোগ)।');
+  if(sn&&S.p.some(x=>x.id!==id&&x.sn&&x.sn.toLowerCase()===sn.toLowerCase()))return alert('এই সিরিয়াল নম্বর আগে থেকেই আছে');
   const d={name:g('name'),brand:g('brand'),model:g('model'),sn,cpu:g('cpu'),ram:g('ram'),ssd:g('ssd'),disp:g('disp'),bat:g('bat'),touch:g('touch'),cond:g('cond'),cost:num(g('cost')),price:num(g('price')),date:g('date')||today(),sup:g('sup'),war:g('war'),desc:g('desc')};if(PI!==null)d.img=PI;
   if(id)Object.assign(S.p.find(x=>x.id===id),d);
-  else{const p=Object.assign({id:uid(),qty:1},d);S.p.push(p);S.pu.push({id:uid(),date:d.date,sup:d.sup,pid:p.id,name:d.name,qty:1,cost:d.cost,paid:d.cost})}
+  else{
+    const ex=!sn?S.p.find(x=>!x.sn&&String(x.name||'').trim().toLowerCase()===d.name.toLowerCase()&&String(x.model||'').trim().toLowerCase()===d.model.toLowerCase()):null;
+    let p;
+    if(ex){ex.cost=(ex.qty*ex.cost+qn*d.cost)/(ex.qty+qn);ex.qty+=qn;ex.price=d.price;if(d.img)ex.img=d.img;p=ex}
+    else{p=Object.assign({id:uid(),qty:qn},d);S.p.push(p)}
+    S.pu.push({id:uid(),date:d.date,sup:d.sup,pid:p.id,name:d.name,qty:qn,cost:d.cost,paid:d.cost*qn})}
   save();const again=e.submitter&&e.submitter.value==='n';
   R();if(again)pf();else cm();
 }

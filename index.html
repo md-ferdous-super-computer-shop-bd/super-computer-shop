@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b1730">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ল্যাপটপ শপ ম্যানেজার</title>
@@ -574,6 +581,7 @@ function clearOld(){
 const set0=V.set;
 V.set=()=>{const docs=CL.reduce((a,c)=>a+S[c].length,0),kb=Math.round(JSON.stringify(S).length/1024);
   return set0()+`<div class='card'><h2>স্টোরেজ ও পুরনো ডেটা মুছুন</h2><p class='mut'>এখন মোট ${docs}টা রেকর্ড, প্রায় ${kb} KB (সীমা ২৫,০০০ রেকর্ড)। ছবি সবচেয়ে বেশি জায়গা নেয়। জায়গা বাঁচাতে পুরনো ছবি বাদ দিয়ে পণ্য এডিট করুন, অথবা নিচে পুরনো রেকর্ড মুছুন।</p><div class='f'><div><label>এই তারিখের আগের রেকর্ড মুছুন</label><input type='date' id='cod'></div><button class='x' onclick='clearOld()'>🗑 পুরনো রেকর্ড মুছুন</button></div></div>`};
+if("serviceWorker" in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 init();
 </script>
 </body>

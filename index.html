@@ -196,7 +196,7 @@ const fm=n=>'৳'+Math.round(n).toLocaleString('en-IN');
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const T=[['dash','ড্যাশবোর্ড'],['buy','ক্রয় (Purchase)'],['stock','স্টক'],['sell','বিক্রয় / মেমো'],['ord','অর্ডার'],['cust','কাস্টমার রিপোর্ট'],['acc','আয়-ব্যয়']];
-let tab='stock',cart=[],C={n:'',ph:''};
+let tab='stock',cart=[],C={n:'',ph:'',ad:''};
 const num=v=>parseFloat(v)||0;
 const findP=n=>S.p.find(p=>p.name.trim().toLowerCase()===String(n).trim().toLowerCase());
 const opts=()=>S.p.map(p=>`<option value="${esc(p.name)}">`).join('');
@@ -250,13 +250,14 @@ sell(){
   const t=cart.reduce((a,c)=>a+c.qty*c.price,0);
   return `<div class="card"><h2>নতুন বিক্রয়</h2><div class="f">
   <div><label>কাস্টমারের নাম</label><input id="cn" value="${esc(C.n)}" oninput="C.n=this.value"></div>
-  <div><label>মোবাইল</label><input id="cp" value="${esc(C.ph)}" oninput="C.ph=this.value"></div></div>
+  <div><label>মোবাইল</label><input id="cp" value="${esc(C.ph)}" oninput="C.ph=this.value"></div>
+  <div><label>ঠিকানা</label><input id="ca" value="${esc(C.ad||'')}" oninput="C.ad=this.value"></div></div>
   <div class="f" style="margin-top:10px">
   <div><label>পণ্য</label><select id="sp" onchange="sf()"><option value="">-- বাছুন --</option>${S.p.filter(p=>p.qty>0).map(p=>`<option value="${p.id}">${esc(p.name)}${p.sn?' ['+esc(p.sn)+']':''} (স্টক ${p.qty})</option>`).join('')}</select></div>
-  <div><label>পিস</label><input id="sqty" type="number" min="1" value="1"></div>
-  <div><label>দাম (প্রতি পিস)</label><input id="spr" type="number" min="0"></div>
+  <div><label>পিস</label><input id="sqty" type="number" min="1" value="1" oninput="slt()"></div>
+  <div><label>দাম (প্রতি পিস)</label><input id="spr" type="number" min="0" oninput="slt()"><div class="hint" id="slt"></div></div>
   <button class="b" onclick="addCart()">যোগ করুন</button></div></div>
-  <div class="card"><h2>কার্ট — প্রতিটি পণ্যের আলাদা মেমো হবে</h2>
+  <div class="card"><h2>কার্ট — সব পণ্য মিলে একটাই মেমো হবে</h2>
   ${cart.length?`<div class="tw"><table>${cart.map((c,i)=>`<tr><td>${esc(c.name)}</td><td class="n">${c.qty} × ${fm(c.price)}</td><td class="n">${fm(c.qty*c.price)}</td><td><button class="x" onclick="cart.splice(${i},1);R()">বাদ</button></td></tr>`).join('')}</table></div>
   <div class="f" style="margin-top:10px"><div><label>মোট ${fm(t)} — পরিশোধ (খালি = পুরোটা)</label><input id="paid" type="number" min="0"></div><button class="b" onclick="checkout()">মেমো তৈরি করুন</button></div>`:'<span class="mut">কার্ট খালি। উপর থেকে পণ্য যোগ করুন।</span>'}</div>
   <div class="card"><h2>মেমো তালিকা</h2><div class="tw"><table><tr><th>মেমো</th><th>তারিখ</th><th>কাস্টমার</th><th>পণ্য</th><th class="n">মোট</th><th class="n">বাকি</th><th></th></tr>
@@ -307,19 +308,20 @@ function delBuy(id){const b=S.pu.find(x=>x.id===id);if(!b||!confirm('এই ক�
   const p=S.p.find(x=>x.id===b.pid);if(p)p.qty=Math.max(0,p.qty-b.qty);S.pu=S.pu.filter(x=>x.id!==id);save();R()}
 function rows(){const q=($('#sq')?$('#sq').value:'').toLowerCase();
   $('#tb').innerHTML=S.p.filter(p=>p.name.toLowerCase().includes(q)).map(p=>`<tr><td>${esc(p.name)}</td><td class="n ${p.qty<=2?'bad':''}"><b>${p.qty}</b></td><td class="n">${fm(p.cost)}</td><td class="n">${fm(p.price)}</td><td class="n">${fm(p.qty*p.cost)}</td></tr>`).join('')||'<tr><td colspan="5" class="mut">কোনো পণ্য নেই।</td></tr>'}
-function sf(){const p=S.p.find(x=>x.id===$('#sp').value);$('#spr').value=p?p.price:''}
+function sf(){const p=S.p.find(x=>x.id===$('#sp').value);$('#spr').value=p?p.price:'';slt()}
+function slt(){const e=$('#slt');if(!e)return;const q=num($('#sqty').value),pr=num($('#spr').value);e.textContent=$('#sp').value&&q&&pr?'এই পণ্যের মোট: '+fm(q*pr):''}
 function addCart(){const p=S.p.find(x=>x.id===$('#sp').value),qty=num($('#sqty').value);
   if(!p||qty<1)return alert('পণ্য ও পিস দিন');
   const used=cart.filter(c=>c.pid===p.id).reduce((a,c)=>a+c.qty,0);
   if(used+qty>p.qty)return alert('স্টকে মাত্র '+p.qty+' পিস আছে');
   cart.push({pid:p.id,name:p.name,qty,price:num($('#spr').value),cost:p.cost});R()}
-function mkSale(cust,ph,p,qty,price,paid){const s={id:uid(),no:S.n++,date:today(),cust:cust||'ওয়াক-ইন কাস্টমার',ph:ph||'',pid:p.id,name:p.name,qty,price,cost:p.cost,paid};
+function mkSale(cust,ph,p,qty,price,paid,no,ad){const s={ad:ad||'',id:uid(),no:no!=null?no:S.n++,date:today(),cust:cust||'ওয়াক-ইন কাস্টমার',ph:ph||'',pid:p.id,name:p.name,qty,price,cost:p.cost,paid};
   p.qty-=qty;S.s.push(s);return s}
-function checkout(){let left=$('#paid').value===''?Infinity:num($('#paid').value),last;
-  cart.forEach(c=>{const p=S.p.find(x=>x.id===c.pid);if(!p)return;const t=c.qty*c.price,pd=Math.min(t,left);left-=pd;last=mkSale(C.n.trim(),C.ph.trim(),p,c.qty,c.price,pd)});
-  cart=[];C={n:'',ph:''};save();R();if(last)memo(last.id)}
-function due(id){const s=S.s.find(x=>x.id===id),d=tot(s)-s.paid,v=prompt('কত টাকা পেলেন? (বাকি '+d+')',d);if(v===null)return;
-  s.paid=Math.min(tot(s),s.paid+num(v));save();R()}
+function checkout(){let left=$('#paid').value===''?Infinity:num($('#paid').value),last,no=null;
+  cart.forEach(c=>{const p=S.p.find(x=>x.id===c.pid);if(!p)return;if(no===null)no=S.n++;const t=c.qty*c.price,pd=Math.min(t,left);left-=pd;last=mkSale(C.n.trim(),C.ph.trim(),p,c.qty,c.price,pd,no,C.ad.trim())});
+  cart=[];C={n:'',ph:'',ad:''};save();R();if(last)memo(last.id)}
+function due(id){const s0=S.s.find(x=>x.id===id);if(!s0)return;const g=S.s.filter(x=>x.no===s0.no),d=g.reduce((a,x)=>a+tot(x)-x.paid,0),v=prompt('কত টাকা পেলেন? (বাকি '+d+')',d);if(v===null)return;
+  let left=num(v);g.forEach(x=>{const k=Math.min(tot(x)-x.paid,left);if(k>0){x.paid+=k;left-=k}});save();R()}
 function memo(id){const s=S.s.find(x=>x.id===id);if(!s)return;$('#mm').className='m';
   $('#mm').innerHTML=`<div style="text-align:center"><b style="font-size:20px">ক্যাশ মেমো</b><br>মেমো নং #${s.no} · ${s.date}</div><hr>
   <div>কাস্টমার: <b>${esc(s.cust)}</b>${s.ph?'<br>মোবাইল: '+esc(s.ph):''}</div>
@@ -420,9 +422,11 @@ function ps(){
   const L=S.p.filter(p=>p.qty>0);
   shw('m wd',`<h2 style='color:#111'>স্টক তালিকা — ${today()}</h2><div class='tw'><table style='font-size:13px'><tr><th>পণ্য</th><th>মডেল</th><th>সিরিয়াল</th><th>কনফিগ</th><th>পিস</th><th>দাম</th></tr>${L.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.model||'-')}</td><td>${esc(p.sn||'-')}</td><td>${esc([p.cpu,p.ram,p.ssd].filter(Boolean).join(' / ')||'-')}</td><td>${p.qty}</td><td>${fm(p.price)}</td></tr>`).join('')}</table></div><div class='noprint' style='display:flex;gap:8px;margin-top:14px'><button class='b' onclick='print()'>প্রিন্ট</button><button class='g' style='color:#111' onclick='cm()'>বন্ধ করুন</button></div>`);
 }
-const memoRows=L=>L.map(s=>`<tr><td>#${s.no}</td><td>${s.date}</td><td>${esc(s.cust)}</td><td>${esc(s.name)} × ${s.qty}</td><td class='n'>${fm(tot(s))}</td><td class='n ${tot(s)-s.paid>0?'bad':''}'>${fm(tot(s)-s.paid)}</td><td><button class='g' onclick="memo('${s.id}')">দেখুন / প্রিন্ট</button> <button class='x' onclick="delSale('${s.id}')">🗑 মুছুন</button></td></tr>`).join('')||"<tr><td colspan='7' class='mut'>কিছু নেই।</td></tr>";
+const memoRows=L=>{const seen=new Set(),G=[];L.forEach(x=>{if(!seen.has(x.no)){seen.add(x.no);G.push(S.s.filter(y=>y.no===x.no))}});
+  return G.map(g=>{const s=g[0],t=g.reduce((a,x)=>a+tot(x),0),pd=g.reduce((a,x)=>a+x.paid,0);
+    return `<tr><td>#${s.no}</td><td>${s.date}</td><td>${esc(s.cust)}</td><td>${g.map(x=>esc(x.name)+' × '+x.qty).join('<br>')}</td><td class='n'>${fm(t)}</td><td class='n ${t-pd>0?'bad':''}'>${fm(t-pd)}</td><td><button class='g' onclick="memo('${s.id}')">দেখুন / প্রিন্ট</button> <button class='x' onclick="delSale('${s.id}')">🗑 মুছুন</button></td></tr>`}).join('')||"<tr><td colspan='7' class='mut'>কিছু নেই।</td></tr>"};
 V.inv=()=>`<div class='card'><h2>ইনভয়েস ও মেমো</h2><div class='tw'><table><tr><th>মেমো</th><th>তারিখ</th><th>কাস্টমার</th><th>পণ্য</th><th class='n'>মোট</th><th class='n'>বাকি</th><th></th></tr>${memoRows(S.s.slice().reverse())}</table></div></div>`;
-V.due=()=>{const L=S.s.filter(s=>tot(s)-s.paid>0).reverse();return `<div class='card'><h2>কাস্টমারের কাছে বাকি: <span class='bad'>${fm(L.reduce((a,s)=>a+tot(s)-s.paid,0))}</span></h2><div class='tw'><table><tr><th>মেমো</th><th>কাস্টমার</th><th>পণ্য</th><th class='n'>বাকি</th><th></th></tr>${L.map(s=>`<tr><td>#${s.no}</td><td>${esc(s.cust)}<br><span class='mut'>${esc(s.ph)}</span></td><td>${esc(s.name)}</td><td class='n bad'>${fm(tot(s)-s.paid)}</td><td><button class='g' onclick="due('${s.id}')">বাকি নিন</button></td></tr>`).join('')||"<tr><td colspan='5' class='mut'>কোনো বাকি নেই।</td></tr>"}</table></div></div>`};
+V.due=()=>{const seen=new Set(),L=[];S.s.slice().reverse().forEach(x=>{if(seen.has(x.no))return;seen.add(x.no);const g=S.s.filter(y=>y.no===x.no);const d=g.reduce((a,y)=>a+tot(y)-y.paid,0);if(d>0)L.push({id:x.id,no:x.no,cust:x.cust,ph:x.ph,name:g.map(y=>y.name+' × '+y.qty).join(', '),d})});return `<div class='card'><h2>কাস্টমারের কাছে বাকি: <span class='bad'>${fm(L.reduce((a,s)=>a+s.d,0))}</span></h2><div class='tw'><table><tr><th>মেমো</th><th>কাস্টমার</th><th>পণ্য</th><th class='n'>বাকি</th><th></th></tr>${L.map(s=>`<tr><td>#${s.no}</td><td>${esc(s.cust)}<br><span class='mut'>${esc(s.ph)}</span></td><td>${esc(s.name)}</td><td class='n bad'>${fm(s.d)}</td><td><button class='g' onclick="due('${s.id}')">বাকি নিন</button></td></tr>`).join('')||"<tr><td colspan='5' class='mut'>কোনো বাকি নেই।</td></tr>"}</table></div></div>`};
 /* ===== Mockup-style stock page ===== */
 function R(){
   CL.forEach(c=>{S[c]=S[c]||[]});
@@ -482,13 +486,17 @@ const pbar=`<div class='noprint' style='display:flex;gap:8px;margin-top:16px'><b
 
 /* A4 invoice (never shows cost or profit) */
 function memo(id){
-  const s=S.s.find(x=>x.id===id);if(!s)return;const p=S.p.find(x=>x.id===s.pid)||{},c=cfg();
-  const spec=[p.brand,p.model,p.sn&&'S/N: '+p.sn,p.cpu,p.ram,p.ssd,p.bat&&'Battery: '+p.bat].filter(Boolean).map(esc).join(' · ');
-  shw('m a4',`<div class='inv'>${hdr('INVOICE',s.no,s.date)}<div style='margin:12px 0'>কাস্টমার: <b>${esc(s.cust)}</b>${s.ph?' · '+esc(s.ph):''}</div>
-  <table style='width:100%'><tr><th>পণ্য</th><th>বিবরণ</th><th>পিস</th><th>দাম</th><th>মোট</th></tr><tr><td>${esc(s.name)}</td><td style='white-space:normal'>${spec||'-'}</td><td>${s.qty}</td><td>${fm(s.price)}</td><td>${fm(tot(s))}</td></tr></table>
-  <div style='text-align:right;margin-top:10px'>মোট: <b>${fm(tot(s))}</b><br>পরিশোধ: ${fm(s.paid)}<br>বাকি: <b>${fm(tot(s)-s.paid)}</b></div>
-  ${p.war?`<div style='margin-top:10px'>ওয়ারেন্টি: ${esc(p.war)}</div>`:''}
-  <div style='margin-top:16px;font-size:12px;white-space:pre-line'><b>শর্তাবলি:</b>\n${esc(c.terms)}</div></div>${pbar}`);
+  const s=S.s.find(x=>x.id===id);if(!s)return;const c=cfg(),g=S.s.filter(x=>x.no===s.no);
+  const T=g.reduce((a,x)=>a+tot(x),0),P=g.reduce((a,x)=>a+x.paid,0);
+  const rows=g.map(x=>{const p=S.p.find(y=>y.id===x.pid)||{},spec=[p.brand,p.model,p.sn&&'S/N: '+p.sn,p.cpu,p.ram,p.ssd,p.bat&&'Battery: '+p.bat].filter(Boolean).map(esc).join(' · ');
+    return `<tr><td>${esc(x.name)}</td><td style='white-space:normal'>${spec||'-'}</td><td>${x.qty}</td><td>${fm(x.price)}</td><td>${fm(tot(x))}</td></tr>`}).join('');
+  const war=g.map(x=>{const p=S.p.find(y=>y.id===x.pid)||{};return p.war?esc(x.name)+': '+esc(p.war):''}).filter(Boolean);
+  shw('m a4',`<div class='inv'>${hdr('INVOICE',s.no,s.date)}<div style='margin:12px 0'>কাস্টমার: <b>${esc(s.cust)}</b>${s.ph?' · '+esc(s.ph):''}${s.ad?'<br>ঠিকানা: '+esc(s.ad):''}</div>
+  <table style='width:100%'><tr><th>পণ্য</th><th>বিবরণ</th><th>পিস</th><th>দাম</th><th>মোট</th></tr>${rows}</table>
+  <div style='text-align:right;margin-top:10px'>মোট: <b>${fm(T)}</b><br>পরিশোধ: ${fm(P)}<br>বাকি: <b>${fm(T-P)}</b></div>
+  ${war.length?`<div style='margin-top:10px'>ওয়ারেন্টি: ${war.join(' | ')}</div>`:''}
+  <div style='margin-top:16px;font-size:12px;white-space:pre-line'><b>শর্তাবলি:</b>\n${esc(c.terms)}</div>
+  <div style='display:flex;justify-content:space-between;gap:30px;margin-top:56px;font-size:13px'><div style='flex:1;text-align:center;border-top:1px solid #000;padding-top:4px'>কাস্টমারের স্বাক্ষর<br><b>${esc(s.cust)}</b></div><div style='flex:1;text-align:center;border-top:1px solid #000;padding-top:4px'>মালিক / ম্যানেজারের স্বাক্ষর<br><b>${esc(c.owner||c.name)}</b></div></div></div>${pbar}`);
 }
 
 /* Servicing */
@@ -511,7 +519,8 @@ function svDel(id){if(confirm('এই সার্ভিস এন্ট্র�
 function svMemo(id){const v=S.sv.find(x=>x.id===id),c=cfg();
   shw('m a4',`<div class='inv'>${hdr('SERVICE MEMO','S-'+v.no,v.date)}<div style='margin:12px 0'>কাস্টমার: <b>${esc(v.cust)}</b> · ${esc(v.ph)}<br>ডিভাইস: ${esc([v.brand,v.model].filter(Boolean).join(' '))} ${v.sn?'· S/N: '+esc(v.sn):''}<br>সমস্যা: ${esc(v.prob)}<br>সাথে পাওয়া: ${esc(v.acc||'-')} · টেকনিশিয়ান: ${esc(v.tech||'-')}<br>অবস্থা: <b>${v.st}</b></div>
   <div style='text-align:right'>সার্ভিস চার্জ: ${fm(v.chg)}<br>পার্টস: ${fm(v.parts)}<br>মোট: <b>${fm(svt(v))}</b><br>পরিশোধ: ${fm(v.paid)}<br>বাকি: <b>${fm(svt(v)-v.paid)}</b></div>${v.war?`<div>ওয়ারেন্টি/নোট: ${esc(v.war)}</div>`:''}
-  <div style='margin-top:16px;font-size:12px;white-space:pre-line'><b>শর্তাবলি:</b>\n${esc(c.terms)}</div></div>${pbar}`)}
+  <div style='margin-top:16px;font-size:12px;white-space:pre-line'><b>শর্তাবলি:</b>\n${esc(c.terms)}</div>
+  <div style='display:flex;justify-content:space-between;gap:30px;margin-top:56px;font-size:13px'><div style='flex:1;text-align:center;border-top:1px solid #000;padding-top:4px'>কাস্টমারের স্বাক্ষর<br><b>${esc(v.cust)}</b></div><div style='flex:1;text-align:center;border-top:1px solid #000;padding-top:4px'>মালিক / ম্যানেজারের স্বাক্ষর<br><b>${esc(c.owner||c.name)}</b></div></div></div>${pbar}`)}
 
 /* Parcel & delivery */
 const PCS=['Pending','Packed','Dispatched','In Transit','Delivered','Cancelled'];
@@ -559,10 +568,10 @@ function rs(el){const f=el.files[0];if(!f)return;const r=new FileReader();r.onlo
 let CUL=[];
 function delSale(id){
   const s=S.s.find(x=>x.id===id);if(!s)return;
-  if(!confirm('মেমো #'+s.no+' ('+s.cust+' — '+s.name+') মুছবেন?'))return;
-  const p=S.p.find(x=>x.id===s.pid);
-  if(p&&confirm('পণ্যটা ('+s.qty+' পিস) স্টকে ফেরত যোগ করবেন?\nOK = ফেরত যোগ হবে (ভুল মেমো হলে)\nCancel = ফেরত যোগ হবে না'))p.qty+=s.qty;
-  S.s=S.s.filter(x=>x.id!==id);save();R();
+  const g=S.s.filter(x=>x.no===s.no);
+  if(!confirm('মেমো #'+s.no+' ('+s.cust+' — '+g.map(x=>x.name+' × '+x.qty).join(', ')+') মুছবেন?'))return;
+  if(confirm('পণ্যগুলো ('+g.reduce((a,x)=>a+x.qty,0)+' পিস) স্টকে ফেরত যোগ করবেন?\nOK = ফেরত যোগ হবে (ভুল মেমো হলে)\nCancel = ফেরত যোগ হবে না'))g.forEach(x=>{const p=S.p.find(y=>y.id===x.pid);if(p)p.qty+=x.qty});
+  const ids=new Set(g.map(x=>x.id));S.s=S.s.filter(x=>!ids.has(x.id));save();R();
 }
 function delCust(i){
   const c=CUL[i];if(!c)return;

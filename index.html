@@ -232,7 +232,7 @@ dash(){
 buy(){
   return `<div class="card"><h2>নতুন ক্রয়</h2>
   <form onsubmit="addBuy(event)"><div class="f">
-  <div><label>পণ্যের নাম</label><input id="bn" list="pl" required oninput="bh()" autocomplete="off"><datalist id="pl">${opts()}</datalist><div class="hint" id="bhint"></div></div>
+  <div><label>পণ্যের নাম</label><input id="bnm" list="pl" required oninput="bh()" autocomplete="off"><datalist id="pl">${opts()}</datalist><div class="hint" id="bhint"></div></div>
   <div><label>সাপ্লায়ার</label><input id="bs" list="cl"><datalist id="cl">${S.co.map(c=>`<option value="${esc(c.name)}">`).join('')}</datalist></div><div><label>পরিশোধ (খালি = পুরোটা)</label><input id="bpd" type="number" min="0"></div>
   <div><label>পরিমাণ (পিস)</label><input id="bq" type="number" min="1" required></div>
   <div><label>কেনা দাম (প্রতি পিস)</label><input id="bc" type="number" min="0" required></div>
@@ -295,9 +295,9 @@ acc(){
   ${L.map(l=>`<tr><td>${l.d}</td><td>${esc(l.t)}</td><td class="n ok">${l.i?fm(l.i):''}</td><td class="n bad">${l.x?fm(l.x):''}</td><td>${l.id?`<button class="x" onclick="delExp('${l.id}')">মুছুন</button>`:''}</td></tr>`).join('')||'<tr><td colspan="5" class="mut">কোনো এন্ট্রি নেই।</td></tr>'}</table></div></div>`;
 }};
 
-function bh(){const p=findP($('#bn').value);$('#bhint').textContent=p?`এই নাম আছে — বর্তমান স্টক ${p.qty} পিস, এন্ট্রি দিলে স্টক বাড়বে`:'';if(p&&!$('#bp').value)$('#bp').value=p.price||''}
+function bh(){const p=findP($('#bnm').value);$('#bhint').textContent=p?`এই নাম আছে — বর্তমান স্টক ${p.qty} পিস, এন্ট্রি দিলে স্টক বাড়বে`:'';if(p&&!$('#bp').value)$('#bp').value=p.price||''}
 function addBuy(e){e.preventDefault();
-  const name=$('#bn').value.trim(),qty=num($('#bq').value),cost=num($('#bc').value),price=$('#bp').value;
+  const name=$('#bnm').value.trim(),qty=num($('#bq').value),cost=num($('#bc').value),price=$('#bp').value;
   let p=findP(name);
   if(!p){p={id:uid(),name,qty:0,cost:0,price:0};S.p.push(p)}
   p.cost=(p.qty*p.cost+qty*cost)/(p.qty+qty);p.qty+=qty;if(price!=='')p.price=num(price);

@@ -126,8 +126,8 @@ textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:
 <div id="modal"><div class="m" id="mm"></div></div>
 <div id="lgn"><form class="bx" onsubmit="return doLogin(event)"><img id="lgi" alt=""><h2>SUPER COMPUTER SHOP</h2><p class="s">ম্যানেজমেন্ট সফটওয়্যারে লগইন করুন</p><label>ইমেইল</label><input id="lem" type="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required><label>পাসওয়ার্ড</label><input id="lpw" type="password" autocomplete="off" autocapitalize="none" autocorrect="off" required><label style="display:flex;gap:6px;align-items:center;margin-top:8px;cursor:pointer"><input type="checkbox" style="width:auto" onchange="document.getElementById('lpw').type=this.checked?'text':'password'"> পাসওয়ার্ড দেখাও</label><button class="b" id="lbt">লগইন</button><div class="er" id="ler"></div><div style="text-align:center;margin-top:10px"><a href="#" onclick="return resetPw()" style="color:#d4a017;font-size:13px">পাসওয়ার্ড ভুলে গেছি / নতুন সেট করব</a></div></form></div>
 <script>
-const K='lapshop_v1',CL=['p','pu','s','o','e','sv','pc','co','cp','cf'];
-let S={p:[],pu:[],s:[],o:[],e:[],sv:[],pc:[],co:[],cp:[],cf:[],n:1},DB=null,snap={},busy=false,pending=false;
+const K='lapshop_v1';let CL=['p','pu','s','o','e','sv','pc','co','cp','cf','cu','lg'],ROLE='owner',PERSIST=false;const OWNER='mdferdous8080@gmail.com';
+let S={p:[],pu:[],s:[],o:[],e:[],sv:[],pc:[],co:[],cp:[],cf:[],cu:[],lg:[],n:1},DB=null,snap={},busy=false,pending=false;
 const setSt=t=>{const e=document.getElementById('st');if(e)e.textContent=t};
 const loc=()=>{try{return JSON.parse(localStorage.getItem(K))}catch(e){return null}};
 async function save(){
@@ -139,14 +139,15 @@ async function save(){
       S[c].forEach(it=>{const k=c+'/'+it.id,j=JSON.stringify(it);ids.add(k);if(snap[k]!==j){ns[k]=j;jobs.push(DB.collection(c).doc(it.id).set(JSON.parse(JSON.stringify(it))))}});
       Object.keys(snap).filter(k=>k.startsWith(c+'/')&&!ids.has(k)).forEach(k=>{del.push(k);jobs.push(DB.collection(c).doc(k.slice(c.length+1)).delete())})});
     const mj=JSON.stringify(S.n);if(snap.n!==mj){ns.n=mj;jobs.push(DB.doc('meta/main').set({n:S.n}))}
-    await Promise.all(jobs);Object.assign(snap,ns);del.forEach(k=>delete snap[k])}while(pending);
-    setSt('✓ অনলাইনে সেভ হয়েছে')}catch(e){setSt('⚠ সেভ হয়নি, ইন্টারনেট দেখুন')}
+    await Promise.race([Promise.all(jobs),new Promise((res,rej)=>setTimeout(()=>PERSIST?res('q'):rej(new Error('t')),9000))]);Object.assign(snap,ns);del.forEach(k=>delete snap[k])}while(pending);
+    if(ROLE==='owner'&&typeof syncCat==='function')syncCat();
+    setSt(navigator.onLine?'✓ অনলাইনে সেভ হয়েছে':'📴 অফলাইনে সেভ হয়েছে, নেট এলে নিজে সিঙ্ক হবে')}catch(e){setSt('⚠ সেভ হয়নি, ইন্টারনেট দেখুন')}
   busy=false}
 async function load(first){
   if(!DB)return;
   try{
     const [sn,m]=await Promise.race([Promise.all([Promise.all(CL.map(c=>DB.collection(c).get())),DB.doc('meta/main').get()]),new Promise((_,r)=>setTimeout(()=>r(0),10000))]);
-    const T2={p:[],pu:[],s:[],o:[],e:[],sv:[],pc:[],co:[],cp:[],cf:[],n:1},sp={};
+    const T2={p:[],pu:[],s:[],o:[],e:[],sv:[],pc:[],co:[],cp:[],cf:[],cu:[],lg:[],n:1},sp={};
     CL.forEach((c,i)=>sn[i].docs.forEach(d=>{const v=d.data();T2[c].push(v);sp[c+'/'+d.id]=JSON.stringify(v)}));
     T2.n=m.exists?m.data().n:Math.max(0,...T2.s.map(s=>s.no))+1;sp.n=JSON.stringify(T2.n);
     const L=loc();
@@ -185,8 +186,10 @@ async function init(){
     const lg=document.getElementById('lgn');
     if(!u){DB=null;lg.style.display='flex';return}
     lg.style.display='none';
-    DB=firebase.firestore();R();
+    if(!DB){DB=firebase.firestore();try{DB.enablePersistence({synchronizeTabs:true}).then(()=>{PERSIST=true}).catch(()=>{})}catch(x){}}
+    applyRole(u);R();
     await load(true);
+    {const L=S.lg.filter(l=>l.u===window.ME&&l.a==='লগইন').sort((x,y)=>y.t-x.t)[0];if(!L||Date.now()-L.t>1800000){logA('লগইন','');save()}}
     if(!started){started=true;document.addEventListener('visibilitychange',()=>{if(!document.hidden&&DB&&!busy&&!document.querySelector('input:focus'))load(false)})}
   });
 }
@@ -196,11 +199,11 @@ const fm=n=>'৳'+Math.round(n).toLocaleString('en-IN');
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const T=[['dash','ড্যাশবোর্ড'],['buy','ক্রয় (Purchase)'],['stock','স্টক'],['sell','বিক্রয় / মেমো'],['ord','অর্ডার'],['cust','কাস্টমার রিপোর্ট'],['acc','আয়-ব্যয়']];
-let tab='stock',cart=[],C={n:'',ph:''};
+let tab='dash',cart=[],C={n:'',ph:'',ad:''};
 const num=v=>parseFloat(v)||0;
 const findP=n=>S.p.find(p=>p.name.trim().toLowerCase()===String(n).trim().toLowerCase());
 const opts=()=>S.p.map(p=>`<option value="${esc(p.name)}">`).join('');
-const tot=s=>s.qty*s.price;
+const tot=s=>s.qty*s.price-(s.dc||0);
 
 function R(){
   $('#nav').innerHTML=T.map(t=>`<button class="${t[0]===tab?'on':''}" onclick="go('${t[0]}')">${t[1]}</button>`).join('');
@@ -250,15 +253,20 @@ sell(){
   const t=cart.reduce((a,c)=>a+c.qty*c.price,0);
   return `<div class="card"><h2>নতুন বিক্রয়</h2><div class="f">
   <div><label>কাস্টমারের নাম</label><input id="cn" value="${esc(C.n)}" oninput="C.n=this.value"></div>
-  <div><label>মোবাইল</label><input id="cp" value="${esc(C.ph)}" oninput="C.ph=this.value"></div></div>
+  <div><label>মোবাইল</label><input id="cp" value="${esc(C.ph)}" oninput="C.ph=this.value"></div>
+  <div><label>ঠিকানা</label><input id="ca" value="${esc(C.ad||'')}" oninput="C.ad=this.value"></div></div>
   <div class="f" style="margin-top:10px">
-  <div><label>পণ্য</label><select id="sp" onchange="sf()"><option value="">-- বাছুন --</option>${S.p.filter(p=>p.qty>0).map(p=>`<option value="${p.id}">${esc(p.name)}${p.sn?' ['+esc(p.sn)+']':''} (স্টক ${p.qty})</option>`).join('')}</select></div>
+  <div><label>পণ্য <a href="#" onclick="scanFor('sell');return false" style="margin-left:6px">📷 স্ক্যান</a></label><select id="sp" onchange="sf()"><option value="">-- বাছুন --</option>${S.p.filter(p=>p.qty>0).map(p=>`<option value="${p.id}">${esc(p.name)}${p.sn?' ['+esc(p.sn)+']':''} (স্টক ${p.qty})</option>`).join('')}</select></div>
   <div><label>পিস</label><input id="sqty" type="number" min="1" value="1" oninput="slt()"></div>
   <div><label>দাম (প্রতি পিস)</label><input id="spr" type="number" min="0" oninput="slt()"><div class="hint" id="slt"></div></div>
   <button class="b" onclick="addCart()">যোগ করুন</button></div></div>
   <div class="card"><h2>কার্ট — সব পণ্য মিলে একটাই মেমো হবে</h2>
   ${cart.length?`<div class="tw"><table>${cart.map((c,i)=>`<tr><td>${esc(c.name)}</td><td class="n">${c.qty} × ${fm(c.price)}</td><td class="n">${fm(c.qty*c.price)}</td><td><button class="x" onclick="cart.splice(${i},1);R()">বাদ</button></td></tr>`).join('')}</table></div>
-  <div class="f" style="margin-top:10px"><div><label>মোট ${fm(t)} — পরিশোধ (খালি = পুরোটা)</label><input id="paid" type="number" min="0"></div><button class="b" onclick="checkout()">মেমো তৈরি করুন</button></div>`:'<span class="mut">কার্ট খালি। উপর থেকে পণ্য যোগ করুন।</span>'}</div>
+  <div class="f" style="margin-top:10px">
+  <div><label>ছাড় (টাকা)</label><input id="dsc" type="number" min="0" value="${CD.dsc}" oninput="CD.dsc=this.value;cdt()"></div>
+  <div><label>অথবা ছাড় (%)</label><input id="dpc" type="number" min="0" max="100" value="${CD.dpc}" oninput="CD.dpc=this.value;cdt()"></div>
+  <div><label>পেমেন্ট মাধ্যম</label><select id="pm" onchange="CD.pm=this.value">${['নগদ','বিকাশ','নগদ (Nagad)','রকেট','ব্যাংক','কার্ড'].map(x=>`<option ${x===CD.pm?'selected':''}>${x}</option>`).join('')}</select></div>
+  <div><label id="cdl">মোট ${fm(t)} — পরিশোধ (খালি = পুরোটা)</label><input id="paid" type="number" min="0" value="${CD.paid}" oninput="CD.paid=this.value"></div><button class="b" onclick="checkout()">মেমো তৈরি করুন</button></div>`:'<span class="mut">কার্ট খালি। উপর থেকে পণ্য যোগ করুন।</span>'}</div>
   <div class="card"><h2>মেমো তালিকা</h2><div class="tw"><table><tr><th>মেমো</th><th>তারিখ</th><th>কাস্টমার</th><th>পণ্য</th><th class="n">মোট</th><th class="n">বাকি</th><th></th></tr>
   ${S.s.slice().reverse().slice(0,60).map(s=>`<tr><td>#${s.no}</td><td>${s.date}</td><td>${esc(s.cust)}</td><td>${esc(s.name)} × ${s.qty}</td><td class="n">${fm(tot(s))}</td><td class="n ${tot(s)-s.paid>0?'bad':''}">${fm(tot(s)-s.paid)}</td><td><button class="g" onclick="memo('${s.id}')">দেখুন / প্রিন্ট</button> <button class='x' onclick="delSale('${s.id}')">🗑 মুছুন</button></td></tr>`).join('')||'<tr><td colspan="7" class="mut">এখনও কোনো মেমো নেই।</td></tr>'}</table></div></div>`;
 },
@@ -314,11 +322,11 @@ function addCart(){const p=S.p.find(x=>x.id===$('#sp').value),qty=num($('#sqty')
   const used=cart.filter(c=>c.pid===p.id).reduce((a,c)=>a+c.qty,0);
   if(used+qty>p.qty)return alert('স্টকে মাত্র '+p.qty+' পিস আছে');
   cart.push({pid:p.id,name:p.name,qty,price:num($('#spr').value),cost:p.cost});R()}
-function mkSale(cust,ph,p,qty,price,paid,no){const s={id:uid(),no:no!=null?no:S.n++,date:today(),cust:cust||'ওয়াক-ইন কাস্টমার',ph:ph||'',pid:p.id,name:p.name,qty,price,cost:p.cost,paid};
+function mkSale(cust,ph,p,qty,price,paid,no,ad){const s={ad:ad||'',id:uid(),no:no!=null?no:S.n++,date:today(),cust:cust||'ওয়াক-ইন কাস্টমার',ph:ph||'',pid:p.id,name:p.name,qty,price,cost:p.cost,paid};
   p.qty-=qty;S.s.push(s);return s}
 function checkout(){let left=$('#paid').value===''?Infinity:num($('#paid').value),last,no=null;
-  cart.forEach(c=>{const p=S.p.find(x=>x.id===c.pid);if(!p)return;if(no===null)no=S.n++;const t=c.qty*c.price,pd=Math.min(t,left);left-=pd;last=mkSale(C.n.trim(),C.ph.trim(),p,c.qty,c.price,pd,no)});
-  cart=[];C={n:'',ph:''};save();R();if(last)memo(last.id)}
+  cart.forEach(c=>{const p=S.p.find(x=>x.id===c.pid);if(!p)return;if(no===null)no=S.n++;const t=c.qty*c.price,pd=Math.min(t,left);left-=pd;last=mkSale(C.n.trim(),C.ph.trim(),p,c.qty,c.price,pd,no,C.ad.trim())});
+  cart=[];C={n:'',ph:'',ad:''};save();R();if(last)memo(last.id)}
 function due(id){const s0=S.s.find(x=>x.id===id);if(!s0)return;const g=S.s.filter(x=>x.no===s0.no),d=g.reduce((a,x)=>a+tot(x)-x.paid,0),v=prompt('কত টাকা পেলেন? (বাকি '+d+')',d);if(v===null)return;
   let left=num(v);g.forEach(x=>{const k=Math.min(tot(x)-x.paid,left);if(k>0){x.paid+=k;left-=k}});save();R()}
 function memo(id){const s=S.s.find(x=>x.id===id);if(!s)return;$('#mm').className='m';
@@ -340,15 +348,15 @@ function addExp(e){e.preventDefault();S.e.push({id:uid(),date:$('#ed').value||to
 function delExp(id){S.e=S.e.filter(x=>x.id!==id);save();R()}
 /* ===== Premium UI ===== */
 const LOGO='data:image/jpeg;base64,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';
-const M=[['stock','📦','Product Stock'],['buy','🛒','Purchase'],['sell','💳','Sales'],['cust','👥','Customer Management'],['inv','🧾','Invoice & Memo'],['serv','🛠','Servicing'],['parcel','📮','Parcel & Delivery'],['ord','📋','Orders'],['comp','🏢','Company Management'],['acc','💰','Income & Expense'],['due','⏳','Due Management'],['rep','📊','Reports'],['set','⚙️','Settings']];
+const M=[['dash','🏠','Dashboard'],['stock','📦','Product Stock'],['buy','🛒','Purchase'],['sell','💳','Sales'],['cust','👥','Customer Management'],['inv','🧾','Invoice & Memo'],['serv','🛠','Servicing'],['parcel','📮','Parcel & Delivery'],['ord','📋','Orders'],['comp','🏢','Company Management'],['war','🛡','Warranty Check'],['lbl','🏷','Labels & Scan'],['cat','🌐','Online Catalog'],['msg','💬','Offers & Messages'],['log','📜','Activity Log'],['acc','💰','Income & Expense'],['due','⏳','Due Management'],['rep','📊','Reports'],['set','⚙️','Settings']];
 ['serv','parcel','comp','rep','set'].forEach(k=>{V[k]=()=>`<div class='card'><h2>${M.find(m=>m[0]===k)[2]}</h2><p class='mut'>এই অংশটি এখনও তৈরি হয়নি। পরের ধাপে যোগ হবে।</p></div>`});
 
 function R(){
   CL.forEach(c=>{S[c]=S[c]||[]});
-  const nm=M.find(m=>m[0]===tab);
+  if(!M.some(m=>m[0]===tab))tab=M[0][0];const nm=M.find(m=>m[0]===tab);
   $('#sb').innerHTML=`<div class='lg'>${LOGO}<div><b>SUPER COMPUTER SHOP</b><small>ম্যানেজমেন্ট সফটওয়্যার</small></div></div>`+M.map(m=>`<button class='mi ${m[0]===tab?'on':''}' onclick="go('${m[0]}')"><span>${m[1]}</span><span class='tx'>${m[2]}</span></button>`).join('');
   $('#pt').textContent=nm[2];
-  const B=[['stock','📦','স্টক'],['sell','💳','বিক্রয়'],['buy','🛒','ক্রয়'],['cust','👥','কাস্টমার']];
+  const B=[['dash','🏠','হোম'],['stock','📦','স্টক'],['sell','💳','বিক্রয়'],['cust','👥','কাস্টমার']].filter(b=>M.some(m=>m[0]===b[0]));
   $('#bn').innerHTML=B.map(b=>`<button class='${b[0]===tab?'on':''}' onclick="go('${b[0]}')"><div style='font-size:20px'>${b[1]}</div>${b[2]}</button>`).join('')+`<button onclick='tg()'><div style='font-size:20px'>☰</div>মেনু</button>`;
   $('#v').innerHTML=V[tab]();
   if(tab==='stock')rows();if(tab==='serv')svRows();if(tab==='parcel')pcRows();
@@ -359,7 +367,7 @@ function cm(){$('#modal').style.display='none'}
 function shw(cls,html){$('#mm').className=cls;$('#mm').innerHTML=html;$('#modal').style.display='block'}
 
 let SF={q:'',b:'',st:''};
-const stat=p=>p.qty<=0?'s':(!p.sn&&p.qty<=2?'l':'a');
+const stat=p=>p.qty<=0?'s':(!p.sn&&p.qty<=(cfg().low||2)?'l':'a');
 const badge=p=>{const s=stat(p);return s==='s'?"<span class='bd' style='color:var(--bad)'>Sold</span>":s==='l'?"<span class='bd' style='color:var(--wn)'>Low ("+p.qty+")</span>":"<span class='bd' style='color:var(--ok)'>Available"+(p.sn?'':' ('+p.qty+')')+"</span>"};
 
 V.stock=()=>{
@@ -423,16 +431,16 @@ function ps(){
 }
 const memoRows=L=>{const seen=new Set(),G=[];L.forEach(x=>{if(!seen.has(x.no)){seen.add(x.no);G.push(S.s.filter(y=>y.no===x.no))}});
   return G.map(g=>{const s=g[0],t=g.reduce((a,x)=>a+tot(x),0),pd=g.reduce((a,x)=>a+x.paid,0);
-    return `<tr><td>#${s.no}</td><td>${s.date}</td><td>${esc(s.cust)}</td><td>${g.map(x=>esc(x.name)+' × '+x.qty).join('<br>')}</td><td class='n'>${fm(t)}</td><td class='n ${t-pd>0?'bad':''}'>${fm(t-pd)}</td><td><button class='g' onclick="memo('${s.id}')">দেখুন / প্রিন্ট</button> <button class='x' onclick="delSale('${s.id}')">🗑 মুছুন</button></td></tr>`}).join('')||"<tr><td colspan='7' class='mut'>কিছু নেই।</td></tr>"};
+    return `<tr><td>#${s.no}</td><td>${s.date}</td><td>${esc(s.cust)}</td><td>${g.map(x=>esc(x.name)+' × '+x.qty).join('<br>')}</td><td class='n'>${fm(t)}</td><td class='n ${t-pd>0?'bad':''}'>${fm(t-pd)}</td><td><button class='g' onclick="memo('${s.id}')">দেখুন / প্রিন্ট</button> <button class='g' onclick="waMemo('${s.id}')">💬</button> <button class='x' onclick="delSale('${s.id}')">🗑 মুছুন</button></td></tr>`}).join('')||"<tr><td colspan='7' class='mut'>কিছু নেই।</td></tr>"};
 V.inv=()=>`<div class='card'><h2>ইনভয়েস ও মেমো</h2><div class='tw'><table><tr><th>মেমো</th><th>তারিখ</th><th>কাস্টমার</th><th>পণ্য</th><th class='n'>মোট</th><th class='n'>বাকি</th><th></th></tr>${memoRows(S.s.slice().reverse())}</table></div></div>`;
 V.due=()=>{const seen=new Set(),L=[];S.s.slice().reverse().forEach(x=>{if(seen.has(x.no))return;seen.add(x.no);const g=S.s.filter(y=>y.no===x.no);const d=g.reduce((a,y)=>a+tot(y)-y.paid,0);if(d>0)L.push({id:x.id,no:x.no,cust:x.cust,ph:x.ph,name:g.map(y=>y.name+' × '+y.qty).join(', '),d})});return `<div class='card'><h2>কাস্টমারের কাছে বাকি: <span class='bad'>${fm(L.reduce((a,s)=>a+s.d,0))}</span></h2><div class='tw'><table><tr><th>মেমো</th><th>কাস্টমার</th><th>পণ্য</th><th class='n'>বাকি</th><th></th></tr>${L.map(s=>`<tr><td>#${s.no}</td><td>${esc(s.cust)}<br><span class='mut'>${esc(s.ph)}</span></td><td>${esc(s.name)}</td><td class='n bad'>${fm(s.d)}</td><td><button class='g' onclick="due('${s.id}')">বাকি নিন</button></td></tr>`).join('')||"<tr><td colspan='5' class='mut'>কোনো বাকি নেই।</td></tr>"}</table></div></div>`};
 /* ===== Mockup-style stock page ===== */
 function R(){
   CL.forEach(c=>{S[c]=S[c]||[]});
-  const nm=M.find(m=>m[0]===tab);
+  if(!M.some(m=>m[0]===tab))tab=M[0][0];const nm=M.find(m=>m[0]===tab);
   $('#sb').innerHTML=`<div class='lg'><img src='${LOGO}' alt='logo'><div><b>SUPER<br>COMPUTER SHOP</b><small>Shop Manager</small></div></div>`+M.map(m=>`<button class='mi ${m[0]===tab?'on':''}' onclick="go('${m[0]}')"><span>${m[1]}</span><span class='tx'>${m[2]}</span></button>`).join('')+`<div class='hp tx'>📞 Need Help?<b>01316843984</b></div>`;
   $('#pt').textContent=nm[2];
-  const B=[['stock','📦','Stock'],['sell','💳','Sales'],['buy','🛒','Purchase'],['cust','👥','Customers']];
+  const B=[['dash','🏠','Home'],['stock','📦','Stock'],['sell','💳','Sales'],['buy','🛒','Purchase']].filter(b=>M.some(m=>m[0]===b[0])).slice(0,4);
   $('#bn').innerHTML=B.map(b=>`<button class='${b[0]===tab?'on':''}' onclick="go('${b[0]}')"><div style='font-size:20px'>${b[1]}</div>${b[2]}</button>`).join('')+`<button onclick='tg()'><div style='font-size:20px'>☰</div>More</button>`;
   $('#v').innerHTML=V[tab]();
   if(tab==='stock')rows();if(tab==='serv')svRows();if(tab==='parcel')pcRows();
@@ -486,15 +494,16 @@ const pbar=`<div class='noprint' style='display:flex;gap:8px;margin-top:16px'><b
 /* A4 invoice (never shows cost or profit) */
 function memo(id){
   const s=S.s.find(x=>x.id===id);if(!s)return;const c=cfg(),g=S.s.filter(x=>x.no===s.no);
-  const T=g.reduce((a,x)=>a+tot(x),0),P=g.reduce((a,x)=>a+x.paid,0);
+  const T=g.reduce((a,x)=>a+tot(x),0),P=g.reduce((a,x)=>a+x.paid,0),SUB=g.reduce((a,x)=>a+x.qty*x.price,0);
   const rows=g.map(x=>{const p=S.p.find(y=>y.id===x.pid)||{},spec=[p.brand,p.model,p.sn&&'S/N: '+p.sn,p.cpu,p.ram,p.ssd,p.bat&&'Battery: '+p.bat].filter(Boolean).map(esc).join(' · ');
-    return `<tr><td>${esc(x.name)}</td><td style='white-space:normal'>${spec||'-'}</td><td>${x.qty}</td><td>${fm(x.price)}</td><td>${fm(tot(x))}</td></tr>`}).join('');
+    return `<tr><td>${esc(x.name)}</td><td style='white-space:normal'>${spec||'-'}</td><td>${x.qty}</td><td>${fm(x.price)}</td><td>${fm(x.qty*x.price)}</td></tr>`}).join('');
   const war=g.map(x=>{const p=S.p.find(y=>y.id===x.pid)||{};return p.war?esc(x.name)+': '+esc(p.war):''}).filter(Boolean);
-  shw('m a4',`<div class='inv'>${hdr('INVOICE',s.no,s.date)}<div style='margin:12px 0'>কাস্টমার: <b>${esc(s.cust)}</b>${s.ph?' · '+esc(s.ph):''}</div>
+  shw('m a4',`<div class='inv'>${hdr('INVOICE',s.no,s.date)}<div style='margin:12px 0'>কাস্টমার: <b>${esc(s.cust)}</b>${s.ph?' · '+esc(s.ph):''}${s.ad?'<br>ঠিকানা: '+esc(s.ad):''}</div>
   <table style='width:100%'><tr><th>পণ্য</th><th>বিবরণ</th><th>পিস</th><th>দাম</th><th>মোট</th></tr>${rows}</table>
-  <div style='text-align:right;margin-top:10px'>মোট: <b>${fm(T)}</b><br>পরিশোধ: ${fm(P)}<br>বাকি: <b>${fm(T-P)}</b></div>
+  <div style='text-align:right;margin-top:10px'>${T!==SUB?`সাবটোটাল: ${fm(SUB)}<br>ছাড়: −${fm(SUB-T)}<br>`:''}মোট: <b>${fm(T)}</b><br>পরিশোধ: ${fm(P)}${s.pm?' ('+esc(s.pm)+')':''}<br>বাকি: <b>${fm(T-P)}</b></div>
   ${war.length?`<div style='margin-top:10px'>ওয়ারেন্টি: ${war.join(' | ')}</div>`:''}
-  <div style='margin-top:16px;font-size:12px;white-space:pre-line'><b>শর্তাবলি:</b>\n${esc(c.terms)}</div></div>${pbar}`);
+  <div style='margin-top:16px;font-size:12px;white-space:pre-line'><b>শর্তাবলি:</b>\n${esc(c.terms)}</div>
+  <div style='display:flex;justify-content:space-between;gap:30px;margin-top:56px;font-size:13px'><div style='flex:1;text-align:center;border-top:1px solid #000;padding-top:4px'>কাস্টমারের স্বাক্ষর<br><b>${esc(s.cust)}</b></div><div style='flex:1;text-align:center;border-top:1px solid #000;padding-top:4px'>মালিক / ম্যানেজারের স্বাক্ষর<br><b>${esc(c.owner||c.name)}</b></div></div></div>${pbar}`);
 }
 
 /* Servicing */
@@ -517,7 +526,8 @@ function svDel(id){if(confirm('এই সার্ভিস এন্ট্র�
 function svMemo(id){const v=S.sv.find(x=>x.id===id),c=cfg();
   shw('m a4',`<div class='inv'>${hdr('SERVICE MEMO','S-'+v.no,v.date)}<div style='margin:12px 0'>কাস্টমার: <b>${esc(v.cust)}</b> · ${esc(v.ph)}<br>ডিভাইস: ${esc([v.brand,v.model].filter(Boolean).join(' '))} ${v.sn?'· S/N: '+esc(v.sn):''}<br>সমস্যা: ${esc(v.prob)}<br>সাথে পাওয়া: ${esc(v.acc||'-')} · টেকনিশিয়ান: ${esc(v.tech||'-')}<br>অবস্থা: <b>${v.st}</b></div>
   <div style='text-align:right'>সার্ভিস চার্জ: ${fm(v.chg)}<br>পার্টস: ${fm(v.parts)}<br>মোট: <b>${fm(svt(v))}</b><br>পরিশোধ: ${fm(v.paid)}<br>বাকি: <b>${fm(svt(v)-v.paid)}</b></div>${v.war?`<div>ওয়ারেন্টি/নোট: ${esc(v.war)}</div>`:''}
-  <div style='margin-top:16px;font-size:12px;white-space:pre-line'><b>শর্তাবলি:</b>\n${esc(c.terms)}</div></div>${pbar}`)}
+  <div style='margin-top:16px;font-size:12px;white-space:pre-line'><b>শর্তাবলি:</b>\n${esc(c.terms)}</div>
+  <div style='display:flex;justify-content:space-between;gap:30px;margin-top:56px;font-size:13px'><div style='flex:1;text-align:center;border-top:1px solid #000;padding-top:4px'>কাস্টমারের স্বাক্ষর<br><b>${esc(v.cust)}</b></div><div style='flex:1;text-align:center;border-top:1px solid #000;padding-top:4px'>মালিক / ম্যানেজারের স্বাক্ষর<br><b>${esc(c.owner||c.name)}</b></div></div></div>${pbar}`)}
 
 /* Parcel & delivery */
 const PCS=['Pending','Packed','Dispatched','In Transit','Delivered','Cancelled'];
@@ -539,7 +549,7 @@ function pcSlip(id){const v=S.pc.find(x=>x.id===id);
 const cob=c=>{const k=c.name.trim().toLowerCase(),pu=S.pu.filter(b=>(b.sup||'').trim().toLowerCase()===k),tp=pu.reduce((a,b)=>a+b.qty*b.cost,0),pp=pu.reduce((a,b)=>a+pdv(b),0),pays=S.cp.filter(x=>x.co===c.id),pa=pays.reduce((a,x)=>a+x.amt,0);return{pu,tp,pays,paid:pp+pa,due:tp-pp-pa}};
 V.comp=()=>`<div class='card'><button class='b' onclick='coEdit()'>＋ নতুন কোম্পানি / সাপ্লায়ার</button><p class='mut'>ক্রয়ের সময় সাপ্লায়ারের নাম কোম্পানির নামের সাথে মিললে হিসাব নিজে থেকে এখানে আসে।</p></div><div class='card'>${S.co.map(c=>{const o=cob(c);return `<details><summary>${esc(c.name)} — মোট ক্রয় ${fm(o.tp)}, পরিশোধ ${fm(o.paid)}, <span class='${o.due>0?'bad':''}'>বাকি ${fm(o.due)}</span></summary><div class='mut'>${esc([c.contact,c.ph,c.addr].filter(Boolean).join(' · '))}</div><div style='margin:8px 0;display:flex;gap:8px;flex-wrap:wrap'><button class='g' onclick="coPay('${c.id}')">পেমেন্ট দিন</button><button class='g' onclick="coEdit('${c.id}')">এডিট</button><button class='x' onclick="coDel('${c.id}')">মুছুন</button></div><div class='tw'><table>${o.pu.map(b=>`<tr><td>${b.date}</td><td>ক্রয়: ${esc(b.name)} × ${b.qty}</td><td class='n'>${fm(b.qty*b.cost)}</td></tr>`).join('')}${o.pays.map(x=>`<tr><td>${x.date}</td><td>পেমেন্ট দেওয়া</td><td class='n ok'>−${fm(x.amt)}</td></tr>`).join('')}</table></div></details>`}).join('')||"<span class='mut'>কোনো কোম্পানি নেই।</span>"}</div>`;
 function coEdit(id){const v=id?S.co.find(x=>x.id===id):{};
-  gf(id?'কোম্পানি এডিট':'নতুন কোম্পানি',[['name','কোম্পানির নাম','text',0,1],['contact','যোগাযোগ ব্যক্তি'],['ph','মোবাইল'],['addr','ঠিকানা']],o=>{if(id)Object.assign(S.co.find(x=>x.id===id),o);else S.co.push(Object.assign({id:uid()},o));save();R()},v)}
+  gf(id?'কোম্পানি এডিট':'নতুন কোম্পানি',[['name','কোম্পানির নাম','text',0,1],['contact','যোগাযোগ ব্যক্তি'],['ph','মোবাইল'],['addr','ঠিকানা'],['dd','বাকি পরিশোধের তারিখ','date']],o=>{if(id)Object.assign(S.co.find(x=>x.id===id),o);else S.co.push(Object.assign({id:uid()},o));save();R()},v)}
 function coPay(id){const c=S.co.find(x=>x.id===id),d=cob(c).due;if(d<=0)return alert('কোনো বাকি নেই');const a=prompt('কত টাকা দিলেন? (বাকি '+d+')',d);if(a===null)return;const n=Math.min(d,num(a));if(n>0){S.cp.push({id:uid(),date:today(),co:id,amt:n});save();R()}}
 function coDel(id){if(S.cp.some(x=>x.co===id))return alert('এই কোম্পানির পেমেন্ট রেকর্ড আছে, মোছা যাবে না।');if(confirm('কোম্পানি মুছবেন?')){S.co=S.co.filter(x=>x.id!==id);save();R()}}
 
@@ -558,8 +568,8 @@ V.rep=()=>{
 function rpx(){const ok=d=>(!RP.f||d>=RP.f)&&(!RP.t||d<=RP.t);dls('sales-report.csv',csv([['Memo','Date','Customer','Phone','Product','Qty','Price','Total','Paid','Due']].concat(S.s.filter(x=>ok(x.date)).map(x=>[x.no,x.date,x.cust,x.ph,x.name,x.qty,x.price,tot(x),x.paid,tot(x)-x.paid]))))}
 
 /* Settings, backup, restore */
-V.set=()=>{const c=cfg();return `<div class='card'><h2>দোকানের তথ্য ও ইনভয়েসের শর্ত</h2><p class='mut'>${esc(c.name)} · ${esc(c.owner)} · ${esc(c.ph)}<br>${esc(c.addr)}</p><button class='b' onclick='setEdit()'>এডিট করুন</button></div><div class='card'><h2>ব্যাকআপ ও রিস্টোর</h2><div class='f'><button class='b' onclick="dls('backup-'+today()+'.json',JSON.stringify(S))">⬇ ব্যাকআপ ডাউনলোড</button><div><label>ব্যাকআপ ফাইল থেকে রিস্টোর</label><input type='file' accept='.json' onchange='rs(this)'></div></div></div>`};
-function setEdit(){gf('সেটিংস',[['name','দোকানের নাম','text',0,1],['owner','মালিক'],['ph','ফোন / WhatsApp'],['addr','ঠিকানা'],['terms','ইনভয়েসের শর্তাবলি','ta']],o=>{const m=S.cf.find(x=>x.id==='main');if(m)Object.assign(m,o);else S.cf.push(Object.assign({id:'main'},o));save();R()},cfg())}
+V.set=()=>{const c=cfg();return `<div class='card'><h2>দোকানের তথ্য ও ইনভয়েসের শর্ত</h2><p class='mut'>${esc(c.name)} · ${esc(c.owner)} · ${esc(c.ph)}<br>${esc(c.addr)}</p><button class='b' onclick='setEdit()'>এডিট করুন</button></div><div class='card'><h2>ব্যাকআপ ও রিস্টোর</h2><div class='f'><button class='b' onclick="bkNow()">⬇ ব্যাকআপ ডাউনলোড</button><div><label>ব্যাকআপ ফাইল থেকে রিস্টোর</label><input type='file' accept='.json' onchange='rs(this)'></div></div></div>`};
+function setEdit(){gf('সেটিংস',[['name','দোকানের নাম','text',0,1],['owner','মালিক'],['ph','ফোন / WhatsApp'],['addr','ঠিকানা'],['low','কম স্টকের সীমা (পিস)','number'],['terms','ইনভয়েসের শর্তাবলি','ta']],o=>{const m=S.cf.find(x=>x.id==='main');if(m)Object.assign(m,o);else S.cf.push(Object.assign({id:'main'},o));save();R()},cfg())}
 function rs(el){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o.p||!o.s)throw 0;if(!confirm('বর্তমান সব ডেটা বদলে এই ব্যাকআপ বসবে। নিশ্চিত?'))return;S=o;CL.forEach(c=>{S[c]=S[c]||[]});S.n=S.n||nx(S.s);save();R()}catch(e){alert('ব্যাকআপ ফাইলটি ঠিক নেই')}};r.readAsText(f)}
 /* ===== Delete & cleanup ===== */
 let CUL=[];
@@ -594,6 +604,329 @@ function clearOld(){
 const set0=V.set;
 V.set=()=>{const docs=CL.reduce((a,c)=>a+S[c].length,0),kb=Math.round(JSON.stringify(S).length/1024);
   return set0()+`<div class='card'><h2>স্টোরেজ ও পুরনো ডেটা মুছুন</h2><p class='mut'>এখন মোট ${docs}টা রেকর্ড, প্রায় ${kb} KB (সীমা ২৫,০০০ রেকর্ড)। ছবি সবচেয়ে বেশি জায়গা নেয়। জায়গা বাঁচাতে পুরনো ছবি বাদ দিয়ে পণ্য এডিট করুন, অথবা নিচে পুরনো রেকর্ড মুছুন।</p><div class='f'><div><label>এই তারিখের আগের রেকর্ড মুছুন</label><input type='date' id='cod'></div><button class='x' onclick='clearOld()'>🗑 পুরনো রেকর্ড মুছুন</button></div></div>`};
+/* ===== v2: নতুন ফিচার ===== */
+const CD={dsc:'',dpc:'',pm:'নগদ',paid:''};
+const OWN=()=>ROLE==='owner';
+const digits=s=>String(s||'').replace(/[০-৯]/g,d=>'০১২৩৪৫৬৭৮৯'.indexOf(d)).replace(/\D/g,'');
+const waNum=ph=>{const d=digits(ph);if(!d)return '';if(d.startsWith('880'))return d;if(d.startsWith('0'))return '88'+d;return '880'+d};
+function openWa(ph,t){const n=waNum(ph);window.open('https://wa.me/'+(n?n:'')+'?text='+encodeURIComponent(t),'_blank')}
+const dhk=ts=>new Date(ts).toLocaleString('bn-BD',{timeZone:'Asia/Dhaka',dateStyle:'short',timeStyle:'short'});
+const ckey=(ph,n)=>digits(ph)||('n_'+String(n||'').trim().toLowerCase().replace(/[^\wঀ-৿]+/g,'_'));
+function applyRole(u){
+  ROLE=String(u.email||'').toLowerCase()===OWNER?'owner':'staff';window.ME=u.email||'';
+  if(ROLE==='staff'){
+    CL=['p','s','o','sv','pc','cp','cf','cu','lg'];
+    const ok=['sell','stock','cust','inv','serv','parcel','ord','war','lbl'];
+    for(let i=M.length-1;i>=0;i--)if(!ok.includes(M[i][0]))M.splice(i,1);
+    if(tab==='dash')tab='sell';
+  }
+}
+/* ---- QR ---- */
+/* Minimal QR code generator (byte mode, ECC M, versions 1-10) */
+function qrMake(text){
+  const utf=Array.from(new TextEncoder().encode(text));
+  const ECC=[0,10,16,26,18,24,16,18,22,22,26],NB=[0,1,1,1,2,2,4,4,4,5,5];
+  const raw=v=>{let r=(16*v+128)*v+64;if(v>=2){const a=Math.floor(v/7)+2;r-=(25*a-10)*a-55;if(v>=7)r-=36}return r};
+  let ver=1;
+  for(;ver<=10;ver++){const cap=Math.floor(raw(ver)/8)-ECC[ver]*NB[ver],need=Math.ceil((4+(ver<10?8:16)+utf.length*8)/8);if(need<=cap)break}
+  if(ver>10)return null;
+  const cap=Math.floor(raw(ver)/8)-ECC[ver]*NB[ver];
+  let bits=[];const put=(v,n)=>{for(let i=n-1;i>=0;i--)bits.push((v>>>i)&1)};
+  put(4,4);put(utf.length,ver<10?8:16);utf.forEach(b=>put(b,8));
+  put(0,Math.min(4,cap*8-bits.length));while(bits.length%8)bits.push(0);
+  const data=[];for(let i=0;i<bits.length;i+=8){let b=0;for(let j=0;j<8;j++)b=b<<1|bits[i+j];data.push(b)}
+  for(let p=0xEC;data.length<cap;p^=0xEC^0x11)data.push(p);
+  // Reed-Solomon
+  const EXP=[],LOG=[];{let x=1;for(let i=0;i<255;i++){EXP[i]=x;LOG[x]=i;x<<=1;if(x&256)x^=0x11D}for(let i=255;i<512;i++)EXP[i]=EXP[i-255]}
+  const mul=(a,b)=>a&&b?EXP[LOG[a]+LOG[b]]:0;
+  const gen=d=>{let g=[1];for(let i=0;i<d;i++){const n=new Array(g.length+1).fill(0);for(let j=0;j<g.length;j++){n[j]^=g[j];n[j+1]^=mul(g[j],EXP[i])}g=n}return g};
+  const rs=(d,n)=>{const g=gen(n),r=new Array(n).fill(0);d.forEach(b=>{const f=b^r.shift();r.push(0);for(let i=0;i<n;i++)r[i]^=mul(g[i+1],f)});return r};
+  const nb=NB[ver],eccLen=ECC[ver],rc=Math.floor(raw(ver)/8),ns=nb-rc%nb,sl=Math.floor(rc/nb);
+  const blocks=[];let k=0;
+  for(let i=0;i<nb;i++){const dl=sl-eccLen+(i<ns?0:1),d=data.slice(k,k+dl);k+=dl;const e=rs(d,eccLen);if(i<ns)d.push(null);blocks.push({d,e})}
+  const all=[];
+  for(let i=0;i<=sl-eccLen;i++)blocks.forEach((b,j)=>{if(i!==sl-eccLen||j>=ns)all.push(b.d[i])});
+  for(let i=0;i<eccLen;i++)blocks.forEach(b=>all.push(b.e[i]));
+  const size=ver*4+17,M=[],F=[];
+  for(let i=0;i<size;i++){M.push(new Array(size).fill(false));F.push(new Array(size).fill(false))}
+  const sf=(x,y,d)=>{M[y][x]=d;F[y][x]=true},gb=(v,i)=>((v>>>i)&1)!==0;
+  for(let i=0;i<size;i++){sf(6,i,i%2===0);sf(i,6,i%2===0)}
+  const finder=(x,y)=>{for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){const d=Math.max(Math.abs(dx),Math.abs(dy)),xx=x+dx,yy=y+dy;if(xx>=0&&xx<size&&yy>=0&&yy<size)sf(xx,yy,d!==2&&d!==4)}};
+  finder(3,3);finder(size-4,3);finder(3,size-4);
+  const ap=[];if(ver>1){const n=Math.floor(ver/7)+2,st=ver===32?26:Math.ceil((ver*4+4)/(n*2-2))*2;ap.push(6);for(let p=size-7,c=n-1;c>0;p-=st,c--)ap.splice(1,0,p)}
+  ap.forEach((cx,i)=>ap.forEach((cy,j)=>{if((i===0&&j===0)||(i===0&&j===ap.length-1)||(i===ap.length-1&&j===0))return;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)sf(cx+dx,cy+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1)}));
+  const fmt=m=>{const d=0<<3|m;let r=d;for(let i=0;i<10;i++)r=(r<<1)^((r>>>9)*0x537);const b=((d<<10)|r)^0x5412;
+    for(let i=0;i<=5;i++)sf(8,i,gb(b,i));sf(8,7,gb(b,6));sf(8,8,gb(b,7));sf(7,8,gb(b,8));for(let i=9;i<15;i++)sf(14-i,8,gb(b,i));
+    for(let i=0;i<8;i++)sf(size-1-i,8,gb(b,i));for(let i=8;i<15;i++)sf(8,size-15+i,gb(b,i));sf(8,size-8,true)};
+  fmt(0);
+  if(ver>=7){let r=ver;for(let i=0;i<12;i++)r=(r<<1)^((r>>>11)*0x1F25);const b=ver<<12|r;for(let i=0;i<18;i++){const c=gb(b,i),a=size-11+i%3,bb=Math.floor(i/3);sf(a,bb,c);sf(bb,a,c)}}
+  let i=0;
+  for(let right=size-1;right>=1;right-=2){if(right===6)right=5;for(let v=0;v<size;v++)for(let j=0;j<2;j++){const x=right-j,up=((right+1)&2)===0,y=up?size-1-v:v;if(!F[y][x]&&i<all.length*8){M[y][x]=gb(all[i>>>3],7-(i&7));i++}}}
+  const mask=m=>{for(let y=0;y<size;y++)for(let x=0;x<size;x++){if(F[y][x])continue;let inv;
+    switch(m){case 0:inv=(x+y)%2===0;break;case 1:inv=y%2===0;break;case 2:inv=x%3===0;break;case 3:inv=(x+y)%3===0;break;case 4:inv=(Math.floor(x/3)+Math.floor(y/2))%2===0;break;case 5:inv=x*y%2+x*y%3===0;break;case 6:inv=(x*y%2+x*y%3)%2===0;break;default:inv=((x+y)%2+x*y%3)%2===0}
+    if(inv)M[y][x]=!M[y][x]}};
+  const pen=()=>{let p=0;const line=a=>{let run=1;for(let i=1;i<a.length;i++){if(a[i]===a[i-1]){run++;if(run===5)p+=3;else if(run>5)p++}else run=1}
+      const s=a.map(v=>v?1:0).join('');['10111010000','00001011101'].forEach(pt=>{let idx=-1;while((idx=s.indexOf(pt,idx+1))>=0)p+=40})};
+    for(let y=0;y<size;y++)line(M[y]);for(let x=0;x<size;x++)line(M.map(r=>r[x]));
+    for(let y=0;y<size-1;y++)for(let x=0;x<size-1;x++){const c=M[y][x];if(c===M[y][x+1]&&c===M[y+1][x]&&c===M[y+1][x+1])p+=3}
+    let dk=0;M.forEach(r=>r.forEach(v=>{if(v)dk++}));p+=(Math.ceil(Math.abs(dk*20-size*size*10)/(size*size))-1)*10;return p};
+  let best=0,bp=1e9;
+  for(let m=0;m<8;m++){mask(m);fmt(m);const p=pen();if(p<bp){bp=p;best=m}mask(m)}
+  mask(best);fmt(best);
+  return M;
+}
+function qrSvg(text,px){const M=qrMake(text);if(!M)return '';const n=M.length,q=4;let d='';
+  M.forEach((r,y)=>r.forEach((v,x)=>{if(v)d+=`M${x+q} ${y+q}h1v1h-1z`}));
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${n+q*2} ${n+q*2}" width="${px||110}" height="${px||110}" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#000"/></svg>`}
+/* ---- ক্রেতা ডিরেক্টরি ---- */
+function upCust(c){
+  const n=(c.n||'').trim(),ph=(c.ph||'').trim(),ad=(c.ad||'').trim();if(!n&&!digits(ph))return;
+  const k=ckey(ph,n);let u=S.cu.find(x=>x.id===k);
+  if(!u){S.cu.push({id:k,name:n,ph,ad,dob:'',note:''})}else{if(n)u.name=n;if(ph)u.ph=ph;if(ad)u.ad=ad}
+}
+function wirePhone(){const e=$('#cp');if(!e)return;e.addEventListener('change',()=>{const u=S.cu.find(x=>x.id===ckey(e.value,''));if(!u)return;if(!C.n&&u.name){C.n=u.name;$('#cn').value=u.name}if(!C.ad&&u.ad){C.ad=u.ad;$('#ca').value=u.ad}})}
+/* ---- বিক্রয়: ডিসকাউন্ট + একটাই মেমো ---- */
+function cdt(){const sub=cart.reduce((a,c)=>a+c.qty*c.price,0);let d=num(CD.dsc);if(!d&&num(CD.dpc))d=Math.round(sub*Math.min(100,num(CD.dpc))/100);d=Math.min(Math.max(0,d),sub);const e=$('#cdl');if(e)e.textContent='মোট '+fm(sub-d)+(d?' (ছাড় '+fm(d)+')':'')+' — পরিশোধ (খালি = পুরোটা)'}
+function checkout(){
+  if(!cart.length)return;
+  const sub=cart.reduce((a,c)=>a+c.qty*c.price,0);
+  let d=num(CD.dsc);if(!d&&num(CD.dpc))d=Math.round(sub*Math.min(100,num(CD.dpc))/100);d=Math.min(Math.max(0,d),sub);
+  let left=CD.paid===''?Infinity:num(CD.paid),no=null,last=null,rem=d;
+  cart.forEach((c,i)=>{const p=S.p.find(x=>x.id===c.pid);if(!p)return;if(no===null)no=S.n++;
+    const lt=c.qty*c.price;let dc=i===cart.length-1?rem:Math.round(d*lt/(sub||1));dc=Math.max(0,Math.min(dc,rem,lt));rem-=dc;
+    const t=lt-dc,pd=Math.min(t,left);left-=pd;
+    const sl=mkSale(C.n.trim(),C.ph.trim(),p,c.qty,c.price,pd,no,C.ad.trim());sl.dc=dc;sl.pm=CD.pm;sl.war=p.war||'';sl.sn=p.sn||'';last=sl});
+  upCust(C);
+  cart=[];C={n:'',ph:'',ad:''};CD.dsc='';CD.dpc='';CD.paid='';save();R();if(last)memo(last.id)}
+/* ---- মেমো: QR, WhatsApp ---- */
+let curMemo=null;
+function memoQrText(s){
+  const g=S.s.filter(x=>x.no===s.no),c=cfg(),T=g.reduce((a,x)=>a+tot(x),0);
+  let t=(c.name||'SHOP')+' | Memo #'+s.no+' | '+s.date+' | '+s.cust+' | '+g.map(x=>{const w=x.war?(' W:'+x.war):'';return x.name+(x.sn?' SN:'+x.sn:'')+' x'+x.qty+w}).join('; ')+' | Total '+Math.round(T)+' | '+c.ph;
+  while(t.length>20&&!qrMake(t))t=t.slice(0,-12);return t}
+const memo0=memo;
+memo=function(id){memo0(id);curMemo=id;const s=S.s.find(x=>x.id===id);if(!s)return;
+  const inv=document.querySelector('#mm .inv');
+  if(inv)inv.insertAdjacentHTML('beforeend',`<div style='display:flex;align-items:center;gap:10px;margin-top:14px;font-size:11px'>${qrSvg(memoQrText(s),110)}<div>স্ক্যান করে মেমোর তথ্য যাচাই করুন<br>ধন্যবাদ, আবার আসবেন।</div></div>`);
+  const pb=document.querySelector('#mm .noprint');
+  if(pb)pb.insertAdjacentHTML('afterbegin',`<button class='g' style='color:#111' onclick="waMemo('${id}')">💬 WhatsApp</button>`)};
+function waMemo(id){
+  const s=S.s.find(x=>x.id===id);if(!s)return;const g=S.s.filter(x=>x.no===s.no),c=cfg();
+  const T=g.reduce((a,x)=>a+tot(x),0),P=g.reduce((a,x)=>a+x.paid,0),SUB=g.reduce((a,x)=>a+x.qty*x.price,0);
+  let t='*'+c.name+'*\nমেমো #'+s.no+' · '+s.date+'\nপ্রিয় '+s.cust+',\n\n'+g.map(x=>'• '+x.name+(x.sn?' (S/N: '+x.sn+')':'')+' × '+x.qty+' = '+fm(x.qty*x.price)).join('\n')+'\n';
+  if(SUB!==T)t+='\nছাড়: −'+fm(SUB-T);
+  t+='\n*মোট: '+fm(T)+'*\nপরিশোধ: '+fm(P)+(s.pm?' ('+s.pm+')':'')+'\nবাকি: '+fm(T-P);
+  const w=g.filter(x=>x.war).map(x=>x.name+': '+x.war);if(w.length)t+='\n\nওয়ারেন্টি: '+w.join(', ');
+  t+='\n\nধন্যবাদ!\n'+c.ph+'\n'+c.addr;
+  openWa(s.ph,t)}
+/* ---- বাকি (মেমো ভিত্তিক) + তাগাদা ---- */
+V.due=()=>{const seen=new Set(),L=[];
+  S.s.slice().reverse().forEach(x=>{if(seen.has(x.no))return;seen.add(x.no);const g=S.s.filter(y=>y.no===x.no),d=g.reduce((a,y)=>a+tot(y)-y.paid,0);
+    if(d>0)L.push({id:x.id,no:x.no,date:x.date,cust:x.cust,ph:x.ph,name:g.map(y=>y.name+' × '+y.qty).join(', '),d,age:Math.floor((Date.now()-new Date(x.date))/864e5)})});
+  L.sort((a,b)=>b.age-a.age);
+  return `<div class='card'><h2>কাস্টমারের কাছে বাকি: <span class='bad'>${fm(L.reduce((a,s)=>a+s.d,0))}</span></h2><div class='tw'><table><tr><th>মেমো</th><th>কাস্টমার</th><th>পণ্য</th><th>কত দিন</th><th class='n'>বাকি</th><th></th></tr>${L.map(s=>`<tr><td>#${s.no}</td><td>${esc(s.cust)}<br><span class='mut'>${esc(s.ph)}</span></td><td>${esc(s.name)}</td><td class='${s.age>30?'bad':''}'>${s.age} দিন</td><td class='n bad'>${fm(s.d)}</td><td><button class='g' onclick="due('${s.id}')">বাকি নিন</button> <button class='g' onclick="waDue('${s.id}')">💬 তাগাদা</button></td></tr>`).join('')||"<tr><td colspan='6' class='mut'>কোনো বাকি নেই।</td></tr>"}</table></div></div>`};
+function waDue(id){const s=S.s.find(x=>x.id===id);if(!s)return;const g=S.s.filter(x=>x.no===s.no),d=g.reduce((a,x)=>a+tot(x)-x.paid,0),c=cfg();
+  openWa(s.ph,'আসসালামু আলাইকুম '+s.cust+', '+c.name+' থেকে বলছি। আপনার মেমো #'+s.no+' ('+s.date+') এ '+fm(d)+' বাকি আছে। সুবিধামতো সময়ে পরিশোধ করার অনুরোধ রইলো। ধন্যবাদ।\n'+c.ph)}
+/* ---- ওয়ারেন্টি ---- */
+function parseWar(t){
+  t=String(t||'').toLowerCase().replace(/[০-৯]/g,d=>'০১২৩৪৫৬৭৮৯'.indexOf(d));
+  const m=t.match(/(\d+(?:\.\d+)?)\s*(year|yr|y\b|বছর|month|mon|মাস|week|সপ্তাহ|day|দিন)?/);if(!m)return null;
+  const n=parseFloat(m[1]),u=m[2]||'month';
+  if(/year|yr|^y$|বছর/.test(u))return{m:Math.round(n*12)};
+  if(/month|mon|মাস/.test(u))return{m:n};
+  if(/week|সপ্তাহ/.test(u))return{d:n*7};
+  return{d:n}}
+function warInfo(s){
+  const p=S.p.find(x=>x.id===s.pid)||{},w=s.war!=null?s.war:p.war;if(!w)return null;
+  const pr=parseWar(w);if(!pr)return{txt:w,end:null};
+  const e=new Date(s.date+'T00:00:00');if(pr.m)e.setMonth(e.getMonth()+Math.floor(pr.m));if(pr.d)e.setDate(e.getDate()+pr.d);
+  const days=Math.ceil((e-new Date(today()+'T00:00:00'))/864e5);
+  return{txt:w,end:e.getFullYear()+'-'+String(e.getMonth()+1).padStart(2,'0')+'-'+String(e.getDate()).padStart(2,'0'),days}}
+const warBadge=i=>!i?'<span class="mut">নেই</span>':i.end===null?'<span class="mut">'+esc(i.txt)+'</span>':i.days<0?'<span class="bad">❌ শেষ ('+(-i.days)+' দিন আগে)</span>':i.days<=30?'<span style="color:var(--wn)">⚠ '+i.days+' দিন বাকি</span>':'<span class="ok">✅ '+i.days+' দিন বাকি</span>';
+function warList(q){
+  q=String(q||'').trim().toLowerCase();
+  return S.s.filter(s=>!q||[s.name,s.cust,s.ph,s.sn,String(s.no)].some(x=>String(x||'').toLowerCase().includes(q))).slice().reverse().slice(0,150)}
+function warRows(){const L=warList($('#wq')?$('#wq').value:'');
+  $('#wb').innerHTML=L.map(s=>{const i=warInfo(s);return `<tr><td>#${s.no}<br><span class='mut'>${s.date}</span></td><td>${esc(s.name)}${s.sn?'<br><span class="mut">S/N: '+esc(s.sn)+'</span>':''}</td><td>${esc(s.cust)}<br><span class='mut'>${esc(s.ph)}</span></td><td>${i?esc(i.txt):'-'}</td><td>${i&&i.end?i.end:'-'}</td><td>${warBadge(i)}</td><td><button class='g' onclick="waWar('${s.id}')">💬</button></td></tr>`}).join('')||"<tr><td colspan='7' class='mut'>কিছু পাওয়া যায়নি।</td></tr>"}
+V.war=()=>`<div class='card'><h2>ওয়ারেন্টি চেক</h2><div class='f'><div><label>সিরিয়াল, ফোন, নাম বা মেমো নম্বর</label><input id='wq' oninput='warRows()' placeholder='যেমন: 01711... বা সিরিয়াল'></div><button class='g' onclick="scanFor('war')">📷 স্ক্যান</button></div><div class='tw' style='margin-top:10px'><table><tr><th>মেমো</th><th>পণ্য</th><th>কাস্টমার</th><th>ওয়ারেন্টি</th><th>মেয়াদ শেষ</th><th>অবস্থা</th><th></th></tr><tbody id='wb'></tbody></table></div><p class='mut'>ওয়ারেন্টি ঘরে "1 year", "6 months", "৩ মাস", "১ বছর" লিখলে মেয়াদ নিজে হিসাব হয়।</p></div>`;
+function waWar(id){const s=S.s.find(x=>x.id===id);if(!s)return;const i=warInfo(s),c=cfg();
+  openWa(s.ph,'আসসালামু আলাইকুম '+s.cust+', '+c.name+' থেকে বলছি। আপনার '+s.name+(s.sn?' (S/N: '+s.sn+')':'')+' এর ওয়ারেন্টি'+(i&&i.end?(i.days<0?' '+i.end+' তারিখে শেষ হয়েছে।':' '+i.end+' তারিখে শেষ হবে।'):': '+(i?i.txt:''))+' কোনো সমস্যা হলে যোগাযোগ করবেন।\n'+c.ph)}
+/* ---- ক্যামেরা স্ক্যান ---- */
+let scStream=null,scTimer=null,SCB=null;
+function scStop(){clearInterval(scTimer);if(scStream)scStream.getTracks().forEach(t=>t.stop());scStream=null}
+const cm0=cm;cm=function(){scStop();cm0()};
+function scDone(v){v=String(v||'').trim();if(!v)return;scStop();cm0();if(SCB)SCB(v)}
+function scanOpen(cb){
+  SCB=cb;
+  shw('m dk',`<h2>📷 স্ক্যান করুন</h2><video id="scv" playsinline muted style="width:100%;border-radius:10px;background:#000;max-height:50vh"></video><div class="hint" id="scm">ক্যামেরা চালু হচ্ছে...</div><div class="f" style="margin-top:8px"><div><label>অথবা হাতে লিখুন (সিরিয়াল / কোড)</label><input id="scx"></div><button class="b" onclick="scDone($('#scx').value)">ঠিক আছে</button></div><button class="g" style="margin-top:8px" onclick="cm()">বন্ধ করুন</button>`);
+  if(!('BarcodeDetector' in window)||!navigator.mediaDevices){$('#scm').textContent='এই ব্রাউজারে ক্যামেরা স্ক্যান চলে না (ফোনের Chrome ব্যবহার করুন)। নিচে হাতে লিখুন।';return}
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(st=>{
+    scStream=st;const v=$('#scv');if(!v){scStop();return}v.srcObject=st;v.play().catch(()=>{});$('#scm').textContent='বারকোড বা QR ক্যামেরার সামনে ধরুন';
+    const det=new BarcodeDetector({formats:['qr_code','code_128','code_39','ean_13','ean_8','upc_a']});
+    scTimer=setInterval(async()=>{try{const r=await det.detect(v);if(r.length)scDone(r[0].rawValue)}catch(e){}},350)
+  }).catch(()=>{const m=$('#scm');if(m)m.textContent='ক্যামেরার অনুমতি পাওয়া যায়নি। নিচে হাতে লিখুন।'})}
+function findCode(v){v=String(v).trim().toLowerCase();return S.p.find(p=>(p.sn&&p.sn.toLowerCase()===v)||p.id.toLowerCase()===v)||null}
+function scanFor(mode){scanOpen(v=>{
+  if(mode==='sell'){const p=findCode(v);if(!p)return alert('এই কোডের পণ্য পাওয়া যায়নি: '+v);if(p.qty<=0)return alert('"'+p.name+'" এর স্টক নেই');const e=$('#sp');if(e){e.value=p.id;sf()}}
+  else if(mode==='war'){const e=$('#wq');if(e){e.value=v;warRows()}}
+  else{const p=findCode(v);if(!p)return alert('এই কোডের পণ্য পাওয়া যায়নি: '+v);pv(p.id)}})}
+/* ---- লেবেল প্রিন্ট ---- */
+V.lbl=()=>`<div class='card'><h2>📷 স্ক্যান করে পণ্য খুঁজুন</h2><p class='mut'>লেবেলের QR বা সিরিয়াল স্ক্যান করলে পণ্যের তথ্য খুলবে।</p><button class='b' onclick="scanFor('find')">📷 স্ক্যান করুন</button></div>
+<div class='card'><h2>🏷 লেবেল প্রিন্ট</h2><p class='mut'>যে পণ্যের লেবেল লাগবে তার পাশে কয়টা লাগবে লিখুন (০ = বাদ)। লেবেলে নাম, স্পেক, দাম আর স্ক্যান করার QR থাকবে।</p>
+<div class='tw'><table><tr><th>পণ্য</th><th>সিরিয়াল</th><th class='n'>দাম</th><th>কয়টা</th></tr>${S.p.filter(p=>p.qty>0).map(p=>`<tr><td>${esc(p.name)} ${esc(p.model||'')}</td><td>${esc(p.sn||'-')}</td><td class='n'>${fm(p.price)}</td><td><input type='number' min='0' value='0' data-lb='${p.id}' style='width:70px'></td></tr>`).join('')||"<tr><td colspan='4' class='mut'>স্টকে কিছু নেই।</td></tr>"}</table></div>
+<div class='f' style='margin-top:10px'><button class='g' onclick="document.querySelectorAll('[data-lb]').forEach(i=>i.value=1)">সব ১টা করে</button><button class='b' onclick='lblPrint()'>লেবেল তৈরি করুন</button></div></div>`;
+function lblPrint(){
+  const c=cfg(),L=[];document.querySelectorAll('[data-lb]').forEach(i=>{const n=Math.floor(num(i.value));const p=S.p.find(x=>x.id===i.dataset.lb);if(p)for(let k=0;k<n;k++)L.push(p)});
+  if(!L.length)return alert('কমপক্ষে একটা পণ্যের পাশে সংখ্যা দিন');
+  shw('m a4',`<div style='display:flex;flex-wrap:wrap;gap:6px'>${L.map(p=>`<div style='width:62mm;height:38mm;border:1px solid #000;border-radius:3px;padding:2mm;display:flex;gap:2mm;font-size:9px;line-height:1.25;color:#000;background:#fff;box-sizing:border-box;page-break-inside:avoid'><div style='flex:1;min-width:0'><b style='font-size:8px'>${esc(c.name)}</b><div style='font-weight:700;font-size:11px'>${esc(p.name)}</div><div>${esc([p.brand,p.model].filter(Boolean).join(' '))}</div><div>${esc([p.cpu,p.ram,p.ssd].filter(Boolean).join(' / '))}</div>${p.cond?`<div>${esc(p.cond)}</div>`:''}<div style='font-size:15px;font-weight:800;margin-top:2px'>${fm(p.price)}</div></div><div style='text-align:center'>${qrSvg(p.sn||p.id,70)}<div style='font-size:7px;word-break:break-all;max-width:70px'>${esc(p.sn||'')}</div></div></div>`).join('')}</div>${pbar}`)}
+/* ---- অনলাইন ক্যাটালগ ---- */
+V.cat=()=>{const L=S.p.filter(p=>p.qty>0),n=L.filter(p=>p.pub).length,u=location.origin+location.pathname.replace(/[^/]*$/,'')+'shop/';
+  return `<div class='card'><h2>🌐 অনলাইন ক্যাটালগ</h2><p class='mut'>টিক দেওয়া পণ্য আপনার পাবলিক সাইটে (নাম, স্পেক, দাম, ছবি) দেখাবে। কেনা দাম বা সিরিয়াল কখনো দেখাবে না। বিক্রি হয়ে স্টক শেষ হলে নিজে সরে যাবে।<br>পাবলিক পেজ: <a href='${u}' target='_blank'>${u}</a><br>এখন প্রকাশিত: <b>${n}</b>টি</p>
+  <div class='tw'><table><tr><th>দেখাবে</th><th>পণ্য</th><th>স্পেক</th><th class='n'>দাম</th><th class='n'>স্টক</th></tr>${L.map(p=>`<tr><td><input type='checkbox' ${p.pub?'checked':''} onchange="togPub('${p.id}',this.checked)"></td><td>${th(p)} ${esc(p.name)} ${esc(p.model||'')}</td><td>${esc([p.cpu,p.ram,p.ssd].filter(Boolean).join(' / '))}</td><td class='n'>${fm(p.price)}</td><td class='n'>${p.qty}</td></tr>`).join('')||"<tr><td colspan='5' class='mut'>স্টকে কিছু নেই।</td></tr>"}</table></div></div>`};
+function togPub(id,v){const p=S.p.find(x=>x.id===id);if(!p)return;p.pub=!!v;save();R()}
+let csnap=null,csy=false,cdirty=false;
+async function syncCat(){
+  if(!DB||ROLE!=='owner')return;if(csy){cdirty=true;return}csy=true;
+  try{
+    if(csnap===null){csnap={};const q=await DB.collection('catalog').get();q.docs.forEach(d=>csnap[d.id]=JSON.stringify(d.data()))}
+    const want={};
+    S.p.filter(p=>p.pub&&p.qty>0).forEach(p=>{want[p.id]={id:p.id,name:p.name||'',brand:p.brand||'',model:p.model||'',cpu:p.cpu||'',ram:p.ram||'',ssd:p.ssd||'',disp:p.disp||'',cond:p.cond||'',war:p.war||'',desc:p.desc||'',price:p.price||0,qty:p.qty||0,img:p.img||''}});
+    const jobs=[];
+    Object.keys(want).forEach(id=>{const j=JSON.stringify(want[id]);if(csnap[id]!==j){csnap[id]=j;jobs.push(DB.collection('catalog').doc(id).set(want[id]))}});
+    Object.keys(csnap).forEach(id=>{if(!want[id]){delete csnap[id];jobs.push(DB.collection('catalog').doc(id).delete())}});
+    await Promise.race([Promise.all(jobs),new Promise(r=>setTimeout(r,9000))]);
+  }catch(e){csnap=null}
+  csy=false;if(cdirty){cdirty=false;syncCat()}}
+/* ---- অফার ও মেসেজ ---- */
+let MSGT='আসসালামু আলাইকুম {name}, SUPER COMPUTER SHOP থেকে বলছি। আমাদের দোকানে নতুন ল্যাপটপ ও অ্যাক্সেসরিজ এসেছে। আসলে দেখে যাবেন। ধন্যবাদ।',MSGF='all';
+try{MSGT=localStorage.getItem('scs_msgt')||MSGT}catch(e){}
+function custList(){
+  const m={};
+  S.cu.forEach(u=>{m[u.id]={k:u.id,n:u.name,ph:u.ph,ad:u.ad,dob:u.dob||'',last:'',due:0,tot:0}});
+  S.s.forEach(s=>{const k=ckey(s.ph,s.cust),o=m[k]||(m[k]={k,n:s.cust,ph:s.ph,ad:s.ad||'',dob:'',last:'',due:0,tot:0});
+    if(s.date>o.last)o.last=s.date;o.due+=tot(s)-s.paid;o.tot+=tot(s)});
+  return Object.values(m).sort((a,b)=>(b.last||'').localeCompare(a.last||''))}
+const bdayIn=(dob,days)=>{if(!dob)return false;const[,mm,dd]=dob.split('-');const n=new Date(),t=new Date(n.getFullYear(),+mm-1,+dd),d0=new Date(n.getFullYear(),n.getMonth(),n.getDate());let df=Math.round((t-d0)/864e5);if(df<0){t.setFullYear(t.getFullYear()+1);df=Math.round((t-d0)/864e5)}return df<=days};
+V.msg=()=>{const L=custList().filter(c=>{
+    if(MSGF==='old')return c.last&&(Date.now()-new Date(c.last))/864e5>30;
+    if(MSGF==='due')return c.due>0;if(MSGF==='bday')return bdayIn(c.dob,7);return true});
+  return `<div class='card'><h2>💬 অফার ও মেসেজ</h2><p class='mut'>{name} লিখলে কাস্টমারের নাম বসে যাবে। WhatsApp একসাথে সবাইকে পাঠানো যায় না, তাই প্রতিজনের পাশের 💬 চাপলে মেসেজ তৈরি হয়ে WhatsApp খুলবে, আপনি "Send" চাপবেন।</p>
+  <label>মেসেজ</label><textarea id='mt' rows='4' oninput="MSGT=this.value;try{localStorage.setItem('scs_msgt',MSGT)}catch(e){}">${esc(MSGT)}</textarea>
+  <div class='f' style='margin-top:8px'><div><label>কাদের দেখাবে</label><select onchange="MSGF=this.value;R()">${[['all','সব কাস্টমার'],['old','৩০ দিনের বেশি কিছু কেনেননি'],['due','বাকি আছে'],['bday','৭ দিনের মধ্যে জন্মদিন']].map(o=>`<option value='${o[0]}' ${MSGF===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div></div>
+  <div class='tw' style='margin-top:10px'><table><tr><th>কাস্টমার</th><th>শেষ কেনা</th><th class='n'>মোট কেনা</th><th class='n'>বাকি</th><th>জন্মদিন</th><th></th></tr>${L.map(c=>`<tr><td>${esc(c.n||'নাম নেই')}<br><span class='mut'>${esc(c.ph)}</span></td><td>${c.last||'-'}</td><td class='n'>${fm(c.tot)}</td><td class='n ${c.due>0?'bad':''}'>${fm(c.due)}</td><td>${c.dob||'-'}</td><td><button class='g' onclick="waMsg('${esc(c.k)}')">💬</button> <button class='g' onclick="custHist('${esc(c.k)}')">ইতিহাস</button></td></tr>`).join('')||"<tr><td colspan='6' class='mut'>কেউ নেই।</td></tr>"}</table></div></div>`};
+function waMsg(k){const c=custList().find(x=>x.k===k);if(!c)return;openWa(c.ph,MSGT.replace(/\{name\}/g,c.n||'জনাব'))}
+function waBday(k){const c=custList().find(x=>x.k===k);if(!c)return;openWa(c.ph,'আসসালামু আলাইকুম '+(c.n||'')+', শুভ জন্মদিন! '+cfg().name+' পরিবারের পক্ষ থেকে আপনাকে অনেক শুভেচ্ছা।')}
+/* ---- কাস্টমার ইতিহাস ---- */
+function custHist(k){
+  const c=custList().find(x=>x.k===k);if(!c)return;
+  const sl=S.s.filter(s=>ckey(s.ph,s.cust)===k),memos={};sl.forEach(s=>(memos[s.no]=memos[s.no]||[]).push(s));
+  const sv=S.sv.filter(v=>digits(v.ph)&&digits(v.ph)===digits(c.ph)||(!digits(c.ph)&&String(v.cust).trim().toLowerCase()===String(c.n).trim().toLowerCase()));
+  const wl=sl.map(s=>({s,i:warInfo(s)})).filter(x=>x.i);
+  shw('m dk',`<h2>${esc(c.n||'নাম নেই')}</h2><p class='mut'>${esc(c.ph)} ${c.ad?'· '+esc(c.ad):''}<br>জন্মতারিখ: ${c.dob||'দেওয়া নেই'} · মোট কেনা ${fm(c.tot)} · <span class='${c.due>0?'bad':''}'>বাকি ${fm(c.due)}</span></p>
+  <div class='f'><button class='g' onclick="cuEdit('${esc(k)}')">✏️ ঠিকানা / জন্মতারিখ</button><button class='g' onclick="waMsg('${esc(k)}')">💬 মেসেজ</button></div>
+  <h3>কেনাকাটা</h3><div class='tw'><table>${Object.keys(memos).sort((a,b)=>b-a).map(no=>{const g=memos[no],T=g.reduce((a,x)=>a+tot(x),0),P=g.reduce((a,x)=>a+x.paid,0);return `<tr><td>#${no}<br><span class='mut'>${g[0].date}</span></td><td>${g.map(x=>esc(x.name)+' × '+x.qty).join('<br>')}</td><td class='n'>${fm(T)}</td><td class='n ${T-P>0?'bad':''}'>${fm(T-P)}</td><td><button class='g' onclick="memo('${g[0].id}')">মেমো</button></td></tr>`}).join('')||"<tr><td class='mut'>কিছু নেই</td></tr>"}</table></div>
+  <h3>সার্ভিস</h3><div class='tw'><table>${sv.map(v=>`<tr><td>S-${v.no}</td><td>${v.date}</td><td>${esc([v.brand,v.model].filter(Boolean).join(' '))}</td><td>${esc(v.st||'')}</td></tr>`).join('')||"<tr><td class='mut'>কিছু নেই</td></tr>"}</table></div>
+  <h3>ওয়ারেন্টি</h3><div class='tw'><table>${wl.map(x=>`<tr><td>${esc(x.s.name)}${x.s.sn?' ['+esc(x.s.sn)+']':''}</td><td>${esc(x.i.txt)}</td><td>${x.i.end||'-'}</td><td>${warBadge(x.i)}</td></tr>`).join('')||"<tr><td class='mut'>কিছু নেই</td></tr>"}</table></div>
+  <button class='g' style='margin-top:10px' onclick='cm()'>বন্ধ করুন</button>`)}
+function cuEdit(k){let u=S.cu.find(x=>x.id===k);const c=custList().find(x=>x.k===k)||{};
+  gf('কাস্টমারের তথ্য',[['ad','ঠিকানা'],['dob','জন্মতারিখ','date'],['note','নোট']],o=>{let u2=S.cu.find(x=>x.id===k);if(!u2){u2={id:k,name:c.n||'',ph:c.ph||'',ad:'',dob:'',note:''};S.cu.push(u2)}Object.assign(u2,o);save();R();custHist(k)},u||{ad:c.ad})}
+const cust0=V.cust;
+V.cust=()=>{let i=0;return cust0().replace(/<\/summary>/g,()=>{const c=CUL[i++];return c?`<button class="g" style="margin-left:8px" onclick="event.preventDefault();event.stopPropagation();custHist('${esc(ckey(c.ph,c.n))}')">ইতিহাস</button></summary>`:'</summary>'})};
+/* ---- চার্ট ---- */
+const MON=['জানু','ফেব্রু','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টে','অক্টো','নভে','ডিসে'];
+const kfm=n=>n>=100000?(n/100000).toFixed(1)+'L':n>=1000?Math.round(n/1000)+'k':String(Math.round(n));
+function barChart(rows,names){
+  const W=600,H=230,pl=40,pb=30,pt=14,mx=Math.max(1,...rows.flatMap(r=>r.v)),bw=(W-pl-10)/rows.length,cols=['var(--ac)','var(--ok)'];
+  let g='';[0,.5,1].forEach(f=>{const y=pt+(H-pt-pb)*(1-f);g+=`<line x1='${pl}' x2='${W-6}' y1='${y}' y2='${y}' style='stroke:var(--line)'/><text x='${pl-4}' y='${y+4}' text-anchor='end' font-size='10' style='fill:var(--mut)'>${kfm(mx*f)}</text>`});
+  rows.forEach((r,i)=>{const x0=pl+i*bw+bw*.15,w=bw*.7/r.v.length;r.v.forEach((v,j)=>{const h=(H-pt-pb)*Math.max(0,v)/mx;g+=`<rect x='${x0+j*w}' y='${H-pb-h}' width='${w-2}' height='${h}' rx='2' style='fill:${cols[j]}'/>`});g+=`<text x='${pl+i*bw+bw/2}' y='${H-10}' text-anchor='middle' font-size='10' style='fill:var(--mut)'>${esc(r.l)}</text>`});
+  return `<svg viewBox='0 0 ${W} ${H}' style='width:100%;height:auto' role='img' aria-label='${esc(names.join(' ও '))} চার্ট'>${g}</svg><div class='mut' style='font-size:12px'><span style='color:var(--ac)'>■</span> ${esc(names[0])} &nbsp; ${names[1]?`<span style='color:var(--ok)'>■</span> ${esc(names[1])}`:''}</div>`}
+function monthRows(n){const out=[],d=new Date();for(let i=n-1;i>=0;i--){const t=new Date(d.getFullYear(),d.getMonth()-i,1),k=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0'),L=S.s.filter(s=>s.date.slice(0,7)===k),sa=L.reduce((a,s)=>a+tot(s),0),pr=L.reduce((a,s)=>a+tot(s)-s.qty*s.cost,0);out.push({l:MON[t.getMonth()],v:[sa,pr]})}return out}
+const pmSum=L=>{const m={};L.forEach(s=>{const k=s.pm||'নগদ';m[k]=(m[k]||0)+s.paid});return Object.entries(m).filter(e=>e[1]>0)};
+/* ---- ব্যাকআপ ---- */
+function bkNow(){dls('backup-'+today()+'.json',JSON.stringify(S));try{localStorage.setItem('scs_bk',today())}catch(e){}R()}
+const bkAge=()=>{let d=null;try{d=localStorage.getItem('scs_bk')}catch(e){}return d?Math.floor((Date.now()-new Date(d))/864e5):999};
+/* ---- ড্যাশবোর্ড ---- */
+V.dash=()=>{
+  const td=today(),mo=td.slice(0,7),lim=cfg().low||2,pf=s=>tot(s)-s.qty*s.cost,sm=(L,f)=>L.reduce((a,x)=>a+f(x),0);
+  const T1=S.s.filter(s=>s.date===td),M1=S.s.filter(s=>s.date.slice(0,7)===mo);
+  const svT=sm(S.sv.filter(v=>v.date===td),v=>v.paid||0),exT=sm(S.e.filter(e=>e.date===td),e=>e.amt),exM=sm(S.e.filter(e=>e.date.slice(0,7)===mo),e=>e.amt);
+  const dueT=sm(S.s,s=>tot(s)-s.paid),stockV=sm(S.p,p=>Math.max(0,p.qty)*p.cost);
+  const low=S.p.filter(p=>!p.sn&&p.qty<=lim).sort((a,b)=>a.qty-b.qty);
+  const pend=S.o.filter(o=>o.st==='pending').length;
+  const wexp=S.s.map(s=>({s,i:warInfo(s)})).filter(x=>x.i&&x.i.end&&x.i.days>=0&&x.i.days<=30).sort((a,b)=>a.i.days-b.i.days).slice(0,8);
+  const sup=S.co.map(c=>({c,o:cob(c)})).filter(x=>x.o.due>0).sort((a,b)=>(a.c.dd||'9999').localeCompare(b.c.dd||'9999'));
+  const bd=custList().filter(c=>c.dob&&bdayIn(c.dob,0));
+  const al=[];
+  if(bkAge()>=7)al.push(`<div class='card' style='border-color:var(--wn)'>💾 ${bkAge()>=999?'এই ডিভাইসে এখনও ব্যাকআপ নেওয়া হয়নি':bkAge()+' দিন ধরে ব্যাকআপ নেওয়া হয়নি'}। <button class='b' onclick='bkNow()'>এখনই ব্যাকআপ নিন</button></div>`);
+  if(bd.length)al.push(`<div class='card'><h2>🎂 আজ জন্মদিন</h2>${bd.map(c=>`<div>${esc(c.n)} ${esc(c.ph)} <button class='g' onclick="waBday('${esc(c.k)}')">💬 শুভেচ্ছা</button></div>`).join('')}</div>`);
+  const pm1=pmSum(T1),pm2=pmSum(M1);
+  return al.join('')+`<div class='grid'>
+  <div class='st'><small>আজকের বিক্রি</small><b>${fm(sm(T1,tot))}</b></div>
+  <div class='st'><small>আজকের লাভ</small><b class='${sm(T1,pf)<0?'bad':'ok'}'>${fm(sm(T1,pf))}</b></div>
+  <div class='st'><small>আজ পাওয়া টাকা (বিক্রি+সার্ভিস)</small><b>${fm(sm(T1,s=>s.paid)+svT)}</b></div>
+  <div class='st'><small>আজকের খরচ</small><b>${fm(exT)}</b></div>
+  <div class='st'><small>এই মাসের বিক্রি</small><b>${fm(sm(M1,tot))}</b></div>
+  <div class='st'><small>এই মাসের নিট লাভ (খরচ বাদে)</small><b class='${sm(M1,pf)-exM<0?'bad':'ok'}'>${fm(sm(M1,pf)-exM)}</b></div>
+  <div class='st' onclick="go('due')" style='cursor:pointer'><small>কাস্টমারের কাছে বাকি</small><b class='bad'>${fm(dueT)}</b></div>
+  <div class='st'><small>স্টকের মূল্য (কেনা দামে)</small><b>${fm(stockV)}</b></div>
+  <div class='st' onclick="go('ord')" style='cursor:pointer'><small>অপেক্ষমাণ অর্ডার</small><b>${pend}টি</b></div></div>
+  <div class='card'><h2>গত ৬ মাস: বিক্রি ও লাভ</h2>${barChart(monthRows(6),['বিক্রি','লাভ'])}</div>
+  <div class='card'><h2>টাকা কীভাবে এসেছে</h2><div class='mut'>আজ: ${pm1.map(e=>esc(e[0])+' '+fm(e[1])).join(' · ')||'—'}<br>এই মাস: ${pm2.map(e=>esc(e[0])+' '+fm(e[1])).join(' · ')||'—'}</div></div>
+  <div class='card'><h2>⚠ স্টক কম (${lim} বা কম)</h2>${low.length?low.map(p=>`<div>${esc(p.name)} ${esc(p.model||'')} — <b class='bad'>${p.qty} পিস</b></div>`).join(''):'<span class="mut">কোনো পণ্যের স্টক কম নয়।</span>'}</div>
+  ${wexp.length?`<div class='card'><h2>🛡 ৩০ দিনে ওয়ারেন্টি শেষ হবে</h2>${wexp.map(x=>`<div>${esc(x.s.cust)} — ${esc(x.s.name)} — ${x.i.end} (${x.i.days} দিন) <button class='g' onclick="waWar('${x.s.id}')">💬</button></div>`).join('')}</div>`:''}
+  ${sup.length?`<div class='card'><h2>🏢 সাপ্লায়ারকে দিতে হবে</h2>${sup.map(x=>`<div>${esc(x.c.name)} — <b class='bad'>${fm(x.o.due)}</b> ${x.c.dd?`<span class='${x.c.dd<td?'bad':'mut'}'>(তারিখ: ${x.c.dd}${x.c.dd<td?' — মেয়াদ পার':''})</span>`:''}</div>`).join('')}</div>`:''}
+  ${S.p.length?'':'<div class="card">শুরু করতে <b>ক্রয়</b> ট্যাবে গিয়ে প্রথম পণ্য কিনুন।</div>'}`};
+/* ---- রিপোর্ট: অতিরিক্ত ---- */
+const rep0=V.rep;
+V.rep=()=>{
+  const ok=d=>(!RP.f||d>=RP.f)&&(!RP.t||d<=RP.t),s=S.s.filter(x=>ok(x.date));
+  const pr={},br={};s.forEach(x=>{const p=S.p.find(y=>y.id===x.pid)||{},k=x.name,b=p.brand||'অন্যান্য';const o=pr[k]||(pr[k]={q:0,pf:0,t:0});o.q+=x.qty;o.pf+=tot(x)-x.qty*x.cost;o.t+=tot(x);const ob=br[b]||(br[b]={q:0,t:0});ob.q+=x.qty;ob.t+=tot(x)});
+  const top=Object.entries(pr).sort((a,b)=>b[1].t-a[1].t).slice(0,8),tb=Object.entries(br).sort((a,b)=>b[1].t-a[1].t).slice(0,6);
+  return rep0()+`<div class='card'><h2>গত ১২ মাসের বিক্রি ও লাভ</h2>${barChart(monthRows(12),['বিক্রি','লাভ'])}</div>
+  <div class='card'><h2>সবচেয়ে বেশি বিক্রি (পণ্য)</h2><div class='tw'><table><tr><th>পণ্য</th><th class='n'>পিস</th><th class='n'>বিক্রি</th><th class='n'>লাভ</th></tr>${top.map(e=>`<tr><td>${esc(e[0])}</td><td class='n'>${e[1].q}</td><td class='n'>${fm(e[1].t)}</td><td class='n'>${fm(e[1].pf)}</td></tr>`).join('')||"<tr><td colspan='4' class='mut'>কিছু নেই</td></tr>"}</table></div></div>
+  <div class='card'><h2>ব্র্যান্ড অনুযায়ী বিক্রি</h2><div class='tw'><table><tr><th>ব্র্যান্ড</th><th class='n'>পিস</th><th class='n'>বিক্রি</th></tr>${tb.map(e=>`<tr><td>${esc(e[0])}</td><td class='n'>${e[1].q}</td><td class='n'>${fm(e[1].t)}</td></tr>`).join('')||"<tr><td colspan='3' class='mut'>কিছু নেই</td></tr>"}</table></div></div>
+  <div class='card'><h2>টাকা পাওয়ার মাধ্যম (এই সময়ে)</h2><div class='mut'>${pmSum(s).map(e=>esc(e[0])+': '+fm(e[1])).join(' · ')||'—'}</div></div>
+  <div class='card'><h2>রিপোর্ট ডাউনলোড</h2><div class='f'><button class='b' onclick='rpPrint()'>🖨 PDF / প্রিন্ট রিপোর্ট</button><button class='g' onclick='rpx()'>⬇ বিক্রয় (Excel/CSV)</button><button class='g' onclick='rpBuy()'>⬇ ক্রয় (Excel/CSV)</button><button class='g' onclick='rpExp()'>⬇ খরচ (Excel/CSV)</button></div><p class='mut'>CSV ফাইল Excel-এ সরাসরি খোলে। PDF চাইলে প্রিন্ট পেজে "PDF হিসেবে সেভ" বেছে নিন।</p></div>`};
+function rpBuy(){const ok=d=>(!RP.f||d>=RP.f)&&(!RP.t||d<=RP.t);dls('purchase-report.csv',csv([['Date','Product','Supplier','Qty','Cost','Total']].concat(S.pu.filter(x=>ok(x.date)).map(x=>[x.date,x.name,x.sup,x.qty,x.cost,x.qty*x.cost]))))}
+function rpExp(){const ok=d=>(!RP.f||d>=RP.f)&&(!RP.t||d<=RP.t);dls('expense-report.csv',csv([['Date','Title','Amount']].concat(S.e.filter(x=>ok(x.date)).map(x=>[x.date,x.title,x.amt]))))}
+function rpPrint(){
+  const ok=d=>(!RP.f||d>=RP.f)&&(!RP.t||d<=RP.t),s=S.s.filter(x=>ok(x.date)),sv=S.sv.filter(x=>ok(x.date)),pu=S.pu.filter(x=>ok(x.date));
+  const sal=s.reduce((a,x)=>a+tot(x),0),rec=s.reduce((a,x)=>a+x.paid,0),cogs=s.reduce((a,x)=>a+x.qty*x.cost,0),ex=S.e.filter(x=>ok(x.date)).reduce((a,x)=>a+x.amt,0),svi=sv.reduce((a,x)=>a+(x.paid||0),0),svp=sv.reduce((a,x)=>a+(x.parts||0),0),pur=pu.reduce((a,x)=>a+x.qty*x.cost,0);
+  const rows=[['মোট বিক্রি',sal],['পণ্যের কেনা দাম',cogs],['বিক্রয় লাভ',sal-cogs],['সার্ভিস আয়',svi],['সার্ভিসের পার্টস',svp],['অন্যান্য খরচ',ex],['নিট লাভ',sal-cogs+svi-svp-ex],['টাকা পাওয়া',rec],['কাস্টমারের বাকি',sal-rec],['এই সময়ের ক্রয়',pur]];
+  shw('m a4',`<div class='inv'>${hdr('REPORT',(RP.f||'শুরু')+' → '+(RP.t||'আজ'),today())}<table style='width:100%;margin-top:14px'>${rows.map(r=>`<tr><td>${r[0]}</td><td style='text-align:right'><b>${fm(r[1])}</b></td></tr>`).join('')}</table>
+  <h3 style='margin-top:18px'>বিক্রয়ের তালিকা</h3><table style='width:100%;font-size:12px'><tr><th>মেমো</th><th>তারিখ</th><th>কাস্টমার</th><th>পণ্য</th><th>মোট</th><th>বাকি</th></tr>${s.map(x=>`<tr><td>#${x.no}</td><td>${x.date}</td><td>${esc(x.cust)}</td><td>${esc(x.name)} × ${x.qty}</td><td>${fm(tot(x))}</td><td>${fm(tot(x)-x.paid)}</td></tr>`).join('')}</table></div>${pbar}`)}
+/* ---- কর্মচারী লগইন (সেটিংস) ---- */
+const set1=V.set;
+V.set=()=>set1()+(OWN()?`<div class='card'><h2>👥 কর্মচারী লগইন</h2><p class='mut'>কর্মচারী শুধু বিক্রি, স্টক দেখা, মেমো, সার্ভিস আর পার্সেল করতে পারবে। লাভ, ক্রয়, খরচ, রিপোর্ট ও সেটিংস দেখতে পাবে না।<br><b>কীভাবে যোগ করবেন:</b> (১) Firebase Console → Authentication → Users → Add user দিয়ে কর্মচারীর ইমেইল ও পাসওয়ার্ড বানান। (২) তারপর সেই ইমেইল নিচে যোগ করুন।</p>
+  <div class='f'><div><label>কর্মচারীর ইমেইল</label><input id='stm' type='email'></div><button class='b' onclick='stfAdd()'>যোগ করুন</button></div><div id='stf' class='mut' style='margin-top:8px'>লোড হচ্ছে...</div></div>`:'');
+async function stfLoad(){const e=$('#stf');if(!e||!DB)return;try{const q=await DB.collection('staff').get();e.innerHTML=q.docs.map(d=>`<div>${esc(d.id)} <button class='x' onclick="stfDel('${esc(d.id)}')">সরান</button></div>`).join('')||'এখনও কেউ নেই।'}catch(x){e.textContent='তালিকা আনা যায়নি (Firestore rules আপডেট হয়েছে কিনা দেখুন)'}}
+async function stfAdd(){const m=($('#stm').value||'').trim().toLowerCase();if(!/^\S+@\S+\.\S+$/.test(m))return alert('সঠিক ইমেইল লিখুন');try{await DB.collection('staff').doc(m).set({email:m,t:Date.now()});logA('কর্মচারী যোগ',m);save();stfLoad();$('#stm').value=''}catch(e){alert('যোগ হয়নি। Firestore rules আপডেট করেছেন কিনা দেখুন।')}}
+async function stfDel(m){if(!confirm(m+' কে সরাবেন? সে আর ঢুকতে পারবে না।'))return;try{await DB.collection('staff').doc(m).delete();logA('কর্মচারী সরানো',m);save();stfLoad()}catch(e){alert('সরানো যায়নি')}}
+/* ---- অ্যাক্টিভিটি লগ ---- */
+function logA(a,d){S.lg.push({id:uid(),t:Date.now(),u:window.ME||'',a,d:String(d||'').slice(0,300)});if(S.lg.length>400){S.lg.sort((x,y)=>x.t-y.t);S.lg.splice(0,S.lg.length-400)}}
+V.log=()=>`<div class='card'><h2>📜 কে কখন কী করেছে</h2><p class='mut'>বিক্রি, মোছা, দাম বদল, বাকি আদায়, ক্রয়, লগইন সব এখানে জমা হয়। সর্বশেষ ৪০০টা থাকে।</p><div class='tw'><table><tr><th>সময়</th><th>কে</th><th>কী</th><th>বিবরণ</th></tr>${S.lg.slice().sort((a,b)=>b.t-a.t).slice(0,200).map(l=>`<tr><td>${esc(dhk(l.t))}</td><td>${esc(l.u)}</td><td>${esc(l.a)}</td><td>${esc(l.d)}</td></tr>`).join('')||"<tr><td colspan='4' class='mut'>এখনও কিছু নেই</td></tr>"}</table></div></div>`;
+const LOGC=['p','s','pu','e','sv','pc','co'];
+const snapLog=()=>{const m={};LOGC.forEach(c=>S[c].forEach(x=>m[c+'|'+x.id]=JSON.stringify(x)));return m};
+function descLog(c,o){return c==='p'?o.name+(o.sn?' ['+o.sn+']':''):c==='s'?'#'+o.no+' '+o.cust+' — '+o.name+'×'+o.qty:c==='pu'?o.name+'×'+o.qty:c==='e'?o.title+' ৳'+o.amt:c==='sv'?'S-'+o.no+' '+o.cust:c==='pc'?(o.cust||'পার্সেল'):o.name}
+const LN={p:'পণ্য',s:'বিক্রয়',pu:'ক্রয়',e:'খরচ',sv:'সার্ভিস',pc:'পার্সেল',co:'সাপ্লায়ার'};
+function diffLog(label,b,a){
+  const L=[];
+  Object.keys(b).forEach(k=>{if(!(k in a)){const[c]=k.split('|');L.push(LN[c]+' মুছেছে: '+descLog(c,JSON.parse(b[k])))}});
+  Object.keys(a).forEach(k=>{const[c]=k.split('|');if(!(k in b)){if(c!=='s')L.push(LN[c]+' যোগ: '+descLog(c,JSON.parse(a[k])))}
+    else if(a[k]!==b[k]){const o=JSON.parse(b[k]),n=JSON.parse(a[k]),ch=[];['price','cost','qty','paid','amt','name','sn','st'].forEach(f=>{if(o[f]!==n[f])ch.push(f+': '+o[f]+' → '+n[f])});if(ch.length)L.push(LN[c]+' বদল: '+descLog(c,n)+' ('+ch.join(', ')+')')}});
+  const sl=Object.keys(a).filter(k=>k.startsWith('s|')&&!(k in b)).map(k=>JSON.parse(a[k]));
+  if(sl.length){const T=sl.reduce((x,s)=>x+tot(s),0);L.unshift('মেমো #'+sl[0].no+' '+sl[0].cust+': '+sl.map(s=>s.name+'×'+s.qty).join(', ')+' = ৳'+Math.round(T))}
+  if(L.length){const d=L.slice(0,4).join(' | ')+(L.length>4?' ...+'+(L.length-4):'');logA(label,d);save()}}
+const STAFF_BLOCK=['delSale','delCust','pd','delBuy','clearOld','delExp','svDel','coDel','coPay','addBuy','addExp','rs','pf','ps2','coEdit','setEdit','bkNow','togPub'];
+[['checkout','নতুন বিক্রয়'],['delSale','মেমো মুছেছে'],['delCust','কাস্টমারের মেমো মুছেছে'],['pd','পণ্য মুছেছে'],['delBuy','ক্রয় মুছেছে'],['clearOld','পুরনো ডেটা মুছেছে'],['delExp','খরচ মুছেছে'],['addExp','খরচ যোগ'],['due','বাকি আদায়'],['addBuy','ক্রয়'],['ps2','পণ্য সেভ'],['svDel','সার্ভিস মুছেছে'],['svPay','সার্ভিসের টাকা'],['coPay','সাপ্লায়ারকে পেমেন্ট'],['coDel','সাপ্লায়ার মুছেছে'],['deliver','অর্ডার ডেলিভারি']].forEach(([n,l])=>{
+  const f=window[n];if(typeof f!=='function')return;
+  window[n]=function(...a){if(ROLE==='staff'&&STAFF_BLOCK.includes(n)){alert('এই কাজ শুধু মালিক করতে পারবেন');return}
+    const b=snapLog(),r=f.apply(this,a);diffLog(l,b,snapLog());return r}});
+['pf','coEdit','setEdit','bkNow','togPub','rs'].forEach(n=>{const f=window[n];if(typeof f!=='function')return;window[n]=function(...a){if(ROLE==='staff'){alert('এই কাজ শুধু মালিক করতে পারবেন');return}return f.apply(this,a)}});
+/* ---- রেন্ডারের পর ---- */
+const R1=R;
+R=function(){R1();if(tab==='sell'){cdt();wirePhone()}if(tab==='war')warRows();if(tab==='set')stfLoad()};
+
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 init();
 </script>

@@ -128,7 +128,7 @@ textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:
 <script>
 const K='lapshop_v1';let CL=['p','pu','s','o','e','sv','pc','co','cp','cf','cu','lg','cc'],ROLE='owner',PERSIST=false;const OWNER='mdferdous8080@gmail.com';
 let S={p:[],pu:[],s:[],o:[],e:[],sv:[],pc:[],co:[],cp:[],cf:[],cu:[],lg:[],cc:[],n:1},DB=null,snap={},busy=false,pending=false;
-const setSt=t=>{const e=document.getElementById('st');if(e)e.textContent=t};
+const setSt=t=>{const e=document.getElementById('st');if(e)e.textContent=t;try{window.probHook&&probHook(t)}catch(x){}};
 const loc=()=>{try{return JSON.parse(localStorage.getItem(K))}catch(e){return null}};
 async function save(){
   if(!DB){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}return}
@@ -141,7 +141,7 @@ async function save(){
     const mj=JSON.stringify(S.n);if(snap.n!==mj){ns.n=mj;jobs.push(DB.doc('meta/main').set({n:S.n}))}
     await Promise.race([Promise.all(jobs),new Promise((res,rej)=>setTimeout(()=>PERSIST?res('q'):rej(new Error('t')),9000))]);Object.assign(snap,ns);del.forEach(k=>delete snap[k])}while(pending);
     if(ROLE==='owner'&&typeof syncCat==='function')syncCat();
-    setSt(navigator.onLine?'✓ অনলাইনে সেভ হয়েছে':'📴 অফলাইনে সেভ হয়েছে, নেট এলে নিজে সিঙ্ক হবে')}catch(e){setSt('⚠ সেভ হয়নি, ইন্টারনেট দেখুন')}
+    setSt(navigator.onLine?'✓ অনলাইনে সেভ হয়েছে':'📴 অফলাইনে সেভ হয়েছে, নেট এলে নিজে সিঙ্ক হবে')}catch(e){try{probE(e,'save')}catch(x){}setSt('⚠ সেভ হয়নি, ইন্টারনেট দেখুন')}
   busy=false}
 async function load(first){
   if(!DB)return;
@@ -154,7 +154,7 @@ async function load(first){
     if(first&&!T2.p.length&&!T2.s.length&&L&&(L.p.length||L.s.length)){S=L;snap={};await save();setSt('✓ এই ডিভাইসের পুরনো ডেটা অনলাইনে তোলা হয়েছে')}
     else{S=T2;snap=sp;setSt('✓ অনলাইনে সেভ আছে')}
     R()
-  }catch(e){if(first){DB=null;S=loc()||S;setSt('⚠ অনলাইন ডেটাবেস পাওয়া যায়নি, শুধু এই ডিভাইসে সেভ হচ্ছে');R()}}
+  }catch(e){try{probE(e,'load')}catch(x){}if(first){DB=null;S=loc()||S;setSt('⚠ অনলাইন ডেটাবেস পাওয়া যায়নি, শুধু এই ডিভাইসে সেভ হচ্ছে');R()}}
 }
 const FBC={apiKey:"AIzaSyCALif1Eso_UIVDII_hpsBwmyvFC4ALSvM",authDomain:"super-computer-shop.firebaseapp.com",projectId:"super-computer-shop",storageBucket:"super-computer-shop.firebasestorage.app",messagingSenderId:"712090906456",appId:"1:712090906456:web:20a854eca0f5a65fe2ff2d"};
 let AUTH=null,started=false;
@@ -1071,6 +1071,52 @@ V.dash=()=>{const k=stInfo();
   return top+dash9()};
 const set8=V.set;
 V.set=()=>{const k=stInfo(),rd=rdToday();return set8()+(OWN()?`<div class='card'><h2>📊 Firebase স্টোরেজ সিগন্যাল</h2>${stBar()}<p class='mut'>আজ এই ডিভাইসে প্রায় ${rd}বার ডেটা পড়া হয়েছে (ফ্রি সীমা সব ডিভাইস মিলিয়ে দিনে ৫০,০০০)।</p></div>`:'')};
+/* ---- সমস্যা ধরা ও সিগন্যাল ---- */
+const PR={items:{},chk:{net:null,gh:null,fb:null},last:0};
+function probClass(e){const c=(e&&e.code)||'',m=String((e&&e.message)||e||'');
+  if(/permission-denied/.test(c)||/permission/i.test(m))return['Firebase ডেটাবেস অনুমতি দিচ্ছে না (Rules-এর সমস্যা — নিয়মের মেয়াদ শেষ বা বদলে গেছে)','Firebase Console → Firestore Database → Rules-এ গিয়ে আপনার নিয়মগুলো আবার Publish করুন'];
+  if(/resource-exhausted/.test(c)||/quota/i.test(m))return['Firebase-এর আজকের ফ্রি সীমা (পড়া/লেখা) শেষ হয়ে গেছে','সীমা দিনে একবার রিসেট হয় (বাংলাদেশ সময় দুপুরের দিকে)। তখন আবার চলবে। এর মধ্যে করা কাজ এই ডিভাইসে জমা থাকবে। বারবার হলে Firebase-এ Blaze প্ল্যান বিবেচনা করুন'];
+  if(/unauthenticated/.test(c)||/^auth\//.test(c))return['লগইনের মেয়াদ শেষ বা লগইন সমস্যা','লগআউট করে আবার লগইন করুন'];
+  if(/unavailable|deadline|network/.test(c)||m==='t'||m==='0'||/timeout|network|offline/i.test(m))return['Firebase সার্ভারে পৌঁছানো যাচ্ছে না (ইন্টারনেট ধীর/নেই, অথবা Firebase-এর নিজের সমস্যা)','ইন্টারনেট দেখুন। ঠিক থাকলে status.firebase.google.com দেখুন। কাজ চালিয়ে যেতে পারেন, ডেটা এই ডিভাইসে জমা থাকছে, ঠিক হলে নিজে সিঙ্ক হবে'];
+  return['Firebase-এ একটা সমস্যা হয়েছে'+(c?' ('+c+')':''),'পেজ রিফ্রেশ (Ctrl+F5) করুন। না হলে এই লেখাটা আমাকে দেখান']}
+function probAdd(k,msg,fix){const nw=!PR.items[k];PR.items[k]={msg,fix,t:Date.now()};
+  if(nw){try{const h=JSON.parse(localStorage.getItem('scs_ph')||'[]');h.unshift({t:Date.now(),m:msg});localStorage.setItem('scs_ph',JSON.stringify(h.slice(0,30)))}catch(e){}}probDraw()}
+function probClear(k){if(PR.items[k]){delete PR.items[k];probDraw()}}
+function probE(e,src){const[m,f]=probClass(e);probAdd(src==='load'?'fb':'save',m,f)}
+function probHook(t){if(/✓/.test(t)){probClear('save');probClear('fb')}}
+function probDraw(){let b=document.getElementById('prob');
+  if(!b){b=document.createElement('div');b.id='prob';b.style.cssText='position:fixed;left:0;right:0;top:0;z-index:99999;font-size:14px;line-height:1.45';document.body.appendChild(b)}
+  const ks=Object.keys(PR.items);
+  b.innerHTML=ks.map(k=>`<div style='background:#b91c1c;color:#fff;padding:10px 14px;border-bottom:2px solid #7f1d1d;display:flex;gap:10px;align-items:flex-start'><div style='flex:1'>🔴 <b>সমস্যা:</b> ${esc(PR.items[k].msg)}<br><span style='opacity:.92'>👉 ${esc(PR.items[k].fix)}</span></div><button onclick="probClear('${k}')" style='background:#fff;color:#b91c1c;border:0;border-radius:6px;padding:4px 10px;font-weight:700'>বুঝেছি</button></div>`).join('');
+  if(tab==='set'&&typeof R==='function'&&document.getElementById('hlth'))probCard()}
+function probCard(){const e=document.getElementById('hlth');if(e)e.innerHTML=hlthHtml()}
+const ic=v=>v===null?'⏳':v?'✅':'❌';
+function hlthHtml(){const h=(()=>{try{return JSON.parse(localStorage.getItem('scs_ph')||'[]')}catch(e){return[]}})();
+  return `<table><tr><td>ইন্টারনেট</td><td>${ic(PR.chk.net)}</td></tr><tr><td>সফটওয়্যারের সাইট (GitHub)</td><td>${ic(PR.chk.gh)}</td></tr><tr><td>Firebase ডেটাবেস</td><td>${ic(PR.chk.fb)}</td></tr></table>
+  <p class='mut'>শেষ পরীক্ষা: ${PR.last?new Date(PR.last).toLocaleTimeString('bn-BD'):'এখনও হয়নি'} (প্রতি ৫ মিনিটে নিজে নিজে পরীক্ষা হয়)</p>
+  <button class='g' onclick='probCheck(true)'>এখনই পরীক্ষা করুন</button>
+  <h3 style='margin-top:12px'>আগের সমস্যার তালিকা (এই ডিভাইসে)</h3><div class='tw'><table>${h.slice(0,12).map(x=>`<tr><td>${new Date(x.t).toLocaleString('bn-BD')}</td><td>${esc(x.m)}</td></tr>`).join('')||"<tr><td class='mut'>কোনো সমস্যা ধরা পড়েনি 🎉</td></tr>"}</table></div>`}
+const T8=(p,ms)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('t')),ms))]);
+async function probCheck(manual){
+  PR.chk.net=navigator.onLine;
+  if(!navigator.onLine){PR.chk.gh=PR.chk.fb=false;probAdd('net','ইন্টারনেট নেই','কাজ চালিয়ে যেতে পারেন, ডেটা এই ডিভাইসে জমা থাকবে। নেট এলে নিজে সিঙ্ক হবে।');PR.last=Date.now();probDraw();return}
+  probClear('net');
+  try{const r=await T8(fetch('manifest.webmanifest?_='+Date.now(),{cache:'no-store'}),8000);PR.chk.gh=r.ok;
+    if(r.ok)probClear('gh');else probAdd('gh','সফটওয়্যারের সাইট (GitHub Pages) ঠিকমতো সাড়া দিচ্ছে না','কিছুক্ষণ পর আবার দেখুন। githubstatus.com-এ GitHub-এর অবস্থা দেখা যায়। এই ডিভাইসে সংরক্ষিত কপি থেকে কাজ চলবে')}
+  catch(e){PR.chk.gh=false;probAdd('gh','সফটওয়্যারের সাইট (GitHub Pages) সাড়া দিচ্ছে না','কিছুক্ষণ পর আবার দেখুন। githubstatus.com-এ GitHub-এর অবস্থা দেখা যায়। এই ডিভাইসে সংরক্ষিত কপি থেকে কাজ চলবে')}
+  if(DB){try{await T8(DB.doc('meta/main').get({source:'server'}),10000);PR.chk.fb=true;probClear('fb')}catch(e){PR.chk.fb=false;probE(e,'load')}}
+  else{PR.chk.fb=false;if(typeof started!=='undefined'&&started)probAdd('fb','অনলাইন ডেটাবেসের সাথে যোগ নেই, এখন শুধু এই ডিভাইসে সেভ হচ্ছে','ইন্টারনেট ঠিক থাকলে পেজ রিফ্রেশ (Ctrl+F5) করুন')}
+  PR.last=Date.now();probDraw();if(manual)probCard()}
+window.addEventListener('offline',()=>probCheck());window.addEventListener('online',()=>setTimeout(probCheck,1500));
+let _je=0;
+function jsErr(m){if(!m||/ResizeObserver|Script error|Non-Error promise/i.test(m))return;if(Date.now()-_je<30000)return;_je=Date.now();
+  probAdd('js','সফটওয়্যারে একটা ত্রুটি হয়েছে: '+String(m).slice(0,90),'পেজ রিফ্রেশ (Ctrl+F5) করুন। বারবার হলে এই লেখাটা আমাকে দেখান')}
+window.addEventListener('error',e=>jsErr(e.message));
+window.addEventListener('unhandledrejection',e=>{const r=e.reason;if(r&&/permission|resource-exhausted/.test(r.code||''))probE(r,'save');else jsErr(r&&r.message||String(r))});
+setTimeout(probCheck,6000);setInterval(()=>{if(!document.hidden)probCheck()},300000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-PR.last>120000)probCheck()});
+const set7=V.set;
+V.set=()=>set7()+`<div class='card'><h2>🩺 সফটওয়্যারের স্বাস্থ্য ও সমস্যার সিগন্যাল</h2><p class='mut'>ইন্টারনেট, সাইট আর ডেটাবেসে সমস্যা হলে স্ক্রিনের উপরে লাল বার আসবে, সঙ্গে কী করতে হবে লেখা থাকবে।</p><div id='hlth'>${hlthHtml()}</div></div>`;
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 init();
 </script>

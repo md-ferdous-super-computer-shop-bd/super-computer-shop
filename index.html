@@ -918,7 +918,7 @@ function diffLog(label,b,a){
   const sl=Object.keys(a).filter(k=>k.startsWith('s|')&&!(k in b)).map(k=>JSON.parse(a[k]));
   if(sl.length){const T=sl.reduce((x,s)=>x+tot(s),0);L.unshift('মেমো #'+sl[0].no+' '+sl[0].cust+': '+sl.map(s=>s.name+'×'+s.qty).join(', ')+' = ৳'+Math.round(T))}
   if(L.length){const d=L.slice(0,4).join(' | ')+(L.length>4?' ...+'+(L.length-4):'');logA(label,d);save()}}
-const STAFF_BLOCK=['delSale','delCust','pd','delBuy','clearOld','delExp','svDel','coDel','coPay','addBuy','addExp','rs','pf','ps2','coEdit','setEdit','bkNow','togPub'];
+const STAFF_BLOCK=['delSale','delCust','pd','delBuy','clearOld','delExp','svDel','coDel','coPay','addBuy','addExp','rs','pf','ps2','coEdit','setEdit','bkNow','togPub','yearClose'];
 [['checkout','নতুন বিক্রয়'],['delSale','মেমো মুছেছে'],['delCust','কাস্টমারের মেমো মুছেছে'],['pd','পণ্য মুছেছে'],['delBuy','ক্রয় মুছেছে'],['clearOld','পুরনো ডেটা মুছেছে'],['delExp','খরচ মুছেছে'],['addExp','খরচ যোগ'],['due','বাকি আদায়'],['addBuy','ক্রয়'],['ps2','পণ্য সেভ'],['svDel','সার্ভিস মুছেছে'],['svPay','সার্ভিসের টাকা'],['coPay','সাপ্লায়ারকে পেমেন্ট'],['coDel','সাপ্লায়ার মুছেছে'],['deliver','অর্ডার ডেলিভারি']].forEach(([n,l])=>{
   const f=window[n];if(typeof f!=='function')return;
   window[n]=function(...a){if(ROLE==='staff'&&STAFF_BLOCK.includes(n)){alert('এই কাজ শুধু মালিক করতে পারবেন');return}
@@ -1029,6 +1029,32 @@ V.dash=()=>{const y=ymd(new Date(Date.now()-864e5)),has=S.s.some(s=>s.date===y)|
   const al=has&&!S.cc.some(c=>!c.kind&&c.date===y)?`<div class='card' style='border-color:var(--wn)'>🧾 গতকালের (${y}) ক্যাশ মিলানো হয়নি। <button class='b' onclick="CASHD='${y}';go('cash')">এখনই মিলান</button></div>`:'';
   return al+dash3()};
 
+/* ---- বছর শেষ: ব্যাকআপ নামিয়ে পুরনো ডেটা এক ক্লিকে মুছুন ---- */
+const YC_K=['s','e','sv','pc','pu','lg','cc'];
+function ycKeep(c,x,d){ // true = রেখে দেওয়া হবে
+  if(!(x.date<d)&&c!=='lg')return true;
+  if(c==='lg')return x.t>=new Date(d).getTime();
+  if(c==='s')return tot(x)-x.paid>0;            // বাকি আছে এমন মেমো
+  if(c==='sv')return svt(x)-x.paid>0;           // বাকি আছে এমন সার্ভিস
+  if(c==='pu')return x.qty*x.cost-(x.paid||0)>0;// সাপ্লায়ারকে বাকি
+  return false}
+function ycPlan(d){const lastCc=S.cc.filter(c=>!c.kind&&c.date<d).sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const r={};YC_K.forEach(c=>{r[c]=S[c].filter(x=>!ycKeep(c,x,d)&&!(c==='cc'&&lastCc&&x.id===lastCc.id))});return r}
+function ycInfo(){const d=$('#ycd').value,e=$('#ycn');if(!d||!e)return;const p=ycPlan(d),n=YC_K.reduce((a,c)=>a+p[c].length,0),kept=S.s.filter(x=>x.date<d&&tot(x)-x.paid>0).length;
+  e.innerHTML=n?`<b>${n}টা</b> রেকর্ড মুছবে (মেমো ${p.s.length}, সার্ভিস ${p.sv.length}, খরচ ${p.e.length}, ক্রয় ${p.pu.length})।`+(kept?` বাকি আছে এমন ${kept}টা পুরনো মেমো <b>থেকে যাবে</b>।`:''):'এই তারিখের আগে মোছার মতো কিছু নেই।'}
+function yearClose(){
+  const d=$('#ycd').value;if(!d)return alert('তারিখ বাছুন');
+  const p=ycPlan(d),n=YC_K.reduce((a,c)=>a+p[c].length,0);if(!n)return alert('এই তারিখের আগে মোছার মতো কোনো রেকর্ড নেই');
+  if(!confirm(d+' তারিখের আগের '+n+'টা রেকর্ড মুছবে।\n\nপ্রথমে পুরো ডেটার ব্যাকআপ ফাইল নামবে। চালিয়ে যাবেন?'))return;
+  dls('বছর-শেষ-ব্যাকআপ-'+d+'.json',JSON.stringify(S));try{localStorage.setItem('scs_bk',today())}catch(e){}
+  setTimeout(()=>{
+    if(!confirm('ব্যাকআপ ফাইলটা (বছর-শেষ-ব্যাকআপ-'+d+'.json) কি আপনার ফোন/কম্পিউটারে নেমেছে?\n\nনেমে থাকলে "ঠিক আছে" চাপুন, তারপর ডেটা মুছবে। না নামলে "বাতিল" চাপুন।'))return;
+    const b=snapLog();
+    YC_K.forEach(c=>{const rm=new Set(p[c].map(x=>x.id));S[c]=S[c].filter(x=>!rm.has(x.id))});
+    logA('বছর শেষ',d+' এর আগের '+n+'টা রেকর্ড মুছে ফেলা হয়েছে');save();R();alert('✅ পুরনো ডেটা মুছে গেছে। স্টক, কাস্টমার, কোম্পানি আর বাকির হিসাব আগের মতোই আছে।')},800)}
+const set9=V.set;
+V.set=()=>set9()+(OWN()?`<div class='card'><h2>📦 বছর শেষ — এক ক্লিকে পুরনো ডেটা মুছুন</h2><p class='mut'>বাটন চাপলে আগে পুরো ডেটার ব্যাকআপ ফাইল নামবে, তারপর নির্বাচিত তারিখের আগের মেমো, সার্ভিস, খরচ, ক্রয়, পার্সেল আর পুরনো ক্যাশ হিসাব মুছবে। <b>থাকবে:</b> স্টকের পণ্য, কাস্টমার, কোম্পানি, বাকি আছে এমন মেমো/সার্ভিস, শেষ ক্যাশ-মিলানোর টাকা। মেমো নম্বর আবার ১ থেকে শুরু হবে না।</p><div class='f'><div><label>এই তারিখের আগের সব মুছবে</label><input id='ycd' type='date' value='${new Date().getFullYear()}-01-01' max='${today()}' oninput='ycInfo()'></div><button class='x' onclick='yearClose()'>📦 বছর শেষ করুন</button></div><p id='ycn' class='mut' style='margin-top:8px'></p><p class='mut'>⚠ ওয়ারেন্টি: মুছে ফেলা মেমোর ওয়ারেন্টি ডেটা ফোনে থাকবে না। তাই ব্যাকআপ ফাইলটা যত্ন করে রাখুন।</p></div>`:'');
+const _R0=R;R=function(){const r=_R0.apply(this,arguments);if(tab==='set')try{ycInfo()}catch(e){}return r};
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 init();
 </script>

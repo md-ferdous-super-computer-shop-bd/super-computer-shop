@@ -134,8 +134,8 @@ const LICM='self';
 /*CFG-END*/
 /* লাইসেন্স সার্ভার (সবসময় বিক্রেতার প্রজেক্ট) */
 const LIC_SUP='01316843984',LIC_API={proj:'super-computer-shop',key:'AIzaSyCALif1Eso_UIVDII_hpsBwmyvFC4ALSvM'};
-const K='lapshop_v1';let CL=['p','pu','s','o','e','sv','pc','co','cp','cf','cu','lg','cc'],ROLE='owner',PERSIST=false;
-let S={p:[],pu:[],s:[],o:[],e:[],sv:[],pc:[],co:[],cp:[],cf:[],cu:[],lg:[],cc:[],n:1},DB=null,snap={},busy=false,pending=false;
+const K='lapshop_v1';let CL=['p','pu','s','o','e','sv','pc','co','cp','cf','cu','lg','cc','hh'],ROLE='owner',PERSIST=false;
+let S={p:[],pu:[],s:[],o:[],e:[],sv:[],pc:[],co:[],cp:[],cf:[],cu:[],lg:[],cc:[],hh:[],n:1},DB=null,snap={},busy=false,pending=false;
 const setSt=t=>{const e=document.getElementById('st');if(e)e.textContent=t;try{window.probHook&&probHook(t)}catch(x){}};
 const loc=()=>{try{return JSON.parse(localStorage.getItem(K))}catch(e){return null}};
 async function save(){
@@ -155,7 +155,7 @@ async function load(first){
   if(!DB)return;
   try{
     const [sn,m]=await Promise.race([Promise.all([Promise.all(CL.map(c=>DB.collection(c).get())),DB.doc('meta/main').get()]),new Promise((_,r)=>setTimeout(()=>r(0),10000))]);
-    const T2={p:[],pu:[],s:[],o:[],e:[],sv:[],pc:[],co:[],cp:[],cf:[],cu:[],lg:[],cc:[],n:1},sp={};
+    const T2={p:[],pu:[],s:[],o:[],e:[],sv:[],pc:[],co:[],cp:[],cf:[],cu:[],lg:[],cc:[],hh:[],n:1},sp={};
     CL.forEach((c,i)=>sn[i].docs.forEach(d=>{const v=d.data();T2[c].push(v);sp[c+'/'+d.id]=JSON.stringify(v)}));
     T2.n=m.exists?m.data().n:Math.max(0,...T2.s.map(s=>s.no))+1;sp.n=JSON.stringify(T2.n);
     const L=loc();
@@ -1187,6 +1187,33 @@ async function licAdd(id,m){const x=LICS.find(y=>y.id===id);if(!x)return;const b
 async function licTog(id){const x=LICS.find(y=>y.id===id);if(!x)return;if(x.active!==false&&!confirm('এই ক্রেতার সফটওয়্যার বন্ধ করে দেবেন?'))return;try{await licPut(Object.assign({},x,{active:x.active===false,updated:Date.now()}))}catch(e){alert('সেভ হয়নি: '+(e.code||e.message))}}
 async function licDel(id){if(!confirm('এই ক্রেতার লাইসেন্স মুছবেন? তার সফটওয়্যার বন্ধ হয়ে যাবে।'))return;try{await DB.collection('licenses').doc(id).delete();LICS=LICS.filter(x=>x.id!==id);R()}catch(e){alert('মোছা যায়নি: '+(e.code||e.message))}}
 function licEdit(id){const x=LICS.find(y=>y.id===id);if(!x)return;$('#lcs').value=x.shop||'';$('#lce').value=x.id;$('#lcp').value=x.ph||'';$('#lcd').value=x.exp||'';$('#lcn').value=x.note||'';scrollTo(0,0)}
+/* ---- সংসারের আয়-ব্যয় (শুধু মালিক, দোকানের হিসাব থেকে আলাদা) ---- */
+const normS=()=>{CL.forEach(c=>{if(!Array.isArray(S[c]))S[c]=[]})};
+{const sv0=save;save=function(){normS();return sv0.apply(this,arguments)}}
+{const R9=R;R=function(){normS();return R9.apply(this,arguments)}}
+const HHE=['খাবার-বাজার','বাসা ভাড়া','বিদ্যুৎ/গ্যাস/পানি','মোবাইল/ইন্টারনেট','চিকিৎসা','শিক্ষা','যাতায়াত','কেনাকাটা/কাপড়','উৎসব/অতিথি','দান/সদকা','ঋণ/কিস্তি','অন্যান্য'];
+const HHI=['দোকান থেকে নেওয়া','বেতন/ভাড়া/অন্য আয়','উপহার/ধার পাওয়া','অন্যান্য'];
+let HHM='';
+M.splice(M.length-1,0,['hh','🏠','সংসারের হিসাব']);
+V.hh=()=>{
+  if(ROLE!=='owner')return `<div class='card'>এই পাতা শুধু মালিকের জন্য</div>`;
+  const mo=HHM||today().slice(0,7),all=S.hh,L=all.filter(x=>x.date.slice(0,7)===mo).sort((a,b)=>b.date.localeCompare(a.date)||b.t-a.t);
+  const inc=L.filter(x=>x.type==='in').reduce((a,x)=>a+x.amt,0),exp=L.filter(x=>x.type==='out').reduce((a,x)=>a+x.amt,0);
+  const tIn=all.filter(x=>x.type==='in').reduce((a,x)=>a+x.amt,0),tOut=all.filter(x=>x.type==='out').reduce((a,x)=>a+x.amt,0);
+  const cat={};L.filter(x=>x.type==='out').forEach(x=>cat[x.cat]=(cat[x.cat]||0)+x.amt);
+  const cs=Object.entries(cat).sort((a,b)=>b[1]-a[1]),mx=cs.length?cs[0][1]:1;
+  return `<div class='card'><h2>🏠 সংসারের আয়-ব্যয়</h2><p class='mut'>এটা শুধু আপনি দেখতে পারবেন। দোকানের লাভ-ক্ষতির হিসাবে এটা ধরা হয় না। দোকান থেকে নিজের জন্য টাকা নিলে "আয়"-এ <b>দোকান থেকে নেওয়া</b> বেছে লিখুন।</p>
+  <div class='f'><div><label>মাস</label><input type='month' value='${mo}' onchange="HHM=this.value;R()"></div></div>
+  <div class='f' style='margin-top:10px'><div class='card' style='margin:0'><small class='mut'>এ মাসের আয়</small><div class='ok' style='font-size:20px'><b>${fm(inc)}</b></div></div><div class='card' style='margin:0'><small class='mut'>এ মাসের খরচ</small><div class='bad' style='font-size:20px'><b>${fm(exp)}</b></div></div><div class='card' style='margin:0'><small class='mut'>এ মাসে বাকি/সঞ্চয়</small><div style='font-size:20px'><b class='${inc-exp<0?'bad':'ok'}'>${fm(inc-exp)}</b></div></div></div>
+  <p class='mut' style='margin-top:8px'>সব সময়ের মোট: আয় ${fm(tIn)} − খরচ ${fm(tOut)} = <b>${fm(tIn-tOut)}</b></p></div>
+  <div class='card'><h2>➕ নতুন এন্ট্রি</h2><div class='f'><div><label>ধরন</label><select id='hht' onchange='hhCat()'><option value='out'>➖ খরচ</option><option value='in'>➕ আয়</option></select></div><div><label>তারিখ</label><input id='hhd' type='date' value='${today()}' max='${today()}'></div><div><label>খাত</label><select id='hhc'></select></div><div><label>টাকা</label><input id='hha' type='number' min='0'></div><div><label>নোট (ঐচ্ছিক)</label><input id='hhn'></div><button class='b' onclick='hhAdd()'>যোগ করুন</button></div></div>
+  <div class='card'><h2>খাত অনুযায়ী খরচ</h2>${cs.map(([k,v])=>`<div style='margin:6px 0'><div style='display:flex;justify-content:space-between'><span>${esc(k)}</span><b>${fm(v)}</b></div><div style='height:8px;background:#e5e7eb;border-radius:6px'><div style='height:100%;width:${Math.max(3,v/mx*100)}%;background:#dc2626;border-radius:6px'></div></div></div>`).join('')||"<span class='mut'>এ মাসে কোনো খরচ নেই</span>"}</div>
+  <div class='card'><h2>এ মাসের তালিকা (${L.length})</h2><div class='tw'><table><tr><th>তারিখ</th><th>খাত</th><th>নোট</th><th class='n'>টাকা</th><th></th></tr>${L.map(x=>`<tr><td>${x.date}</td><td>${esc(x.cat)}</td><td>${esc(x.note||'')}</td><td class='n ${x.type==='in'?'ok':'bad'}'>${x.type==='in'?'+':'−'}${fm(x.amt)}</td><td><button class='x' onclick="hhDel('${x.id}')">🗑</button></td></tr>`).join('')||"<tr><td colspan='5' class='mut'>এ মাসে কোনো এন্ট্রি নেই</td></tr>"}</table></div></div>`};
+function hhCat(){const t=$('#hht'),c=$('#hhc');if(!t||!c)return;c.innerHTML=(t.value==='in'?HHI:HHE).map(x=>`<option>${esc(x)}</option>`).join('')}
+{const R8=R;R=function(){const r=R8.apply(this,arguments);if(tab==='hh')try{hhCat()}catch(e){}return r}}
+function hhAdd(){const a=num($('#hha').value),d=$('#hhd').value;if(a<=0)return alert('টাকার পরিমাণ লিখুন');if(!d)return alert('তারিখ বাছুন');
+  S.hh.push({id:uid(),t:Date.now(),date:d,type:$('#hht').value,cat:$('#hhc').value,amt:a,note:$('#hhn').value.trim()});HHM=d.slice(0,7);save();R()}
+function hhDel(id){if(!confirm('এই এন্ট্রি মুছবেন?'))return;S.hh=S.hh.filter(x=>x.id!==id);save();R()}
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 init();
 </script>

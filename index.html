@@ -604,7 +604,7 @@ function clearOld(){
 }
 const set0=V.set;
 V.set=()=>{const docs=CL.reduce((a,c)=>a+S[c].length,0),kb=Math.round(JSON.stringify(S).length/1024);
-  return set0()+`<div class='card'><h2>স্টোরেজ ও পুরনো ডেটা মুছুন</h2><p class='mut'>এখন মোট ${docs}টা রেকর্ড, প্রায় ${kb} KB (সীমা ২৫,০০০ রেকর্ড)। ছবি সবচেয়ে বেশি জায়গা নেয়। জায়গা বাঁচাতে পুরনো ছবি বাদ দিয়ে পণ্য এডিট করুন, অথবা নিচে পুরনো রেকর্ড মুছুন।</p><div class='f'><div><label>এই তারিখের আগের রেকর্ড মুছুন</label><input type='date' id='cod'></div><button class='x' onclick='clearOld()'>🗑 পুরনো রেকর্ড মুছুন</button></div></div>`};
+  return set0()+`<div class='card'><h2>স্টোরেজ ও পুরনো ডেটা মুছুন</h2><p class='mut'>এখন মোট ${docs}টা রেকর্ড, প্রায় ${kb} KB । ছবি সবচেয়ে বেশি জায়গা নেয়। জায়গা বাঁচাতে পুরনো ছবি বাদ দিয়ে পণ্য এডিট করুন, অথবা নিচে পুরনো রেকর্ড মুছুন।</p><div class='f'><div><label>এই তারিখের আগের রেকর্ড মুছুন</label><input type='date' id='cod'></div><button class='x' onclick='clearOld()'>🗑 পুরনো রেকর্ড মুছুন</button></div></div>`};
 /* ===== v2: নতুন ফিচার ===== */
 const CD={dsc:'',dpc:'',pm:'নগদ',paid:''};
 const OWN=()=>ROLE==='owner';
@@ -1055,6 +1055,22 @@ function yearClose(){
 const set9=V.set;
 V.set=()=>set9()+(OWN()?`<div class='card'><h2>📦 বছর শেষ — এক ক্লিকে পুরনো ডেটা মুছুন</h2><p class='mut'>বাটন চাপলে আগে পুরো ডেটার ব্যাকআপ ফাইল নামবে, তারপর নির্বাচিত তারিখের আগের মেমো, সার্ভিস, খরচ, ক্রয়, পার্সেল আর পুরনো ক্যাশ হিসাব মুছবে। <b>থাকবে:</b> স্টকের পণ্য, কাস্টমার, কোম্পানি, বাকি আছে এমন মেমো/সার্ভিস, শেষ ক্যাশ-মিলানোর টাকা। মেমো নম্বর আবার ১ থেকে শুরু হবে না।</p><div class='f'><div><label>এই তারিখের আগের সব মুছবে</label><input id='ycd' type='date' value='${new Date().getFullYear()}-01-01' max='${today()}' oninput='ycInfo()'></div><button class='x' onclick='yearClose()'>📦 বছর শেষ করুন</button></div><p id='ycn' class='mut' style='margin-top:8px'></p><p class='mut'>⚠ ওয়ারেন্টি: মুছে ফেলা মেমোর ওয়ারেন্টি ডেটা ফোনে থাকবে না। তাই ব্যাকআপ ফাইলটা যত্ন করে রাখুন।</p></div>`:'');
 const _R0=R;R=function(){const r=_R0.apply(this,arguments);if(tab==='set')try{ycInfo()}catch(e){}return r};
+/* ---- স্টোরেজ সিগন্যাল ---- */
+const FB_LIM=1073741824,FB_X=3; // ১ GB; Firestore-এ ইনডেক্সসহ আসল জায়গা ডেটার প্রায় ৩ গুণ ধরা হয়েছে (নিরাপদ অনুমান)
+function stInfo(){let b=0;try{b=new Blob([JSON.stringify(S)]).size}catch(e){b=JSON.stringify(S).length*2}
+  const used=b*FB_X,pc=Math.min(100,used/FB_LIM*100);return{b,used,pc,docs:CL.reduce((a,c)=>a+S[c].length,0)}}
+const stMB=x=>x>=1048576?(x/1048576).toFixed(1)+' MB':Math.max(1,Math.round(x/1024))+' KB';
+function stBar(){const k=stInfo(),lv=k.pc>=60?'#dc2626':k.pc>=40?'#f59e0b':'#16a34a',msg=k.pc>=40?`🔴 আপনার Firebase স্টোরেজ প্রায় <b>${Math.floor(k.pc/10)*10}%</b> ভরে গেছে! "বছর শেষ" করে পুরনো ডেটা সরান।`:`🟢 স্টোরেজ ঠিক আছে`;
+  return `<div style='margin:6px 0'><div style='display:flex;justify-content:space-between;font-size:13px'><span>${msg}</span><b>${k.pc<0.1?'<০.১':k.pc.toFixed(1)}%</b></div><div style='height:12px;border-radius:8px;background:#e5e7eb;overflow:hidden;margin-top:4px'><div style='height:100%;width:${Math.max(1.5,k.pc)}%;background:${lv}'></div></div><div class='mut' style='font-size:12px;margin-top:4px'>প্রায় ${stMB(k.used)} / ১ GB · ${k.docs}টা রেকর্ড (এটা আনুমানিক হিসাব, ঠিক হিসাব Firebase Console → Usage-এ)</div></div>`}
+function rdAdd(n){try{const k='scs_rd',t=today();let o=JSON.parse(localStorage.getItem(k)||'{}');if(o.d!==t)o={d:t,n:0};o.n+=n;localStorage.setItem(k,JSON.stringify(o))}catch(e){}}
+function rdToday(){try{const o=JSON.parse(localStorage.getItem('scs_rd')||'{}');return o.d===today()?o.n:0}catch(e){return 0}}
+const load9=load;load=async function(...a){const r=await load9.apply(this,a);try{rdAdd(CL.reduce((x,c)=>x+S[c].length,0)+1)}catch(e){}return r};
+const dash9=V.dash;
+V.dash=()=>{const k=stInfo();
+  const top=OWN()?`<div class='card' style='${k.pc>=40?'border:2px solid #dc2626;background:rgba(220,38,38,.08)':''}'>${stBar()}${k.pc>=40?`<button class='b' onclick="go('set')">⚙️ সেটিংসে গিয়ে বছর শেষ করুন</button>`:''}</div>`:'';
+  return top+dash9()};
+const set8=V.set;
+V.set=()=>{const k=stInfo(),rd=rdToday();return set8()+(OWN()?`<div class='card'><h2>📊 Firebase স্টোরেজ সিগন্যাল</h2>${stBar()}<p class='mut'>আজ এই ডিভাইসে প্রায় ${rd}বার ডেটা পড়া হয়েছে (ফ্রি সীমা সব ডিভাইস মিলিয়ে দিনে ৫০,০০০)।</p></div>`:'')};
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 init();
 </script>

@@ -126,7 +126,15 @@ textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:
 <div id="modal"><div class="m" id="mm"></div></div>
 <div id="lgn"><form class="bx" onsubmit="return doLogin(event)"><img id="lgi" alt=""><h2>SUPER COMPUTER SHOP</h2><p class="s">ম্যানেজমেন্ট সফটওয়্যারে লগইন করুন</p><label>ইমেইল</label><input id="lem" type="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required><label>পাসওয়ার্ড</label><input id="lpw" type="password" autocomplete="off" autocapitalize="none" autocorrect="off" required><label style="display:flex;gap:6px;align-items:center;margin-top:8px;cursor:pointer"><input type="checkbox" style="width:auto" onchange="document.getElementById('lpw').type=this.checked?'text':'password'"> পাসওয়ার্ড দেখাও</label><button class="b" id="lbt">লগইন</button><div class="er" id="ler"></div><div style="text-align:center;margin-top:10px"><a href="#" onclick="return resetPw()" style="color:#d4a017;font-size:13px">পাসওয়ার্ড ভুলে গেছি / নতুন সেট করব</a></div></form></div>
 <script>
-const K='lapshop_v1';let CL=['p','pu','s','o','e','sv','pc','co','cp','cf','cu','lg','cc'],ROLE='owner',PERSIST=false;const OWNER='mdferdous8080@gmail.com';
+/*CFG-START*/
+const OWNER='mdferdous8080@gmail.com';
+const FBC={apiKey:"AIzaSyCALif1Eso_UIVDII_hpsBwmyvFC4ALSvM",authDomain:"super-computer-shop.firebaseapp.com",projectId:"super-computer-shop",storageBucket:"super-computer-shop.firebasestorage.app",messagingSenderId:"712090906456",appId:"1:712090906456:web:20a854eca0f5a65fe2ff2d"};
+const BRAND={name:'SUPER COMPUTER SHOP',owner:'Md Ferdaus',ph:'01316843984',addr:'Kazibari Mor, Bogura Sadar, Bogura'};
+const LICM='self';
+/*CFG-END*/
+/* লাইসেন্স সার্ভার (সবসময় বিক্রেতার প্রজেক্ট) */
+const LIC_SUP='01316843984',LIC_API={proj:'super-computer-shop',key:'AIzaSyCALif1Eso_UIVDII_hpsBwmyvFC4ALSvM'};
+const K='lapshop_v1';let CL=['p','pu','s','o','e','sv','pc','co','cp','cf','cu','lg','cc'],ROLE='owner',PERSIST=false;
 let S={p:[],pu:[],s:[],o:[],e:[],sv:[],pc:[],co:[],cp:[],cf:[],cu:[],lg:[],cc:[],n:1},DB=null,snap={},busy=false,pending=false;
 const setSt=t=>{const e=document.getElementById('st');if(e)e.textContent=t;try{window.probHook&&probHook(t)}catch(x){}};
 const loc=()=>{try{return JSON.parse(localStorage.getItem(K))}catch(e){return null}};
@@ -156,7 +164,6 @@ async function load(first){
     R()
   }catch(e){try{probE(e,'load')}catch(x){}if(first){DB=null;S=loc()||S;setSt('⚠ অনলাইন ডেটাবেস পাওয়া যায়নি, শুধু এই ডিভাইসে সেভ হচ্ছে');R()}}
 }
-const FBC={apiKey:"AIzaSyCALif1Eso_UIVDII_hpsBwmyvFC4ALSvM",authDomain:"super-computer-shop.firebaseapp.com",projectId:"super-computer-shop",storageBucket:"super-computer-shop.firebasestorage.app",messagingSenderId:"712090906456",appId:"1:712090906456:web:20a854eca0f5a65fe2ff2d"};
 let AUTH=null,started=false;
 function lerr(t){const e=document.getElementById('ler');if(e)e.textContent=t}
 function doLogin(e){
@@ -355,7 +362,7 @@ const M=[['dash','🏠','Dashboard'],['stock','📦','Product Stock'],['buy','�
 function R(){
   CL.forEach(c=>{S[c]=S[c]||[]});
   if(!M.some(m=>m[0]===tab))tab=M[0][0];const nm=M.find(m=>m[0]===tab);
-  $('#sb').innerHTML=`<div class='lg'>${LOGO}<div><b>SUPER COMPUTER SHOP</b><small>ম্যানেজমেন্ট সফটওয়্যার</small></div></div>`+M.map(m=>`<button class='mi ${m[0]===tab?'on':''}' onclick="go('${m[0]}')"><span>${m[1]}</span><span class='tx'>${m[2]}</span></button>`).join('');
+  $('#sb').innerHTML=`<div class='lg'>${LOGO}<div><b>${esc(BRAND.name)}</b><small>ম্যানেজমেন্ট সফটওয়্যার</small></div></div>`+M.map(m=>`<button class='mi ${m[0]===tab?'on':''}' onclick="go('${m[0]}')"><span>${m[1]}</span><span class='tx'>${m[2]}</span></button>`).join('');
   $('#pt').textContent=nm[2];
   const B=[['dash','🏠','হোম'],['stock','📦','স্টক'],['sell','💳','বিক্রয়'],['cust','👥','কাস্টমার']].filter(b=>M.some(m=>m[0]===b[0]));
   $('#bn').innerHTML=B.map(b=>`<button class='${b[0]===tab?'on':''}' onclick="go('${b[0]}')"><div style='font-size:20px'>${b[1]}</div>${b[2]}</button>`).join('')+`<button onclick='tg()'><div style='font-size:20px'>☰</div>মেনু</button>`;
@@ -439,7 +446,7 @@ V.due=()=>{const seen=new Set(),L=[];S.s.slice().reverse().forEach(x=>{if(seen.h
 function R(){
   CL.forEach(c=>{S[c]=S[c]||[]});
   if(!M.some(m=>m[0]===tab))tab=M[0][0];const nm=M.find(m=>m[0]===tab);
-  $('#sb').innerHTML=`<div class='lg'><img src='${LOGO}' alt='logo'><div><b>SUPER<br>COMPUTER SHOP</b><small>Shop Manager</small></div></div>`+M.map(m=>`<button class='mi ${m[0]===tab?'on':''}' onclick="go('${m[0]}')"><span>${m[1]}</span><span class='tx'>${m[2]}</span></button>`).join('')+`<div class='hp tx'>📞 Need Help?<b>01316843984</b></div>`;
+  $('#sb').innerHTML=`<div class='lg'><img src='${LOGO}' alt='logo'><div><b>${esc(BRAND.name)}</b><small>Shop Manager</small></div></div>`+M.map(m=>`<button class='mi ${m[0]===tab?'on':''}' onclick="go('${m[0]}')"><span>${m[1]}</span><span class='tx'>${m[2]}</span></button>`).join('')+`<div class='hp tx'>📞 Need Help?<b>${LIC_SUP}</b></div>`;
   $('#pt').textContent=nm[2];
   const B=[['dash','🏠','Home'],['stock','📦','Stock'],['sell','💳','Sales'],['buy','🛒','Purchase']].filter(b=>M.some(m=>m[0]===b[0])).slice(0,4);
   $('#bn').innerHTML=B.map(b=>`<button class='${b[0]===tab?'on':''}' onclick="go('${b[0]}')"><div style='font-size:20px'>${b[1]}</div>${b[2]}</button>`).join('')+`<button onclick='tg()'><div style='font-size:20px'>☰</div>More</button>`;
@@ -475,7 +482,7 @@ function xl(){
 /* ===== Modules: service, parcel, company, reports, settings, invoice ===== */
 const nx=a=>Math.max(0,...a.map(x=>x.no||0))+1;
 const pdv=b=>b.paid==null?b.qty*b.cost:b.paid;
-const CF0={name:'SUPER COMPUTER SHOP',owner:'Md Ferdaus',ph:'01316843984',addr:'Kazibari Mor, Bogura Sadar, Bogura',terms:'১. বিক্রিত পণ্য ফেরতযোগ্য নয়, তবে শপের নীতিমালায় বিশেষভাবে অনুমোদিত হলে ভিন্ন।\n২. ক্রেতা কেনার আগে পণ্য ভালোভাবে যাচাই করে নিতে পারবেন।\n৩. ১ বছর শপে ফ্রি সার্ভিসিং, সার্ভিসিং শর্ত সাপেক্ষে।\n৪. পরিবর্তিত যন্ত্রাংশ ও কম্পোনেন্টের দাম ক্রেতাকে বহন করতে হবে।\n৫. পণ্যের ওয়ারেন্টি শর্ত ইনভয়েসে উল্লেখ থাকবে।'};
+const CF0={name:BRAND.name,owner:BRAND.owner,ph:BRAND.ph,addr:BRAND.addr,terms:'১. বিক্রিত পণ্য ফেরতযোগ্য নয়, তবে শপের নীতিমালায় বিশেষভাবে অনুমোদিত হলে ভিন্ন।\n২. ক্রেতা কেনার আগে পণ্য ভালোভাবে যাচাই করে নিতে পারবেন।\n৩. ১ বছর শপে ফ্রি সার্ভিসিং, সার্ভিসিং শর্ত সাপেক্ষে।\n৪. পরিবর্তিত যন্ত্রাংশ ও কম্পোনেন্টের দাম ক্রেতাকে বহন করতে হবে।\n৫. পণ্যের ওয়ারেন্টি শর্ত ইনভয়েসে উল্লেখ থাকবে।'};
 const cfg=()=>Object.assign({},CF0,S.cf.find(x=>x.id==='main')||{});
 let PI=null,GF=null,QQ={sv:'',pc:''},RP={f:'',t:''};
 const th=p=>p.img?`<img src='${p.img}' class='th'>`:'💻';
@@ -799,7 +806,7 @@ async function syncCat(){
   }catch(e){csnap=null}
   csy=false;if(cdirty){cdirty=false;syncCat()}}
 /* ---- অফার ও মেসেজ ---- */
-let MSGT='আসসালামু আলাইকুম {name}, SUPER COMPUTER SHOP থেকে বলছি। আমাদের দোকানে নতুন ল্যাপটপ ও অ্যাক্সেসরিজ এসেছে। আসলে দেখে যাবেন। ধন্যবাদ।',MSGF='all';
+let MSGT='আসসালামু আলাইকুম {name}, '+BRAND.name+' থেকে বলছি। আমাদের দোকানে নতুন ল্যাপটপ ও অ্যাক্সেসরিজ এসেছে। আসলে দেখে যাবেন। ধন্যবাদ।',MSGF='all';
 try{MSGT=localStorage.getItem('scs_msgt')||MSGT}catch(e){}
 function custList(){
   const m={};
@@ -1117,6 +1124,69 @@ setTimeout(probCheck,6000);setInterval(()=>{if(!document.hidden)probCheck()},300
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-PR.last>120000)probCheck()});
 const set7=V.set;
 V.set=()=>set7()+`<div class='card'><h2>🩺 সফটওয়্যারের স্বাস্থ্য ও সমস্যার সিগন্যাল</h2><p class='mut'>ইন্টারনেট, সাইট আর ডেটাবেসে সমস্যা হলে স্ক্রিনের উপরে লাল বার আসবে, সঙ্গে কী করতে হবে লেখা থাকবে।</p><div id='hlth'>${hlthHtml()}</div></div>`;
+/* ---- লাইসেন্স ---- */
+try{document.querySelector('#lgn h2').textContent=BRAND.name;document.title=BRAND.name}catch(e){}
+const addM=(ds,m)=>{const d=new Date(ds+'T00:00:00'),day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+m);d.setDate(Math.min(day,new Date(d.getFullYear(),d.getMonth()+1,0).getDate()));return ymd(d)};
+const dLeft=exp=>Math.ceil((new Date(exp+'T23:59:59')-Date.now())/864e5);
+if(LICM==='client'){const i=M.findIndex(m=>m[0]==='cat');if(i>=0)M.splice(i,1)}
+if(LICM==='self')M.splice(M.length-1,0,['lic','🔑','License Manager']);
+/* -- ক্রেতার কপিতে লাইসেন্স যাচাই -- */
+async function licFetch(){
+  const u='https://firestore.googleapis.com/v1/projects/'+LIC_API.proj+'/databases/(default)/documents/licenses/'+encodeURIComponent(OWNER.toLowerCase())+'?key='+LIC_API.key;
+  const r=await T8(fetch(u,{cache:'no-store'}),9000);
+  if(r.status===404)return{found:false};
+  if(!r.ok)throw new Error('http '+r.status);
+  const f=(await r.json()).fields||{};
+  return{found:true,exp:(f.exp||{}).stringValue||'',active:(f.active||{}).booleanValue!==false,msg:(f.msg||{}).stringValue||''}}
+function licJudge(x){
+  if(!x.found)return{ok:false,why:'এই ইমেইলের জন্য কোনো লাইসেন্স পাওয়া যায়নি'};
+  if(!x.active)return{ok:false,why:'আপনার লাইসেন্স বন্ধ করা হয়েছে'+(x.msg?' ('+x.msg+')':'')};
+  if(!x.exp)return{ok:false,why:'লাইসেন্সের মেয়াদ নির্ধারিত নেই'};
+  const d=dLeft(x.exp);if(d<=0)return{ok:false,why:'লাইসেন্সের মেয়াদ শেষ হয়েছে ('+x.exp+')'};
+  return{ok:true,days:d,exp:x.exp}}
+function licLock(why){
+  let o=document.getElementById('lklock');if(!o){o=document.createElement('div');o.id='lklock';o.style.cssText='position:fixed;inset:0;z-index:100000;background:#0b1730;color:#fff;display:flex;align-items:center;justify-content:center;padding:20px;overflow:auto';document.body.appendChild(o)}
+  const msg=encodeURIComponent('আসসালামু আলাইকুম, '+BRAND.name+' এর ম্যানেজমেন্ট সফটওয়্যারের লাইসেন্স নবায়ন করতে চাই। ইমেইল: '+OWNER);
+  o.innerHTML=`<div style='max-width:460px;text-align:center'><div style='font-size:54px'>🔒</div><h2 style='margin:10px 0'>সফটওয়্যার এখন বন্ধ আছে</h2><p style='font-size:17px;line-height:1.6'>${esc(why)}</p><p style='opacity:.85'>চালু করতে যোগাযোগ করুন: <b>${LIC_SUP}</b></p>
+  <div style='display:flex;flex-direction:column;gap:10px;margin-top:16px'><a href='https://wa.me/88${LIC_SUP}?text=${msg}' target='_blank' style='background:#16a34a;color:#fff;padding:12px;border-radius:10px;text-decoration:none;font-weight:700'>💬 WhatsApp-এ জানান</a>
+  <button onclick='licBk()' style='padding:12px;border-radius:10px;border:0;font-weight:700'>💾 আমার ডেটার ব্যাকআপ নামান</button>
+  <button onclick='licCheck(true)' style='padding:12px;border-radius:10px;border:0;font-weight:700'>🔄 আবার যাচাই করুন</button>
+  <button onclick='logout()' style='padding:10px;border-radius:10px;border:1px solid #fff;background:none;color:#fff'>লগআউট</button></div><p style='opacity:.7;font-size:13px;margin-top:14px'>আপনার ডেটা নিরাপদ আছে, মুছে যায়নি। ফি দিলে সঙ্গে সঙ্গে আবার চালু হবে।</p></div>`}
+function licUnlock(){const o=document.getElementById('lklock');if(o)o.remove()}
+function licBk(){try{dls('ব্যাকআপ-'+today()+'.json',JSON.stringify(S))}catch(e){alert('ব্যাকআপ নামানো যায়নি')}}
+async function licCheck(manual){
+  if(LICM!=='client')return;
+  let res=null,net=true;
+  try{res=await licFetch();try{localStorage.setItem('scs_lic',JSON.stringify({t:Date.now(),x:res}))}catch(e){}}catch(e){net=false}
+  if(!net){let c=null;try{c=JSON.parse(localStorage.getItem('scs_lic')||'null')}catch(e){}
+    if(c&&Date.now()-c.t<=7*864e5)res=c.x;
+    else{licLock('লাইসেন্স যাচাই করা যাচ্ছে না। ইন্টারনেট চালু করে "আবার যাচাই করুন" চাপুন।');return}}
+  const j=licJudge(res);
+  if(!j.ok){licLock(j.why);return}
+  licUnlock();
+  if(j.days<=7)probAdd('lic','লাইসেন্সের মেয়াদ '+(j.days<=1?'আজ':j.days+' দিন পর')+' শেষ হবে ('+j.exp+')','ফি দিয়ে নবায়ন করুন। যোগাযোগ: '+LIC_SUP);else probClear('lic');
+  if(manual)alert('✅ লাইসেন্স ঠিক আছে')}
+if(LICM==='client'){
+  const aR0=applyRole;applyRole=function(u){aR0(u);setTimeout(licCheck,1200);if(!window.__licT){window.__licT=setInterval(()=>licCheck(),30*60*1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)licCheck()})}}}
+/* -- বিক্রেতার লাইসেন্স ম্যানেজার -- */
+let LICS=null,LICE='';
+async function licLoad(){try{const q=await DB.collection('licenses').get();LICS=q.docs.map(d=>Object.assign({id:d.id},d.data()));LICE=''}catch(e){LICS=LICS||[];LICE='তালিকা আনা যায়নি: '+(e.code||e.message)+' (Firestore Rules-এ licenses-এর নিয়ম বসিয়েছেন কি?)'}if(tab==='lic')R()}
+V.lic=()=>{
+  if(LICM!=='self'||ROLE!=='owner')return `<div class='card'>এই পাতা শুধু মালিকের জন্য</div>`;
+  if(LICS===null){licLoad();return `<div class='card'>লোড হচ্ছে...</div>`}
+  const L=LICS.slice().sort((a,b)=>(a.exp||'').localeCompare(b.exp||''));
+  const st=x=>{if(x.active===false)return`<span class='bad'>⛔ বন্ধ</span>`;const d=dLeft(x.exp||'2000-01-01');return d<=0?`<span class='bad'>❌ মেয়াদ শেষ</span>`:d<=7?`<span style='color:#d97706'>⚠ ${d} দিন বাকি</span>`:`<span class='ok'>✅ ${d} দিন বাকি</span>`};
+  return `<div class='card'><h2>🔑 লাইসেন্স ম্যানেজার</h2><p class='mut'>এখানে ক্রেতা যোগ করুন, মেয়াদ বাড়ান বা বন্ধ করুন। ক্রেতার সফটওয়্যার প্রতিবার খোলার সময় এই তালিকা দেখে নেয়।</p>${LICE?`<p class='bad'>${esc(LICE)}</p>`:''}
+  <div class='f'><div><label>দোকানের নাম</label><input id='lcs'></div><div><label>ক্রেতার Gmail (লগইনের ইমেইল)</label><input id='lce' type='email'></div><div><label>ফোন</label><input id='lcp'></div><div><label>মেয়াদ শেষের তারিখ</label><input id='lcd' type='date' value='${addM(today(),1)}'></div><div><label>নোট (ঐচ্ছিক)</label><input id='lcn'></div><button class='b' onclick='licSave()'>সেভ করুন</button></div></div>
+  <div class='card'><h2>ক্রেতার তালিকা (${L.length})</h2><div class='tw'><table><tr><th>দোকান</th><th>ইমেইল</th><th>মেয়াদ</th><th>অবস্থা</th><th></th></tr>${L.map(x=>`<tr><td>${esc(x.shop||'')}<br><small class='mut'>${esc(x.ph||'')} ${esc(x.note||'')}</small></td><td>${esc(x.id)}</td><td>${esc(x.exp||'')}</td><td>${st(x)}</td><td><button class='g' onclick="licAdd('${x.id}',1)">+১ মাস</button> <button class='g' onclick="licAdd('${x.id}',12)">+১ বছর</button> <button class='g' onclick="licTog('${x.id}')">${x.active===false?'চালু করুন':'বন্ধ করুন'}</button> <button class='g' onclick="licEdit('${x.id}')">এডিট</button> <button class='x' onclick="licDel('${x.id}')">🗑</button></td></tr>`).join('')||"<tr><td colspan='5' class='mut'>এখনও কোনো ক্রেতা নেই</td></tr>"}</table></div></div>`};
+async function licPut(o){await DB.collection('licenses').doc(o.id).set(o);const i=LICS.findIndex(x=>x.id===o.id);if(i>=0)LICS[i]=o;else LICS.push(o);R()}
+async function licSave(){const em=$('#lce').value.trim().toLowerCase(),d=$('#lcd').value,sh=$('#lcs').value.trim();
+  if(!/^\S+@\S+\.\S+$/.test(em))return alert('সঠিক Gmail লিখুন');if(!d)return alert('মেয়াদের তারিখ বাছুন');if(!sh)return alert('দোকানের নাম লিখুন');
+  const old=LICS.find(x=>x.id===em)||{};try{await licPut({id:em,shop:sh,email:em,ph:$('#lcp').value.trim(),exp:d,active:old.active!==false,note:$('#lcn').value.trim(),updated:Date.now()})}catch(e){alert('সেভ হয়নি: '+(e.code||e.message))}}
+async function licAdd(id,m){const x=LICS.find(y=>y.id===id);if(!x)return;const base=(x.exp&&x.exp>today())?x.exp:today();try{await licPut(Object.assign({},x,{exp:addM(base,m),active:true,updated:Date.now()}))}catch(e){alert('সেভ হয়নি: '+(e.code||e.message))}}
+async function licTog(id){const x=LICS.find(y=>y.id===id);if(!x)return;if(x.active!==false&&!confirm('এই ক্রেতার সফটওয়্যার বন্ধ করে দেবেন?'))return;try{await licPut(Object.assign({},x,{active:x.active===false,updated:Date.now()}))}catch(e){alert('সেভ হয়নি: '+(e.code||e.message))}}
+async function licDel(id){if(!confirm('এই ক্রেতার লাইসেন্স মুছবেন? তার সফটওয়্যার বন্ধ হয়ে যাবে।'))return;try{await DB.collection('licenses').doc(id).delete();LICS=LICS.filter(x=>x.id!==id);R()}catch(e){alert('মোছা যায়নি: '+(e.code||e.message))}}
+function licEdit(id){const x=LICS.find(y=>y.id===id);if(!x)return;$('#lcs').value=x.shop||'';$('#lce').value=x.id;$('#lcp').value=x.ph||'';$('#lcd').value=x.exp||'';$('#lcn').value=x.note||'';scrollTo(0,0)}
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 init();
 </script>

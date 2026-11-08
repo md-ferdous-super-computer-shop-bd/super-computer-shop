@@ -992,11 +992,11 @@ V.cash=()=>{
   return `<div class='card'><h2>🧾 দিনশেষের ক্যাশ মিলানো</h2><div class='f'><div><label>তারিখ</label><input type='date' value='${d}' max='${today()}' onchange="CASHD=this.value;R()"></div></div>
   <div class='tw' style='margin-top:10px'><table>
   <tr><td>শুরুর নগদ (আগের দিনের শেষে গোনা)</td><td class='n'><input id='cbo' type='number' value='${k.open}' style='width:130px' oninput='cashLive()'></td></tr>
-  <tr><td>+ সেলে নগদ পাওয়া</td><td class='n'>${fm(k.cs)}</td></tr>
-  <tr><td>+ সার্ভিসে পাওয়া</td><td class='n'>${fm(k.svIn)}</td></tr>
-  <tr><td>− খরচ</td><td class='n'>${fm(k.exp)}</td></tr>
-  <tr><td>− ক্রয়ে দেওয়া</td><td class='n'>${fm(k.buy)}</td></tr>
-  <tr><td>− সাপ্লায়ারকে পেমেন্ট</td><td class='n'>${fm(k.sup)}</td></tr>
+  <tr><td>+ সেলে নগদ পাওয়া</td><td class='n'><input id='cbs' type='number' value='${(k.cur&&k.cur.v||{}).cs??Math.round(k.cs)}' style='width:130px' oninput='cashLive()'></td></tr>
+  <tr><td>+ সার্ভিসে পাওয়া</td><td class='n'><input id='cbv' type='number' value='${(k.cur&&k.cur.v||{}).sv??Math.round(k.svIn)}' style='width:130px' oninput='cashLive()'></td></tr>
+  <tr><td>− খরচ</td><td class='n'><input id='cbx' type='number' value='${(k.cur&&k.cur.v||{}).ex??Math.round(k.exp)}' style='width:130px' oninput='cashLive()'></td></tr>
+  <tr><td>− ক্রয়ে দেওয়া</td><td class='n'><input id='cbb' type='number' value='${(k.cur&&k.cur.v||{}).bu??Math.round(k.buy)}' style='width:130px' oninput='cashLive()'></td></tr>
+  <tr><td>− সাপ্লায়ারকে পেমেন্ট</td><td class='n'><input id='cbp' type='number' value='${(k.cur&&k.cur.v||{}).su??Math.round(k.sup)}' style='width:130px' oninput='cashLive()'></td></tr>
   <tr><td>± হাতে যোগ/বের করা নগদ (নিচে লিখুন)</td><td class='n'>${k.adjNet>=0?'+':''}${fm(k.adjNet)}</td></tr>
   <tr><td><b>= ড্রয়ারে নগদ থাকার কথা</b></td><td class='n'><b id='cbe'>${fm(k.open+k.base)}</b></td></tr></table></div>
   <div style='margin-top:12px;padding:12px;border:2px dashed var(--ac,#2563eb);border-radius:10px'><b>➕ ক্যাশ যোগ / ➖ বের করুন</b>
@@ -1005,19 +1005,23 @@ V.cash=()=>{
   <div class='f' style='margin-top:10px'><div><label>ড্রয়ারে গুনে পাওয়া নগদ</label><input id='cbc' type='number' value='${k.cur?k.cur.counted:''}' oninput='cashLive()'></div><div><label>নোট (ঐচ্ছিক)</label><input id='cbn' value='${esc(k.cur?k.cur.note:'')}'></div></div>
   <p id='cbd' style='font-size:18px;margin:10px 0'></p><button class='b' onclick='cashSave()'>দিনের হিসাব সেভ করুন</button>
   ${others.length?`<p class='mut' style='margin-top:12px'>অন্য মাধ্যমে পাওয়া (ফোন/ব্যাংকের মেসেজ দেখে মিলান): ${others.map(e=>esc(e[0])+' '+fm(e[1])).join(' · ')}</p>`:''}
-  <p class='mut'>হিসাবে ধরা হয়: সেলের নগদ + সার্ভিসের পাওয়া টাকা (সার্ভিসের তারিখে) − খরচ − ক্রয়ে দেওয়া টাকা − সাপ্লায়ারকে দেওয়া। ক্রয় বা সার্ভিসের টাকা অন্য মাধ্যমে হলে অমিল দেখাতে পারে।</p></div>
+  <p class='mut'>উপরের ঘরগুলোতে নিজে টাকা লিখতে পারবেন (নিজে নিজে যা হিসাব হয়েছে সেটাই আগে থেকে বসানো থাকে)।</p><p class='mut'>হিসাবে ধরা হয়: সেলের নগদ + সার্ভিসের পাওয়া টাকা (সার্ভিসের তারিখে) − খরচ − ক্রয়ে দেওয়া টাকা − সাপ্লায়ারকে দেওয়া। ক্রয় বা সার্ভিসের টাকা অন্য মাধ্যমে হলে অমিল দেখাতে পারে।</p></div>
   <div class='card'><h2>আগের হিসাব</h2><div class='tw'><table><tr><th>তারিখ</th><th class='n'>থাকার কথা</th><th class='n'>গোনা</th><th class='n'>অমিল</th><th>নোট</th></tr>${S.cc.filter(c=>!c.kind).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20).map(c=>`<tr><td>${c.date}</td><td class='n'>${fm(c.expected)}</td><td class='n'>${fm(c.counted)}</td><td class='n ${c.diff<0?'bad':c.diff>0?'ok':''}'>${c.diff>0?'+':''}${fm(c.diff)}</td><td>${esc(c.note||'')}</td></tr>`).join('')||"<tr><td colspan='5' class='mut'>এখনও কোনো হিসাব সেভ হয়নি</td></tr>"}</table></div></div>`};
+function cashVals(k){const g=i=>num($(i).value);return{cs:g('#cbs'),sv:g('#cbv'),ex:g('#cbx'),bu:g('#cbb'),su:g('#cbp')}}
+function cashExp(k){const v=cashVals(k);return num($('#cbo').value)+v.cs+v.sv-v.ex-v.bu-v.su+k.adjNet}
 function cashLive(){
-  const d=CASHD||today(),k=cashCalc(d),o=num($('#cbo').value),e=o+k.base,c=$('#cbc').value;
+  const d=CASHD||today(),k=cashCalc(d),e=cashExp(k),c=$('#cbc').value;
   $('#cbe').textContent=fm(e);const x=$('#cbd');
   if(c===''){x.textContent='';return}
   const df=num(c)-e;x.innerHTML=df===0?'<span class="ok">✅ হিসাব মিলেছে</span>':df<0?'<span class="bad">⚠ ঘাটতি '+fm(-df)+'</span>':'<span class="ok">বাড়তি '+fm(df)+'</span>'}
+const CIDS=['cbo','cbs','cbv','cbx','cbb','cbp','cbc','cbn'];
+function cashR(){const k={};CIDS.forEach(i=>{const e=$('#'+i);if(e)k[i]=e.value});R();CIDS.forEach(i=>{const e=$('#'+i);if(e&&k[i]!==undefined)e.value=k[i]});cashLive()}
 function cashAdd(){const d=CASHD||today(),a=num($('#caa').value);if(a<=0)return alert('টাকার পরিমাণ লিখুন');
-  S.cc.push({id:'a'+uid(),kind:'adj',date:d,dir:$('#cad').value,amt:a,note:$('#can').value.trim()});logA('ক্যাশ যোগ/বের',d+': '+($('#cad').value==='out'?'−':'+')+Math.round(a));save();R()}
-function cashAdjDel(id){if(!confirm('এই এন্ট্রি মুছবেন?'))return;S.cc=S.cc.filter(c=>c.id!==id);save();R()}
+  S.cc.push({id:'a'+uid(),kind:'adj',date:d,dir:$('#cad').value,amt:a,note:$('#can').value.trim()});logA('ক্যাশ যোগ/বের',d+': '+($('#cad').value==='out'?'−':'+')+Math.round(a));save();cashR()}
+function cashAdjDel(id){if(!confirm('এই এন্ট্রি মুছবেন?'))return;S.cc=S.cc.filter(c=>c.id!==id);save();cashR()}
 function cashSave(){
   const d=CASHD||today(),k=cashCalc(d),c=$('#cbc').value;if(c==='')return alert('ড্রয়ারে গুনে পাওয়া নগদ লিখুন');
-  const o=num($('#cbo').value),e=o+k.base,r={id:d,date:d,open:o,expected:e,counted:num(c),diff:num(c)-e,note:$('#cbn').value.trim()},i=S.cc.findIndex(x=>x.id===d);
+  const o=num($('#cbo').value),e=cashExp(k),r={id:d,date:d,open:o,v:cashVals(k),expected:e,counted:num(c),diff:num(c)-e,note:$('#cbn').value.trim()},i=S.cc.findIndex(x=>x.id===d);
   if(i>=0)S.cc[i]=r;else S.cc.push(r);
   logA('ক্যাশ মিলানো',d+': থাকার কথা '+Math.round(e)+', গোনা '+Math.round(num(c))+(r.diff?', অমিল '+Math.round(r.diff):', মিলেছে'));save();R()}
 const dash3=V.dash;

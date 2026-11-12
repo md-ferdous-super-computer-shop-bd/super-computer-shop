@@ -402,7 +402,7 @@ function pf(id){
   shw('m dk',`<h2>${id?'ল্যাপটপ এডিট':'নতুন ল্যাপটপ'}</h2><form onsubmit="ps2(event,'${id||''}')"><div class='fg'>${F('name','পণ্যের নাম','text',1)}${F('brand','ব্র্যান্ড')}${F('model','মডেল')}${F('sn','সিরিয়াল নম্বর (একাধিক পিস হলে ফাঁকা রাখুন)','text',0)}${F('cpu','প্রসেসর')}${F('ram','RAM')}${F('ssd','SSD / HDD')}${F('disp','ডিসপ্লে')}${F('bat','ব্যাটারি ব্যাকআপ')}
   <div><label>টাচ</label><select id='f_touch'>${['Non-Touch','Touch'].map(c=>`<option ${p.touch===c?'selected':''}>${c}</option>`).join('')}</select></div>
   <div><label>কন্ডিশন</label><select id='f_cond'>${['Used','New','Refurbished'].map(c=>`<option ${p.cond===c?'selected':''}>${c}</option>`).join('')}</select></div>
-  ${id?'':`<div><label>পিস (একই পণ্য কয়টা)</label><input id='f_qty' type='number' min='1' step='1' value='1'></div>`}${F('cost','কেনা দাম (প্রতি পিস)','number',1)}${F('price','বিক্রয় দাম','number',1)}${F('date','ক্রয়ের তারিখ','date')}${F('sup','সাপ্লায়ার')}${F('war','ওয়ারেন্টি')}${F('desc','বিবরণ')}<div><label>ছবি</label><input type='file' accept='image/*' onchange='imgPick(this)'></div></div>
+  ${id?'':`<div><label>পিস (একই পণ্য কয়টা)</label><input id='f_qty' type='number' min='1' step='1' value='1'></div>`}${F('cost','কেনা দাম (প্রতি পিস)','number',1)}${F('price','বিক্রয় দাম','number',1)}${F('op','আগের দাম (ঐচ্ছিক — দিলে সাইটে ছাড় দেখাবে)','number')}${F('date','ক্রয়ের তারিখ','date')}${F('sup','সাপ্লায়ার')}${F('war','ওয়ারেন্টি')}${F('desc','বিবরণ')}<div><label>ছবি</label><input type='file' accept='image/*' onchange='imgPick(this)'></div></div>
   <div style='display:flex;gap:8px;flex-wrap:wrap;margin-top:14px'><button class='b' value='s'>সেভ করুন</button>${id?'':"<button class='g' value='n'>সেভ ও আরেকটি যোগ</button>"}<button type='button' class='g' onclick='cm()'>বাতিল</button></div></form>`);
 }
 function ps2(e,id){
@@ -411,7 +411,7 @@ function ps2(e,id){
   const qn=id?1:Math.max(1,Math.floor(num($('#f_qty')?$('#f_qty').value:1))||1);
   if(!id&&qn>1&&sn)return alert('একাধিক পিস যোগ করতে সিরিয়াল নম্বর ফাঁকা রাখুন। প্রতিটির সিরিয়াল আলাদা হলে একটা একটা করে যোগ করুন (সেভ ও আরেকটি যোগ)।');
   if(sn&&S.p.some(x=>x.id!==id&&x.sn&&x.sn.toLowerCase()===sn.toLowerCase()))return alert('এই সিরিয়াল নম্বর আগে থেকেই আছে');
-  const d={name:g('name'),brand:g('brand'),model:g('model'),sn,cpu:g('cpu'),ram:g('ram'),ssd:g('ssd'),disp:g('disp'),bat:g('bat'),touch:g('touch'),cond:g('cond'),cost:num(g('cost')),price:num(g('price')),date:g('date')||today(),sup:g('sup'),war:g('war'),desc:g('desc')};if(PI!==null)d.img=PI;
+  const d={name:g('name'),brand:g('brand'),model:g('model'),sn,cpu:g('cpu'),ram:g('ram'),ssd:g('ssd'),disp:g('disp'),bat:g('bat'),touch:g('touch'),cond:g('cond'),cost:num(g('cost')),price:num(g('price')),op:num(g('op'))||0,date:g('date')||today(),sup:g('sup'),war:g('war'),desc:g('desc')};if(PI!==null)d.img=PI;
   if(id)Object.assign(S.p.find(x=>x.id===id),d);
   else{
     const ex=!sn?S.p.find(x=>!x.sn&&String(x.name||'').trim().toLowerCase()===d.name.toLowerCase()&&String(x.model||'').trim().toLowerCase()===d.model.toLowerCase()):null;
@@ -798,7 +798,7 @@ async function syncCat(){
   try{
     if(csnap===null){csnap={};const q=await DB.collection('catalog').get();q.docs.forEach(d=>csnap[d.id]=JSON.stringify(d.data()))}
     const want={};
-    S.p.filter(p=>p.pub&&p.qty>0).forEach(p=>{want[p.id]={id:p.id,name:p.name||'',brand:p.brand||'',model:p.model||'',cpu:p.cpu||'',ram:p.ram||'',ssd:p.ssd||'',disp:p.disp||'',cond:p.cond||'',war:p.war||'',desc:p.desc||'',price:p.price||0,qty:p.qty||0,img:p.img||''}});
+    S.p.filter(p=>p.pub).forEach(p=>{want[p.id]={id:p.id,name:p.name||'',brand:p.brand||'',model:p.model||'',cpu:p.cpu||'',ram:p.ram||'',ssd:p.ssd||'',disp:p.disp||'',cond:p.cond||'',war:p.war||'',desc:p.desc||'',price:p.price||0,op:p.op||0,qty:p.qty||0,img:p.img||''}});
     const jobs=[];
     Object.keys(want).forEach(id=>{const j=JSON.stringify(want[id]);if(csnap[id]!==j){csnap[id]=j;jobs.push(DB.collection('catalog').doc(id).set(want[id]))}});
     Object.keys(csnap).forEach(id=>{if(!want[id]){delete csnap[id];jobs.push(DB.collection('catalog').doc(id).delete())}});
@@ -1214,6 +1214,33 @@ function hhCat(){const t=$('#hht'),c=$('#hhc');if(!t||!c)return;c.innerHTML=(t.v
 function hhAdd(){const a=num($('#hha').value),d=$('#hhd').value;if(a<=0)return alert('টাকার পরিমাণ লিখুন');if(!d)return alert('তারিখ বাছুন');
   S.hh.push({id:uid(),t:Date.now(),date:d,type:$('#hht').value,cat:$('#hhc').value,amt:a,note:$('#hhn').value.trim()});HHM=d.slice(0,7);save();R()}
 function hhDel(id){if(!confirm('এই এন্ট্রি মুছবেন?'))return;S.hh=S.hh.filter(x=>x.id!==id);save();R()}
+/* ---- অনলাইন দোকান থেকে আসা অর্ডার ---- */
+let WO=null,WOE='',WOT=0,WN=0;
+const WOS={new:['🆕 নতুন','#dc2626'],confirmed:['✅ কনফার্ম','#2563eb'],shipped:['🚚 পাঠানো হয়েছে','#d97706'],done:['✔ সম্পন্ন','#16a34a'],cancelled:['✖ বাতিল','#6b7280']};
+const woWa=(ph,txt)=>{let d=String(ph||'').replace(/\D/g,'');if(d.startsWith('0'))d='88'+d;return 'https://wa.me/'+d+'?text='+encodeURIComponent(txt)};
+async function woNew(){if(LICM!=='self'||!DB)return;try{const r=await DB.collection('webOrders').where('status','==','new').limit(20).get();const n=r.docs.length;
+  if(n>WN&&WN!==-1&&document.hidden===false&&WN>=0&&window.__woSeen)try{navigator.vibrate&&navigator.vibrate(200)}catch(e){}
+  window.__woSeen=true;WN=n;document.title=(n?'('+n+') ':'')+BRAND.name;if(tab==='dash')R()}catch(e){}}
+async function woLoad(force){if(LICM!=='self'||!DB)return;if(!force&&WO&&Date.now()-WOT<120000)return;WOT=Date.now();
+  try{const q=DB.collection('webOrders');let r;try{r=await q.orderBy('t','desc').limit(100).get()}catch(e){r=await q.get()}
+    WO=r.docs.map(d=>Object.assign({id:d.id},d.data())).sort((a,b)=>(b.t||0)-(a.t||0));WOE=''}
+  catch(e){WO=WO||[];WOE=(e.code||e.message)+' — Firestore Rules-এ webOrders-এর নিয়ম বসিয়েছেন কি?'}
+  if(tab==='ord')R()}
+function woHtml(){if(LICM!=='self')return '';if(WO===null){woLoad();return `<div class='card'>🌐 অনলাইন অর্ডার লোড হচ্ছে...</div>`}
+  const L=WO;
+  return `<div class='card'><h2>🌐 অনলাইন অর্ডার (সাইট থেকে এসেছে)</h2><p class='mut'>কাস্টমার সাইট থেকে অর্ডার দিলে এখানে আসবে। ফোন করে বা WhatsApp-এ নিশ্চিত করে অবস্থা বদলান। <button class='g' onclick='woLoad(true).then(woNew)'>🔄 রিফ্রেশ</button></p>${WOE?`<p class='bad'>${esc(WOE)}</p>`:''}
+  ${L.map(o=>{const st=WOS[o.status]||WOS.new,it=(o.items||[]),msg='আসসালামু আলাইকুম '+(o.name||'')+', '+BRAND.name+' থেকে বলছি। আপনার অনলাইন অর্ডার ('+(o.no||'')+') পেয়েছি: '+it.map(x=>x.name+' × '+x.qty).join(', ')+'। মোট ৳'+(o.total||0)+'। অর্ডারটি নিশ্চিত করতে চাই।';
+    return `<div class='card' style='margin:8px 0;border-left:5px solid ${st[1]}'><div style='display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap'><b>${esc(o.no||'')} · ${new Date(o.t||0).toLocaleString('bn-BD')}</b><span style='color:${st[1]};font-weight:700'>${st[0]}</span></div>
+    <div style='margin-top:4px'><b>${esc(o.name||'')}</b> · <a href='tel:${esc(o.phone||'')}'>📞 ${esc(o.phone||'')}</a> · <a target='_blank' href='${woWa(o.phone,msg)}'>💬 WhatsApp</a></div>
+    <div class='mut'>📍 ${esc(o.address||'')} ${o.delivery==='pickup'?'(দোকান থেকে নেবেন)':o.delivery==='courier'?'(কুরিয়ারে পাঠাতে হবে)':''}</div>
+    <div style='margin:6px 0'>${it.map(x=>`• ${esc(x.name)} × ${x.qty} — ${fm((x.price||0)*(x.qty||0))}`).join('<br>')}</div>
+    <div><b>মোট: ${fm(o.total||0)}</b>${o.note?` · নোট: ${esc(o.note)}`:''}</div>
+    <div style='display:flex;gap:6px;flex-wrap:wrap;margin-top:8px'>${['confirmed','shipped','done','cancelled'].filter(k=>k!==o.status).map(k=>`<button class='g' onclick="woSt('${o.id}','${k}')">${WOS[k][0]}</button>`).join('')}${o.status!=='new'?`<button class='g' onclick="woSt('${o.id}','new')">↩ নতুন</button>`:''}<button class='x' onclick="woDel('${o.id}')">🗑</button></div></div>`}).join('')||"<p class='mut'>এখনও কোনো অনলাইন অর্ডার আসেনি</p>"}</div>`}
+async function woSt(id,st){const o=WO.find(x=>x.id===id);if(!o)return;try{await DB.collection('webOrders').doc(id).update({status:st});o.status=st;WN=WO.filter(x=>x.status==='new').length;document.title=(WN?'('+WN+') ':'')+BRAND.name;R()}catch(e){alert('হয়নি: '+(e.code||e.message))}}
+async function woDel(id){if(!confirm('এই অনলাইন অর্ডার মুছবেন?'))return;try{await DB.collection('webOrders').doc(id).delete();WO=WO.filter(x=>x.id!==id);WN=WO.filter(x=>x.status==='new').length;R()}catch(e){alert('মোছা যায়নি: '+(e.code||e.message))}}
+{const ord0=V.ord;V.ord=()=>woHtml()+ord0();
+ const dash8=V.dash;V.dash=()=>(LICM==='self'&&WN>0?`<div class='card' onclick="go('ord')" style='cursor:pointer;border:2px solid #dc2626;background:rgba(220,38,38,.08)'>🔔 <b>${WN}টা নতুন অনলাইন অর্ডার</b> এসেছে — দেখতে চাপুন</div>`:'')+dash8();
+ if(LICM==='self'){setTimeout(woNew,4000);setInterval(()=>{if(!document.hidden)woNew()},180000)}}
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 init();
 </script>

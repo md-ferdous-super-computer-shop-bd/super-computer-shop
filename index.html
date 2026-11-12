@@ -396,13 +396,13 @@ function rows(){
 }
 
 function pf(id){
-  PI=null;
+  PI=null;PG=[];PGd=false;
   const p=id?S.p.find(x=>x.id===id):{};if(!p)return;
   const F=(k,l,t,req)=>`<div><label>${l}</label><input id='f_${k}' type='${t||'text'}' value='${esc(p[k]!=null?p[k]:(k==='date'?today():''))}' ${req?'required':''}></div>`;
   shw('m dk',`<h2>${id?'ল্যাপটপ এডিট':'নতুন ল্যাপটপ'}</h2><form onsubmit="ps2(event,'${id||''}')"><div class='fg'>${F('name','পণ্যের নাম','text',1)}${F('brand','ব্র্যান্ড')}${F('model','মডেল')}${F('sn','সিরিয়াল নম্বর (একাধিক পিস হলে ফাঁকা রাখুন)','text',0)}${F('cpu','প্রসেসর')}${F('ram','RAM')}${F('ssd','SSD / HDD')}${F('disp','ডিসপ্লে')}${F('bat','ব্যাটারি ব্যাকআপ')}
   <div><label>টাচ</label><select id='f_touch'>${['Non-Touch','Touch'].map(c=>`<option ${p.touch===c?'selected':''}>${c}</option>`).join('')}</select></div>
   <div><label>কন্ডিশন</label><select id='f_cond'>${['Used','New','Refurbished'].map(c=>`<option ${p.cond===c?'selected':''}>${c}</option>`).join('')}</select></div>
-  ${id?'':`<div><label>পিস (একই পণ্য কয়টা)</label><input id='f_qty' type='number' min='1' step='1' value='1'></div>`}${F('cost','কেনা দাম (প্রতি পিস)','number',1)}${F('price','বিক্রয় দাম','number',1)}${F('op','আগের দাম (ঐচ্ছিক — দিলে সাইটে ছাড় দেখাবে)','number')}${F('date','ক্রয়ের তারিখ','date')}${F('sup','সাপ্লায়ার')}${F('war','ওয়ারেন্টি')}${F('desc','বিবরণ')}<div><label>ছবি</label><input type='file' accept='image/*' onchange='imgPick(this)'></div></div>
+  ${id?'':`<div><label>পিস (একই পণ্য কয়টা)</label><input id='f_qty' type='number' min='1' step='1' value='1'></div>`}${F('cost','কেনা দাম (প্রতি পিস)','number',1)}${F('price','বিক্রয় দাম','number',1)}${F('op','আগের দাম (ঐচ্ছিক — দিলে সাইটে ছাড় দেখাবে)','number')}${F('date','ক্রয়ের তারিখ','date')}${F('sup','সাপ্লায়ার')}${F('war','ওয়ারেন্টি')}${F('desc','বিবরণ')}<div style='grid-column:1/-1'><label>ছবি (সর্বোচ্চ ৩টা, ভালো মানের)</label><div id='pgbox'></div><input id='pgin' type='file' accept='image/*' multiple style='display:none' onchange='pgPick(this)'><button type='button' class='g' id='pgadd' onclick="$('#pgin').click()">➕ ছবি যোগ করুন</button></div></div>
   <div style='display:flex;gap:8px;flex-wrap:wrap;margin-top:14px'><button class='b' value='s'>সেভ করুন</button>${id?'':"<button class='g' value='n'>সেভ ও আরেকটি যোগ</button>"}<button type='button' class='g' onclick='cm()'>বাতিল</button></div></form>`);
 }
 function ps2(e,id){
@@ -411,21 +411,24 @@ function ps2(e,id){
   const qn=id?1:Math.max(1,Math.floor(num($('#f_qty')?$('#f_qty').value:1))||1);
   if(!id&&qn>1&&sn)return alert('একাধিক পিস যোগ করতে সিরিয়াল নম্বর ফাঁকা রাখুন। প্রতিটির সিরিয়াল আলাদা হলে একটা একটা করে যোগ করুন (সেভ ও আরেকটি যোগ)।');
   if(sn&&S.p.some(x=>x.id!==id&&x.sn&&x.sn.toLowerCase()===sn.toLowerCase()))return alert('এই সিরিয়াল নম্বর আগে থেকেই আছে');
-  const d={name:g('name'),brand:g('brand'),model:g('model'),sn,cpu:g('cpu'),ram:g('ram'),ssd:g('ssd'),disp:g('disp'),bat:g('bat'),touch:g('touch'),cond:g('cond'),cost:num(g('cost')),price:num(g('price')),op:num(g('op'))||0,date:g('date')||today(),sup:g('sup'),war:g('war'),desc:g('desc')};if(PI!==null)d.img=PI;
+  const d={name:g('name'),brand:g('brand'),model:g('model'),sn,cpu:g('cpu'),ram:g('ram'),ssd:g('ssd'),disp:g('disp'),bat:g('bat'),touch:g('touch'),cond:g('cond'),cost:num(g('cost')),price:num(g('price')),op:num(g('op'))||0,date:g('date')||today(),sup:g('sup'),war:g('war'),desc:g('desc')};if(PGd){d.img=PG[0]?PG[0].t:'';d.nimg=PG.length}
+  let spid=id;
   if(id)Object.assign(S.p.find(x=>x.id===id),d);
   else{
     const ex=!sn?S.p.find(x=>!x.sn&&String(x.name||'').trim().toLowerCase()===d.name.toLowerCase()&&String(x.model||'').trim().toLowerCase()===d.model.toLowerCase()):null;
     let p;
-    if(ex){ex.cost=(ex.qty*ex.cost+qn*d.cost)/(ex.qty+qn);ex.qty+=qn;ex.price=d.price;if(d.img)ex.img=d.img;p=ex}
+    if(ex){ex.cost=(ex.qty*ex.cost+qn*d.cost)/(ex.qty+qn);ex.qty+=qn;ex.price=d.price;if(d.img){ex.img=d.img;ex.nimg=d.nimg}p=ex}
     else{p=Object.assign({id:uid(),qty:qn},d);S.p.push(p)}
+    spid=p.id;
     S.pu.push({id:uid(),date:d.date,sup:d.sup,pid:p.id,name:d.name,qty:qn,cost:d.cost,paid:d.cost*qn})}
+  if(PGd)pgSave(spid);
   save();const again=e.submitter&&e.submitter.value==='n';
   R();if(again)pf();else cm();
 }
 function pv(id){
   const p=S.p.find(x=>x.id===id);if(!p)return;
   const A=[['ব্র্যান্ড',p.brand],['মডেল',p.model],['সিরিয়াল',p.sn],['প্রসেসর',p.cpu],['RAM',p.ram],['SSD/HDD',p.ssd],['ডিসপ্লে',p.disp],['ব্যাটারি',p.bat],['টাচ',p.touch],['কন্ডিশন',p.cond],['কেনা দাম',fm(p.cost)],['বিক্রয় দাম',fm(p.price)],['ক্রয়ের তারিখ',p.date],['সাপ্লায়ার',p.sup],['ওয়ারেন্টি',p.war],['স্টক',p.qty+' পিস'],['বিবরণ',p.desc]];
-  shw('m dk',`${p.img?`<img src='${p.img}' style='max-width:100%;max-height:240px;border-radius:10px;margin-bottom:10px'>`:''}<h2>${esc(p.name)} ${badge(p)}</h2><div class='fg'>${A.map(r=>`<div><label>${r[0]}</label><div>${esc(r[1]||'-')}</div></div>`).join('')}</div><div style='margin-top:14px;display:flex;gap:8px'><button class='g' onclick="pf('${p.id}')">এডিট</button><button class='g' onclick='cm()'>বন্ধ করুন</button></div>`);
+  shw('m dk',`<div id='pgd'>${p.img?`<img src='${p.img}' style='max-width:100%;max-height:240px;border-radius:10px;margin-bottom:10px' id='pgm'>`:''}</div><h2>${esc(p.name)} ${badge(p)}</h2><div class='fg'>${A.map(r=>`<div><label>${r[0]}</label><div>${esc(r[1]||'-')}</div></div>`).join('')}</div><div style='margin-top:14px;display:flex;gap:8px'><button class='g' onclick="pf('${p.id}')">এডিট</button><button class='g' onclick='cm()'>বন্ধ করুন</button></div>`);
 }
 function pd(id){
   const p=S.p.find(x=>x.id===id);if(!p)return;
@@ -798,7 +801,7 @@ async function syncCat(){
   try{
     if(csnap===null){csnap={};const q=await DB.collection('catalog').get();q.docs.forEach(d=>csnap[d.id]=JSON.stringify(d.data()))}
     const want={};
-    S.p.filter(p=>p.pub).forEach(p=>{want[p.id]={id:p.id,name:p.name||'',brand:p.brand||'',model:p.model||'',cpu:p.cpu||'',ram:p.ram||'',ssd:p.ssd||'',disp:p.disp||'',cond:p.cond||'',war:p.war||'',desc:p.desc||'',price:p.price||0,op:p.op||0,qty:p.qty||0,img:p.img||''}});
+    S.p.filter(p=>p.pub).forEach(p=>{want[p.id]={id:p.id,name:p.name||'',brand:p.brand||'',model:p.model||'',cpu:p.cpu||'',ram:p.ram||'',ssd:p.ssd||'',disp:p.disp||'',cond:p.cond||'',war:p.war||'',desc:p.desc||'',price:p.price||0,op:p.op||0,ni:p.nimg!=null?p.nimg:(p.img?1:0),qty:p.qty||0,img:p.img||''}});
     const jobs=[];
     Object.keys(want).forEach(id=>{const j=JSON.stringify(want[id]);if(csnap[id]!==j){csnap[id]=j;jobs.push(DB.collection('catalog').doc(id).set(want[id]))}});
     Object.keys(csnap).forEach(id=>{if(!want[id]){delete csnap[id];jobs.push(DB.collection('catalog').doc(id).delete())}});
@@ -1065,7 +1068,7 @@ const _R0=R;R=function(){const r=_R0.apply(this,arguments);if(tab==='set')try{yc
 /* ---- স্টোরেজ সিগন্যাল ---- */
 const FB_LIM=1073741824,FB_X=3; // ১ GB; Firestore-এ ইনডেক্সসহ আসল জায়গা ডেটার প্রায় ৩ গুণ ধরা হয়েছে (নিরাপদ অনুমান)
 function stInfo(){let b=0;try{b=new Blob([JSON.stringify(S)]).size}catch(e){b=JSON.stringify(S).length*2}
-  const used=b*FB_X,pc=Math.min(100,used/FB_LIM*100);return{b,used,pc,docs:CL.reduce((a,c)=>a+S[c].length,0)}}
+  const imgB=(S.p||[]).reduce((x,p)=>x+(p.nimg||0)*135000,0),used=b*FB_X+imgB,pc=Math.min(100,used/FB_LIM*100);return{b,used,pc,docs:CL.reduce((a,c)=>a+S[c].length,0)}}
 const stMB=x=>x>=1048576?(x/1048576).toFixed(1)+' MB':Math.max(1,Math.round(x/1024))+' KB';
 function stBar(){const k=stInfo(),lv=k.pc>=60?'#dc2626':k.pc>=40?'#f59e0b':'#16a34a',msg=k.pc>=40?`🔴 আপনার Firebase স্টোরেজ প্রায় <b>${Math.floor(k.pc/10)*10}%</b> ভরে গেছে! "বছর শেষ" করে পুরনো ডেটা সরান।`:`🟢 স্টোরেজ ঠিক আছে`;
   return `<div style='margin:6px 0'><div style='display:flex;justify-content:space-between;font-size:13px'><span>${msg}</span><b>${k.pc<0.1?'<০.১':k.pc.toFixed(1)}%</b></div><div style='height:12px;border-radius:8px;background:#e5e7eb;overflow:hidden;margin-top:4px'><div style='height:100%;width:${Math.max(1.5,k.pc)}%;background:${lv}'></div></div><div class='mut' style='font-size:12px;margin-top:4px'>প্রায় ${stMB(k.used)} / ১ GB · ${k.docs}টা রেকর্ড (এটা আনুমানিক হিসাব, ঠিক হিসাব Firebase Console → Usage-এ)</div></div>`}
@@ -1241,6 +1244,38 @@ async function woDel(id){if(!confirm('এই অনলাইন অর্ডা�
 {const ord0=V.ord;V.ord=()=>woHtml()+ord0();
  const dash8=V.dash;V.dash=()=>(LICM==='self'&&WN>0?`<div class='card' onclick="go('ord')" style='cursor:pointer;border:2px solid #dc2626;background:rgba(220,38,38,.08)'>🔔 <b>${WN}টা নতুন অনলাইন অর্ডার</b> এসেছে — দেখতে চাপুন</div>`:'')+dash8();
  if(LICM==='self'){setTimeout(woNew,4000);setInterval(()=>{if(!document.hidden)woNew()},180000)}}
+/* ---- একাধিক ভালো মানের ছবি (সর্বোচ্চ ৩টা) ---- */
+let PG=[],PGd=false;
+const pgLoad=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=r.result};r.onerror=rej;r.readAsDataURL(f)});
+const pgUrl=u=>new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=u});
+function pgResize(im,max,q){const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));const x=c.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(im,0,0,c.width,c.height);return c.toDataURL('image/jpeg',q)}
+async function pgPick(el){const fs=[...el.files];el.value='';
+  for(const f of fs){if(PG.length>=3){alert('সর্বোচ্চ ৩টা ছবি দেওয়া যাবে');break}
+    try{const im=await pgLoad(f);let q=.82,full=pgResize(im,1000,q);while(full.length>300000&&q>.5){q-=.08;full=pgResize(im,1000,q)}if(full.length>300000)full=pgResize(im,800,.6);
+      PG.push({f:full,t:pgResize(im,480,.76)});PGd=true}catch(e){alert('একটা ছবি পড়া যায়নি, অন্য ছবি দিন')}}
+  pgDraw()}
+async function pgEnsure(){for(const x of PG){if(!x.t||x.t.length>90000){try{x.t=pgResize(await pgUrl(x.f),480,.76)}catch(e){x.t=x.f}}}}
+function pgDraw(){const b=$('#pgbox');if(!b)return;
+  b.innerHTML=PG.map((x,i)=>`<div style='position:relative;display:inline-block;margin:0 8px 8px 0'><img src='${x.t||x.f}' style='width:90px;height:90px;object-fit:cover;border-radius:8px;border:2px solid ${i?'transparent':'#16a34a'}'>${i===0?`<small style='position:absolute;left:4px;bottom:6px;background:#16a34a;color:#fff;border-radius:4px;padding:0 5px'>মূল</small>`:`<button type='button' class='g' style='position:absolute;left:2px;bottom:2px;padding:0 6px' onclick='pgMain(${i})'>মূল করুন</button>`}<button type='button' class='x' style='position:absolute;right:0;top:0' onclick='pgDel(${i})'>✖</button></div>`).join('')+`<div class='mut'>${PG.length}/3 ছবি · প্রথম ছবিটাই সাইটে আগে দেখাবে</div>`;
+  const a=$('#pgadd');if(a)a.style.display=PG.length>=3?'none':''}
+async function pgMain(i){await pgEnsure();const x=PG.splice(i,1)[0];PG.unshift(x);PGd=true;pgDraw()}
+function pgDel(i){PG.splice(i,1);PGd=true;pgDraw()}
+async function pgInit(id,p){PG=[];PGd=false;pgDraw();if(!id)return;let got=false;
+  if(DB){try{const d=await DB.collection('pimg').doc(id).get();if(d.exists){const o=d.data();for(let i=0;i<3;i++)if(o['i'+i])PG.push({f:o['i'+i],t:null});got=PG.length>0}}catch(e){}}
+  if(!got&&p&&p.img)PG=[{f:p.img,t:p.img}];
+  if(PG[0]&&!PG[0].t&&p&&p.img)PG[0].t=p.img;await pgEnsure();PGd=false;pgDraw()}
+async function pgSave(pid){if(!DB||!pid)return;
+  try{if(!PG.length){await DB.collection('pimg').doc(pid).delete();return}
+    const o={t:Date.now(),n:PG.length};PG.forEach((x,i)=>o['i'+i]=x.f);
+    if(PG.reduce((a,x)=>a+x.f.length,0)>900000){alert('ছবিগুলো একসাথে খুব বড় হয়ে গেছে, ছোট ছবি দিন');return}
+    await DB.collection('pimg').doc(pid).set(o)}
+  catch(e){alert('বড় ছবি সেভ হয়নি ('+(e.code||e.message)+')। ছোট ছবি সেভ হয়েছে।')}}
+{const pf9=pf;pf=function(id){pf9(id);const p=id?S.p.find(x=>x.id===id):null;pgInit(id,p)}}
+async function pgDetail(id){const p=S.p.find(x=>x.id===id);if(!p||!DB)return;
+  try{const d=await DB.collection('pimg').doc(id).get();if(!d.exists)return;const o=d.data(),L=[0,1,2].map(i=>o['i'+i]).filter(Boolean);const box=$('#pgd');if(!box||!L.length)return;
+    box.innerHTML=`<img id='pgm' src='${L[0]}' style='max-width:100%;max-height:300px;border-radius:10px;margin-bottom:6px'>${L.length>1?`<div style='display:flex;gap:6px;margin-bottom:10px'>${L.map((u,i)=>`<img src='${u}' onclick="$('#pgm').src=this.src" style='width:64px;height:64px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid var(--line)'>`).join('')}</div>`:''}`}catch(e){}}
+{const pv9=pv;pv=function(id){pv9(id);pgDetail(id)}}
+{const pd9=pd;pd=function(id){pd9(id);if(DB&&ROLE==='owner'&&!S.p.some(x=>x.id===id)){try{DB.collection('pimg').doc(id).delete()}catch(e){}}}}
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 init();
 </script>

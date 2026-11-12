@@ -105,6 +105,7 @@ svg{width:22px;height:22px;flex:none}
 .tot{display:flex;justify-content:space-between;font-size:18px;font-weight:700;padding:12px 0}
 .hp{position:absolute;left:-9999px;opacity:0;height:0;width:0}
 .dt{width:100%;border-collapse:collapse;margin:10px 0}.dt td{padding:6px 4px;border-bottom:1px solid var(--line);font-size:15px}.dt td:first-child{color:var(--mut);width:34%}
+.gm{clear:both;position:relative;background:rgba(127,127,127,.08);border-radius:12px;overflow:hidden;touch-action:pan-y}.gm img{width:100%;height:min(56vh,380px);object-fit:contain;display:block;cursor:zoom-in}.gn{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:0;background:rgba(0,0,0,.5);color:#fff;font-size:26px;line-height:1;cursor:pointer}.gp{left:8px}.gx{right:8px}.gt{display:flex;gap:8px;margin:8px 0;overflow-x:auto}.gt img{width:62px;height:62px;object-fit:cover;border-radius:8px;border:2px solid transparent;cursor:pointer;flex:none}.gt img.on{border-color:#16a34a}#ovz{align-items:center;background:rgba(0,0,0,.92)}#ovz img{max-width:100vw;max-height:100vh;object-fit:contain}.cam{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;border-radius:999px;padding:2px 9px;font-size:13px;z-index:1}
 .ok2{text-align:center;padding:10px 0}.ok2 .big{font-size:52px}
 </style>
 </head>
@@ -185,6 +186,7 @@ svg{width:22px;height:22px;flex:none}
 <script>document.getElementById('y').textContent=new Date().getFullYear()</script>
 <button id="cb" type="button" aria-label="কার্ট খুলুন"></button>
 <div class="ov" id="ovp" role="dialog" aria-modal="true" aria-label="পণ্যের বিবরণ"><div class="sheet" id="shp"></div></div>
+<div class="ov" id="ovz" role="dialog" aria-modal="true" aria-label="বড় ছবি"><img id="zi" alt=""></div>
 <div class="ov" id="ovc" role="dialog" aria-modal="true" aria-label="কার্ট ও অর্ডার"><div class="sheet" id="shc"></div></div>
 <script>
 (function(){
@@ -229,7 +231,7 @@ svg{width:22px;height:22px;flex:none}
       var out=!(o.qty>0),d=disc(o),sp=[o.cpu,o.ram,o.ssd,o.cond].filter(Boolean).join(' · ');
       var c=document.createElement('article');c.className='pcard'+(out?' out':'');
       c.innerHTML=(d?'<span class="badge">-'+d+'%</span>':'')+(out?'<span class="so">স্টক আউট</span>':'')+
-        '<button class="im" type="button" aria-label="'+esc(title(o))+' বিস্তারিত দেখুন">'+(img(o)?'<img loading="lazy" alt="'+esc(title(o))+'" src="'+img(o)+'">':'💻')+'</button>'+
+        '<button class="im" type="button" aria-label="'+esc(title(o))+' বিস্তারিত দেখুন">'+(img(o)?'<img loading="lazy" alt="'+esc(title(o))+'" src="'+img(o)+'">':'💻')+(o.ni>1?'<span class="cam">📷 '+o.ni+'</span>':'')+'</button>'+
         '<div class="bd">'+(o.brand?'<div class="br">'+esc(o.brand)+'</div>':'')+'<h3>'+esc([o.name,o.model].filter(Boolean).join(' '))+'</h3>'+(sp?'<div class="sp">'+esc(sp)+'</div>':'')+
         '<div class="pr"><b>'+tk(o.price)+'</b>'+(d?'<s>'+tk(o.op)+'</s>':'')+'</div>'+
         '<div class="acts">'+(out?'<button class="b1" disabled>স্টক আউট</button>':'<button class="b1" data-a="buy">অর্ডার করুন</button><button class="b2" data-a="add">কার্টে যোগ করুন</button>')+'</div></div>';
@@ -248,20 +250,36 @@ svg{width:22px;height:22px;flex:none}
   $('#cb').onclick=function(){openCart()};
 
   function openOv(id){$(id).classList.add('on');document.body.style.overflow='hidden'}
-  function closeOv(){['#ovp','#ovc'].forEach(function(i){$(i).classList.remove('on')});document.body.style.overflow=''}
+  function closeOv(){['#ovp','#ovc','#ovz'].forEach(function(i){$(i).classList.remove('on')});document.body.style.overflow=''}
   ['#ovp','#ovc'].forEach(function(i){$(i).addEventListener('click',function(e){if(e.target===this)closeOv()})});
-  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeOv()});
+  $('#ovz').addEventListener('click',function(){this.classList.remove('on')});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){if($('#ovz').classList.contains('on'))$('#ovz').classList.remove('on');else closeOv()}});
 
+  var G=[],gx=0,gid='';
+  function showG(){var m=$('#gi');if(!m)return;m.src=G[gx];var t=$('#gt');t.innerHTML='';
+    if(G.length>1)G.forEach(function(u,i){var im=document.createElement('img');im.src=u;im.alt='ছবি '+(i+1);if(i===gx)im.className='on';im.onclick=function(){gx=i;showG()};t.appendChild(im)});
+    Array.prototype.forEach.call(document.querySelectorAll('.gn'),function(b){b.hidden=G.length<2})}
+  function step(d){if(G.length<2)return;gx=(gx+d+G.length)%G.length;showG()}
+  function loadGal(o){gid=o.id;G=img(o)?[img(o)]:[];gx=0;if(!G.length)return;showG();
+    var m=$('#gi'),g=document.querySelector('.gm');
+    document.querySelector('.gp').onclick=function(){step(-1)};document.querySelector('.gx').onclick=function(){step(1)};
+    m.onclick=function(){$('#zi').src=G[gx];openOv('#ovz')};
+    var sx=0;g.addEventListener('touchstart',function(e){sx=e.touches[0].clientX},{passive:true});
+    g.addEventListener('touchend',function(e){var d=e.changedTouches[0].clientX-sx;if(Math.abs(d)>40)step(d<0?1:-1)},{passive:true});
+    if(o.ni>=1)fetch(BASE+'pimg/'+encodeURIComponent(o.id)+'?key='+KEY).then(function(r){return r.ok?r.json():null}).then(function(j){
+      if(!j||!j.fields||gid!==o.id)return;
+      var L=[0,1,2].map(function(i){return val(j.fields['i'+i])}).filter(function(u){return typeof u==='string'&&u.indexOf('data:image/')===0});
+      if(L.length){G=L;gx=0;showG()}}).catch(function(){})}
   function detail(id){
     var o=byId(id);if(!o)return;var out=!(o.qty>0),d=disc(o);
     var rows=[['ব্র্যান্ড',o.brand],['মডেল',o.model],['প্রসেসর',o.cpu],['RAM',o.ram],['স্টোরেজ',o.ssd],['ডিসপ্লে',o.disp],['কন্ডিশন',o.cond],['ওয়ারেন্টি',o.war]].filter(function(r){return r[1]});
     $('#shp').innerHTML='<button class="x" type="button" aria-label="বন্ধ করুন" id="xp">×</button><h3>'+esc(title(o))+'</h3>'+
-      (img(o)?'<img alt="'+esc(title(o))+'" src="'+img(o)+'" style="width:100%;max-height:340px;object-fit:contain;border-radius:12px;background:rgba(127,127,127,.08)">':'')+
+      (img(o)?'<div class="gm"><img id="gi" alt="'+esc(title(o))+'" src="'+img(o)+'"><button class="gn gp" type="button" aria-label="আগের ছবি" hidden>‹</button><button class="gn gx" type="button" aria-label="পরের ছবি" hidden>›</button></div><div class="gt" id="gt"></div>':'')+
       '<div class="pr" style="display:flex;gap:10px;align-items:baseline;margin:10px 0"><b style="font-size:26px;color:#16803a">'+tk(o.price)+'</b>'+(d?'<s style="color:var(--mut)">'+tk(o.op)+'</s> <span class="badge" style="position:static">-'+d+'%</span>':'')+'</div>'+
       '<table class="dt">'+rows.map(function(r){return '<tr><td>'+r[0]+'</td><td>'+esc(r[1])+'</td></tr>'}).join('')+'<tr><td>স্টক</td><td>'+(out?'স্টক আউট':o.qty+' পিস আছে')+'</td></tr></table>'+
       (o.desc?'<p>'+esc(o.desc)+'</p>':'')+
       '<div class="acts">'+(out?'<button class="b1" disabled>স্টক আউট</button>':'<button class="b1" id="dbuy">অর্ডার করুন</button><button class="b2" id="dadd">কার্টে যোগ করুন</button>')+'</div>';
-    openOv('#ovp');$('#xp').onclick=closeOv;
+    openOv('#ovp');$('#xp').onclick=closeOv;loadGal(o);
     var b=$('#dbuy'),a=$('#dadd');
     if(b)b.onclick=function(){add(id);closeOv();openCart()};
     if(a)a.onclick=function(){add(id);closeOv()};

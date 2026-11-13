@@ -1309,6 +1309,32 @@ async function siteTest(){
   box.innerHTML=out.join('<br>')+'<p class="mut" style="margin-top:8px">এই লেখাগুলোর স্ক্রিনশট আমাকে পাঠালে আমি বলে দেব কী করতে হবে।</p>'}
 function catNow(){csnap=null;syncCat().then(()=>alert('✅ ক্যাটালগ সিঙ্ক শেষ। এবার পরীক্ষা বাটন চাপুন।'))}
 {const cat9=V.cat;V.cat=()=>{const h=cat9();return h.replace("</p>","</p><button class='b' onclick='catNow()'>🔄 ক্যাটালগ এখনই সিঙ্ক করুন</button> <button class='b' onclick='siteTest()'>🔍 সাইট ও অর্ডার ব্যবস্থা পরীক্ষা করুন</button><div id='sitet' class='mut' style='margin:8px 0;line-height:1.7'></div>")}}
+/* ---- ক্রয়ে পুরনো পণ্য খুঁজে দ্রুত স্টক বাড়ানো ---- */
+function lastBuy(p){return S.pu.filter(b=>b.pid===p.id).sort((a,b)=>String(a.date).localeCompare(String(b.date))).pop()}
+function bSearch(){
+  const q=($('#bfq').value||'').trim().toLowerCase(),box=$('#bres');if(!box)return;
+  if(!q){box.innerHTML='';return}
+  const L=S.p.filter(p=>[p.name,p.sn,p.model,p.brand,p.lbl,p.label,p.bc,p.id].some(x=>String(x||'').toLowerCase().includes(q))).slice(0,8);
+  box.innerHTML=L.map(p=>{const b=lastBuy(p);return `<div class='card' style='margin:6px 0;padding:8px;cursor:pointer' onclick="bPick('${p.id}')"><b>${esc(p.name)}</b> ${esc(p.model||'')} ${p.sn?'<span class="mut">সিরিয়াল: '+esc(p.sn)+'</span>':''}<br><span class='mut'>স্টকে: <b>${p.qty}</b> পিস${b?' · শেষ কেনা: '+b.date+' ('+b.qty+' পিস, '+fm(b.cost)+')':''}</span></div>`}).join('')||"<p class='mut'>এই নামে/সিরিয়ালে কোনো পণ্য পাওয়া যায়নি। নিচের ফর্মে নতুন নাম লিখে নতুন পণ্য কিনুন।</p>"}
+function bPick(id){
+  const p=S.p.find(x=>x.id===id);if(!p)return;const b=lastBuy(p);
+  if(p.sn){alert('এটা সিরিয়াল নম্বরওয়ালা একক পণ্য (১টা ইউনিট)। একই মডেলের নতুন ইউনিট কিনলে "পণ্য" মেনুতে নতুন সিরিয়াল দিয়ে যোগ করুন। এখানে শুধু সিরিয়াল ছাড়া পণ্যের স্টক বাড়ানো যায়।');return}
+  $('#bnm').value=p.name;if(b&&b.sup)$('#bs').value=b.sup;
+  $('#bc').value=b?b.cost:(p.cost?Math.round(p.cost):'');$('#bp').value=p.price||'';$('#bd').value=today();$('#bq').value='';
+  bh();$('#bres').innerHTML="<p class='ok'>✅ <b>"+esc(p.name)+"</b> বেছে নিয়েছি। এখন শুধু <b>পরিমাণ</b> (আর দরকার হলে দাম/তারিখ) লিখে সেভ করুন।</p>";
+  $('#bq').focus();$('#bq').scrollIntoView({block:'center'})}
+{const buy9=V.buy;V.buy=()=>{const h=buy9();return h.replace('<h2>নতুন ক্রয়</h2>',"<h2>নতুন ক্রয়</h2><div style='margin-bottom:10px;padding:10px;border:1px dashed var(--bd,#999);border-radius:10px'><label>🔎 আগের পণ্য খুঁজুন (নাম / মডেল / সিরিয়াল / লেবেল)</label><input id='bfq' placeholder='যেমন: x280 বা সিরিয়াল' oninput='bSearch()' autocomplete='off'><div id='bres'></div></div>")}}
+/* ---- ক্রয়ে স্ক্যান ---- */
+let BCP='';
+{const fc9=findCode;findCode=function(v){const r=fc9(v);if(r)return r;v=String(v).trim().toLowerCase();return S.p.find(p=>p.bc&&String(p.bc).toLowerCase()===v)||null}}
+function scanBuy(){scanOpen(v=>{
+  const p=findCode(v);
+  if(p){BCP='';$('#bfq').value=p.name;bSearch();bPick(p.id);return}
+  BCP=String(v).trim();$('#bfq').value='';$('#bres').innerHTML="<p class='bad'>কোড <b>"+esc(BCP)+"</b> আগে কোনো পণ্যে জোড়া নেই।</p><p>উপরের ঘরে পণ্যের নাম লিখে খুঁজুন এবং পণ্যে চাপুন। কোডটা ওই পণ্যের সাথে জুড়ে যাবে, পরের বার স্ক্যান করলেই পণ্য চলে আসবে। নতুন পণ্য হলে নিচের ফর্মে নাম লিখে ক্রয় সেভ করুন, কোড সেটার সাথে জুড়বে।</p>"})}
+{const bp9=bPick;bPick=function(id){const p=S.p.find(x=>x.id===id);if(p&&BCP&&!p.sn){p.bc=BCP;BCP='';try{save()}catch(e){}}bp9(id)}}
+{const ab9=addBuy;addBuy=function(e){if(BCP){const nm=$('#bnm').value.trim();ab9(e);const p=findP(nm);if(p&&!p.sn){p.bc=BCP;BCP='';try{save()}catch(x){}}return}ab9(e)}}
+{const bs9=bSearch;bSearch=function(){bs9()}}
+{const buy10=V.buy;V.buy=()=>buy10().replace("<label>🔎 আগের পণ্য খুঁজুন (নাম / মডেল / সিরিয়াল / লেবেল)</label>","<label>🔎 আগের পণ্য খুঁজুন (নাম / মডেল / সিরিয়াল / লেবেল / বারকোড)</label><button type='button' class='b' onclick='scanBuy()' style='margin:4px 0'>📷 স্ক্যান করুন (QR / বারকোড)</button>")}
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 init();
 </script>

@@ -76,6 +76,7 @@ svg{width:22px;height:22px;flex:none}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .pcard .pr b{color:#4ade80}}
 .pcard .pr s{color:var(--mut);font-size:14px}
 .badge{position:absolute;top:10px;left:10px;background:#16a34a;color:#fff;border-radius:999px;padding:3px 10px;font-size:13px;font-weight:700;z-index:1}
+.qn{font-size:12px;color:#047857;margin:2px 0 6px;font-weight:600}.qn.lo{color:#b45309}.qn.z{color:#b91c1c}
 .so{position:absolute;top:10px;right:0;background:#111;color:#fff;padding:4px 12px;font-weight:700;font-size:14px;border-radius:6px 0 0 6px;z-index:1}
 .pcard.out .im{opacity:.55}
 .acts{display:grid;gap:8px;margin-top:8px}
@@ -231,11 +232,12 @@ svg{width:22px;height:22px;flex:none}
     L.forEach(function(o){
       var out=!(o.qty>0),d=disc(o),sp=[o.cpu,o.ram,o.ssd,o.cond].filter(Boolean).join(' · ');
       var c=document.createElement('article');c.className='pcard'+(out?' out':'');
-      c.innerHTML=(d?'<span class="badge">-'+d+'%</span>':'')+(out?'<span class="so">স্টক আউট</span>':'')+
+      c.innerHTML=(d?'<span class="badge">-'+d+'%</span>':'')+(out?'<span class="so">Sold</span>':'')+
         '<button class="im" type="button" aria-label="'+esc(title(o))+' বিস্তারিত দেখুন">'+(img(o)?'<img loading="lazy" alt="'+esc(title(o))+'" src="'+img(o)+'">':'💻')+(o.ni>1?'<span class="cam">📷 '+o.ni+'</span>':'')+'</button>'+
         '<div class="bd">'+(o.brand?'<div class="br">'+esc(o.brand)+'</div>':'')+'<h3>'+esc([o.name,o.model].filter(Boolean).join(' '))+'</h3>'+(sp?'<div class="sp">'+esc(sp)+'</div>':'')+
         '<div class="pr"><b>'+tk(o.price)+'</b>'+(d?'<s>'+tk(o.op)+'</s>':'')+'</div>'+
-        '<div class="acts">'+(out?'<button class="b1" disabled>স্টক আউট</button>':'<button class="b1" data-a="buy">অর্ডার করুন</button><button class="b2" data-a="add">কার্টে যোগ করুন</button>')+'</div></div>';
+        '<div class="qn'+(out?' z':(o.qty<=3?' lo':''))+'">'+(out?'Sold':(o.qty<=3?'মাত্র '+o.qty+' পিস বাকি':o.qty+' পিস স্টকে আছে'))+'</div>'+
+        '<div class="acts">'+(out?'<button class="b1" disabled>Sold</button>':'<button class="b1" data-a="buy">অর্ডার করুন</button><button class="b2" data-a="add">কার্টে যোগ করুন</button>')+'</div></div>';
       c.querySelector('.im').onclick=c.querySelector('h3').onclick=function(){detail(o.id)};
       var bu=c.querySelector('[data-a=buy]'),ad=c.querySelector('[data-a=add]');
       if(bu)bu.onclick=function(){add(o.id);openCart()};
@@ -277,9 +279,9 @@ svg{width:22px;height:22px;flex:none}
     $('#shp').innerHTML='<button class="x" type="button" aria-label="বন্ধ করুন" id="xp">×</button><h3>'+esc(title(o))+'</h3>'+
       (img(o)?'<div class="gm"><img id="gi" alt="'+esc(title(o))+'" src="'+img(o)+'"><button class="gn gp" type="button" aria-label="আগের ছবি" hidden>‹</button><button class="gn gx" type="button" aria-label="পরের ছবি" hidden>›</button></div><div class="gt" id="gt"></div>':'')+
       '<div class="pr" style="display:flex;gap:10px;align-items:baseline;margin:10px 0"><b style="font-size:26px;color:#16803a">'+tk(o.price)+'</b>'+(d?'<s style="color:var(--mut)">'+tk(o.op)+'</s> <span class="badge" style="position:static">-'+d+'%</span>':'')+'</div>'+
-      '<table class="dt">'+rows.map(function(r){return '<tr><td>'+r[0]+'</td><td>'+esc(r[1])+'</td></tr>'}).join('')+'<tr><td>স্টক</td><td>'+(out?'স্টক আউট':o.qty+' পিস আছে')+'</td></tr></table>'+
+      '<table class="dt">'+rows.map(function(r){return '<tr><td>'+r[0]+'</td><td>'+esc(r[1])+'</td></tr>'}).join('')+'<tr><td>স্টক</td><td>'+(out?'Sold':o.qty+' পিস আছে')+'</td></tr></table>'+
       (o.desc?'<p>'+esc(o.desc)+'</p>':'')+
-      '<div class="acts">'+(out?'<button class="b1" disabled>স্টক আউট</button>':'<button class="b1" id="dbuy">অর্ডার করুন</button><button class="b2" id="dadd">কার্টে যোগ করুন</button>')+'</div>';
+      '<div class="acts">'+(out?'<button class="b1" disabled>Sold</button>':'<button class="b1" id="dbuy">অর্ডার করুন</button><button class="b2" id="dadd">কার্টে যোগ করুন</button>')+'</div>';
     openOv('#ovp');$('#xp').onclick=closeOv;loadGal(o);
     var b=$('#dbuy'),a=$('#dadd');
     if(b)b.onclick=function(){add(id);closeOv();openCart()};

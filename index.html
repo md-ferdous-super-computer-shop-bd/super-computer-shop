@@ -1276,6 +1276,39 @@ async function pgDetail(id){const p=S.p.find(x=>x.id===id);if(!p||!DB)return;
     box.innerHTML=`<img id='pgm' src='${L[0]}' style='max-width:100%;max-height:300px;border-radius:10px;margin-bottom:6px'>${L.length>1?`<div style='display:flex;gap:6px;margin-bottom:10px'>${L.map((u,i)=>`<img src='${u}' onclick="$('#pgm').src=this.src" style='width:64px;height:64px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid var(--line)'>`).join('')}</div>`:''}`}catch(e){}}
 {const pv9=pv;pv=function(id){pv9(id);pgDetail(id)}}
 {const pd9=pd;pd=function(id){pd9(id);if(DB&&ROLE==='owner'&&!S.p.some(x=>x.id===id)){try{DB.collection('pimg').doc(id).delete()}catch(e){}}}}
+/* ---- সাইট ও অর্ডার ব্যবস্থা পরীক্ষা ---- */
+let STR='';
+async function siteTest(){
+  const out=[],ok=(m)=>out.push('✅ '+m),bad=(m,f)=>out.push('❌ '+m+(f?'<br>&nbsp;&nbsp;&nbsp;👉 '+f:''));
+  const box=$('#sitet');if(!box)return;box.innerHTML='পরীক্ষা চলছে...';
+  const B='https://firestore.googleapis.com/v1/projects/'+FBC.projectId+'/databases/(default)/documents/',K='?key='+FBC.apiKey;
+  let docs=[];
+  try{const r=await T8(fetch(B+'catalog'+K+'&pageSize=300'),12000);
+    if(r.ok){const j=await r.json();docs=j.documents||[];ok('কাস্টমার সাইট ক্যাটালগ পড়তে পারছে — '+docs.length+'টা পণ্য সাইটে আছে');if(!docs.length)bad('সাইটে কোনো পণ্য নেই','"অনলাইন ক্যাটালগ" তালিকায় পণ্যের পাশে টিক দিন (শুধু স্টকে থাকা পণ্য দেখায়)। টিক দেওয়ার পর কয়েক সেকেন্ড অপেক্ষা করুন।')}
+    else bad('ক্যাটালগ পড়া যাচ্ছে না (কোড '+r.status+')',r.status===403?'Firestore Rules-এ "catalog"-এর পাবলিক পড়ার নিয়ম নেই। firestore.rules ফাইলের সব লেখা আবার বসিয়ে Publish করুন।':'ইন্টারনেট বা Firebase সেটিং দেখুন।')}
+  catch(e){bad('ক্যাটালগ পড়ার সময় সংযোগ হয়নি','ইন্টারনেট দেখে আবার চেষ্টা করুন।')}
+  if(docs.length){
+    const f=x=>{const o={};Object.keys(x.fields||{}).forEach(k=>{const v=x.fields[k];o[k]=v.stringValue!==undefined?v.stringValue:v.integerValue!==undefined?Number(v.integerValue):''});return o},L=docs.map(f);
+    const n3=L.filter(x=>x.ni>1).length;ok('ছবিসহ পণ্য: '+L.filter(x=>x.img).length+'টা, একাধিক ছবি আছে: '+n3+'টা');
+    const withG=L.find(x=>x.ni>=1);
+    if(withG){try{const r=await T8(fetch(B+'pimg/'+encodeURIComponent(withG.id)+K),12000);
+      if(r.ok){const j=await r.json(),n=['i0','i1','i2'].filter(k=>j.fields&&j.fields[k]).length;ok('বড় ছবি পড়া যাচ্ছে ("'+esc(withG.name)+'" এ '+n+'টা ছবি)')}
+      else if(r.status===404)bad('"'+esc(withG.name)+'" এর বড় ছবি Firebase-এ নেই','পণ্যটা এডিট করে ছবিগুলো আবার দিয়ে সেভ করুন (সেভের সময় নেট চালু রাখুন)।');
+      else bad('বড় ছবি পড়া যাচ্ছে না (কোড '+r.status+')',r.status===403?'Firestore Rules-এ "pimg"-এর নিয়ম নেই। firestore.rules ফাইলের সব লেখা বসিয়ে Publish করুন।':'')}catch(e){bad('বড় ছবি পরীক্ষা হয়নি','')}}
+    else if(n3===0)out.push('ℹ️ কোনো পণ্যে একাধিক ছবি এখনও সেভ হয়নি। পণ্য এডিট করে ছবি দিয়ে সেভ করুন।')}
+  try{const body={fields:{no:{stringValue:'TEST'},name:{stringValue:'পরীক্ষা'},phone:{stringValue:'01700000000'},address:{stringValue:'পরীক্ষামূলক অর্ডার'},note:{stringValue:''},delivery:{stringValue:'pickup'},status:{stringValue:'new'},total:{integerValue:'1'},t:{integerValue:String(Date.now())},items:{arrayValue:{values:[{mapValue:{fields:{id:{stringValue:'t'},name:{stringValue:'test'},price:{integerValue:'1'},qty:{integerValue:'1'}}}}]}}}};
+    const r=await T8(fetch(B+'webOrders'+K,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),12000);
+    if(r.ok){const j=await r.json(),id=String(j.name||'').split('/').pop();ok('অনলাইন অর্ডার পাঠানো যাচ্ছে (পরীক্ষামূলক অর্ডার পাঠিয়ে মুছে দিয়েছি)');try{await DB.collection('webOrders').doc(id).delete()}catch(e){out.push('ℹ️ পরীক্ষামূলক অর্ডারটা অর্ডার পাতা থেকে নিজে মুছে দিন')}}
+    else bad('অনলাইন অর্ডার পাঠানো যাচ্ছে না (কোড '+r.status+')',r.status===403?'Firestore Rules-এ "webOrders"-এর নিয়ম নেই। firestore.rules ফাইলের সব লেখা বসিয়ে Publish করুন।':'ইন্টারনেট দেখুন।')}
+  catch(e){bad('অর্ডার পরীক্ষায় সংযোগ হয়নি','')}
+  try{const base=location.pathname.replace(/[^/]*$/,''),r=await T8(fetch(base+'shop/index.html?_='+Date.now(),{cache:'no-store'}),12000),t=r.ok?await r.text():'';
+    if(!r.ok)bad('shop/index.html পাওয়া যাচ্ছে না (কোড '+r.status+')','GitHub-এ "shop" ফোল্ডারে index.html আছে কিনা দেখুন।');
+    else if(t.indexOf('webOrders')>=0&&t.indexOf('id="cb"')>=0)ok('কাস্টমার সাইটের নতুন ভার্সন GitHub-এ আছে');
+    else bad('কাস্টমার সাইটে এখনও পুরনো shop/index.html আছে','shop-index.html ফাইলের নাম বদলে index.html করে GitHub-এর shop ফোল্ডারে আপলোড করুন (পুরনোটার জায়গায়)।')}
+  catch(e){bad('shop/index.html পরীক্ষা হয়নি','')}
+  box.innerHTML=out.join('<br>')+'<p class="mut" style="margin-top:8px">এই লেখাগুলোর স্ক্রিনশট আমাকে পাঠালে আমি বলে দেব কী করতে হবে।</p>'}
+function catNow(){csnap=null;syncCat().then(()=>alert('✅ ক্যাটালগ সিঙ্ক শেষ। এবার পরীক্ষা বাটন চাপুন।'))}
+{const cat9=V.cat;V.cat=()=>{const h=cat9();return h.replace("</p>","</p><button class='b' onclick='catNow()'>🔄 ক্যাটালগ এখনই সিঙ্ক করুন</button> <button class='b' onclick='siteTest()'>🔍 সাইট ও অর্ডার ব্যবস্থা পরীক্ষা করুন</button><div id='sitet' class='mut' style='margin:8px 0;line-height:1.7'></div>")}}
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 init();
 </script>

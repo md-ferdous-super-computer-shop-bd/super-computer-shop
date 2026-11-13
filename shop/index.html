@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Super Computer Shop, বগুড়া | ল্যাপটপ বিক্রয় ও সার্ভিস</title>
+<title>Super Computer Shop, বগুড়া | অনলাইন ল্যাপটপ দোকান</title>
 <meta name="description" content="Super Computer Shop, কাজীবাড়ী মোড়, বগুড়া সদর। ল্যাপটপ ক্রয়-বিক্রয় ও সার্ভিস। ফোন/WhatsApp: 01316843984">
 <link rel="canonical" href="https://md-ferdous-super-computer-shop-bd.github.io/super-computer-shop/shop/">
 <meta property="og:title" content="Super Computer Shop, বগুড়া">
@@ -55,6 +55,58 @@ h2{font-size:clamp(21px,3.5vw,27px);margin:0 0 6px}
 footer{margin-top:52px;padding:22px 0 30px;border-top:1px solid var(--line);text-align:center;color:var(--mut);font-size:14px}
 svg{width:22px;height:22px;flex:none}
 .pc{display:flex;flex-direction:column;gap:6px}.pc img{width:100%;height:150px;object-fit:contain;border-radius:10px;background:rgba(127,127,127,.08)}.pc .pr{font-size:20px;font-weight:700;color:var(--gold)}.pc .sp{color:var(--mut);font-size:14px}.pc a.btn{justify-content:center;background:#25d366;color:#05301a;padding:10px 14px;min-height:42px;border-radius:10px;font-weight:600;text-decoration:none}
+
+/* ---- অনলাইন দোকান ---- */
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+.tools input,.tools select{font:inherit;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-height:46px}
+.tools input{flex:1 1 220px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:thin}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 16px;font:inherit;cursor:pointer;min-height:40px}
+.chip[aria-pressed=true]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.pg{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}@media(min-width:700px){.pg{gap:14px;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}}@media(max-width:520px){.pcard h3{font-size:14.5px}.pcard .pr b{font-size:18px}.pcard .bd{padding:10px}.b1,.b2{font-size:14px;padding:9px 6px}}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.pcard .im{aspect-ratio:4/3;background:rgba(127,127,127,.08);display:grid;place-items:center;cursor:pointer;border:0;padding:0;width:100%;font-size:44px;color:var(--mut)}
+.pcard .im img{width:100%;height:100%;object-fit:contain}
+.pcard .bd{padding:12px 14px 14px;display:flex;flex-direction:column;gap:4px;flex:1}
+.pcard .br{color:var(--mut);font-size:13px}
+.pcard h3{margin:0;font-size:16px;line-height:1.35;cursor:pointer}
+.pcard .sp{color:var(--mut);font-size:13.5px}
+.pcard .pr{margin-top:auto;padding-top:6px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.pcard .pr b{font-size:22px;color:#16803a}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .pcard .pr b{color:#4ade80}}
+.pcard .pr s{color:var(--mut);font-size:14px}
+.badge{position:absolute;top:10px;left:10px;background:#16a34a;color:#fff;border-radius:999px;padding:3px 10px;font-size:13px;font-weight:700;z-index:1}
+.so{position:absolute;top:10px;right:0;background:#111;color:#fff;padding:4px 12px;font-weight:700;font-size:14px;border-radius:6px 0 0 6px;z-index:1}
+.pcard.out .im{opacity:.55}
+.acts{display:grid;gap:8px;margin-top:8px}
+.b1,.b2{font:inherit;font-weight:700;border-radius:10px;padding:10px 12px;min-height:44px;cursor:pointer;border:1px solid transparent}
+.b1{background:#16803a;color:#fff}.b2{background:transparent;border-color:#16803a;color:#16803a}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .b2{color:#4ade80;border-color:#4ade80}}
+.b1:disabled,.b2:disabled{opacity:.45;cursor:not-allowed}
+.b1:focus-visible,.b2:focus-visible,.chip:focus-visible,.im:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+#cb{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:40;background:#16803a;color:#fff;border:0;border-radius:999px;padding:13px 22px;font:inherit;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer;display:none;min-height:48px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:60;display:none;align-items:flex-end;justify-content:center}
+.ov.on{display:flex}
+.sheet{background:var(--card);color:var(--ink);width:100%;max-width:620px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px 24px}
+@media(min-width:700px){.ov{align-items:center}.sheet{border-radius:18px}}
+.sheet h3{margin:0 0 10px;font-size:20px}
+.x{float:right;background:none;border:0;font-size:26px;line-height:1;cursor:pointer;color:var(--ink);padding:4px 8px;min-height:44px;min-width:44px}
+.ln{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.ln img,.ln .ph{width:56px;height:56px;object-fit:contain;border-radius:8px;background:rgba(127,127,127,.1);flex:none;display:grid;place-items:center}
+.ln .nm{flex:1;min-width:0;font-size:15px}
+.qt{display:flex;align-items:center;gap:6px}
+.qt button{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:18px;cursor:pointer}
+.fm label{display:block;font-size:14px;color:var(--mut);margin:12px 0 4px}
+.fm input,.fm textarea{width:100%;font:inherit;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.fm .rd{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px}
+.fm .rd label{display:flex;align-items:center;gap:6px;margin:0;color:var(--ink)}
+.fm .rd input{width:auto}
+.err{color:#dc2626;font-size:14px;margin:8px 0 0}
+.tot{display:flex;justify-content:space-between;font-size:18px;font-weight:700;padding:12px 0}
+.hp{position:absolute;left:-9999px;opacity:0;height:0;width:0}
+.dt{width:100%;border-collapse:collapse;margin:10px 0}.dt td{padding:6px 4px;border-bottom:1px solid var(--line);font-size:15px}.dt td:first-child{color:var(--mut);width:34%}
+.gm{clear:both;position:relative;background:rgba(127,127,127,.08);border-radius:12px;overflow:hidden;touch-action:pan-y}.gm img{width:100%;height:min(56vh,380px);object-fit:contain;display:block;cursor:zoom-in}.gn{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:0;background:rgba(0,0,0,.5);color:#fff;font-size:26px;line-height:1;cursor:pointer}.gp{left:8px}.gx{right:8px}.gt{display:flex;gap:8px;margin:8px 0;overflow-x:auto}.gt img{width:62px;height:62px;object-fit:cover;border-radius:8px;border:2px solid transparent;cursor:pointer;flex:none}.gt img.on{border-color:#16a34a}#ovz{align-items:center;background:rgba(0,0,0,.92)}#ovz img{max-width:100vw;max-height:100vh;object-fit:contain}.cam{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;border-radius:999px;padding:2px 9px;font-size:13px;z-index:1}
+.ok2{text-align:center;padding:10px 0}.ok2 .big{font-size:52px}
 </style>
 </head>
 <body>
@@ -68,6 +120,7 @@ svg{width:22px;height:22px;flex:none}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>
         কল করুন
       </a>
+      <a class="btn p" id="ostore" href="#stock" hidden>🛒 অনলাইনে অর্ডার করুন</a>
       <a class="btn w" href="https://wa.me/8801316843984" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.2 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.3.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.4.1.2.1.7-.1 1.3z"/></svg>
         WhatsApp
@@ -82,9 +135,12 @@ svg{width:22px;height:22px;flex:none}
 
 <main class="wrap">
   <section id="stock" hidden>
-    <h2>স্টকে থাকা ল্যাপটপ ও পণ্য</h2>
-    <p class="sub">দাম ও স্টক বদলাতে পারে। কিনতে চাইলে WhatsApp-এ জানান।</p>
-    <div class="grid" id="cat"></div>
+    <h2>অনলাইন দোকান — স্টকে থাকা ল্যাপটপ ও পণ্য</h2>
+    <p class="sub">পছন্দের পণ্য কার্টে দিয়ে অর্ডার করুন। আমরা ফোনে নিশ্চিত করে পণ্য পাঠাব বা দোকান থেকে দেব।</p>
+    <div class="tools"><input id="q" type="search" placeholder="🔍 খুঁজুন (ব্র্যান্ড, মডেল, i5, 8GB...)" aria-label="পণ্য খুঁজুন"><select id="srt" aria-label="সাজান"><option value="d">সাজানো: ডিফল্ট</option><option value="a">দাম: কম থেকে বেশি</option><option value="z">দাম: বেশি থেকে কম</option></select></div>
+    <div class="chips" id="chips"></div>
+    <div class="pg" id="cat"></div>
+    <p id="none" class="sub" hidden>কোনো পণ্য পাওয়া যায়নি। অন্য শব্দে খুঁজুন।</p>
   </section>
   <section>
     <h2>আমাদের সেবা</h2>
@@ -128,27 +184,166 @@ svg{width:22px;height:22px;flex:none}
   <div class="wrap">© <span id="y"></span> Super Computer Shop, বগুড়া</div>
 </footer>
 <script>document.getElementById('y').textContent=new Date().getFullYear()</script>
+<button id="cb" type="button" aria-label="কার্ট খুলুন"></button>
+<div class="ov" id="ovp" role="dialog" aria-modal="true" aria-label="পণ্যের বিবরণ"><div class="sheet" id="shp"></div></div>
+<div class="ov" id="ovz" role="dialog" aria-modal="true" aria-label="বড় ছবি"><img id="zi" alt=""></div>
+<div class="ov" id="ovc" role="dialog" aria-modal="true" aria-label="কার্ট ও অর্ডার"><div class="sheet" id="shc"></div></div>
 <script>
 (function(){
-  var API='https://firestore.googleapis.com/v1/projects/super-computer-shop/databases/(default)/documents/catalog?pageSize=100';
+  var PROJ='super-computer-shop',KEY='AIzaSyCALif1Eso_UIVDII_hpsBwmyvFC4ALSvM',WA='8801316843984';
+  var BASE='https://firestore.googleapis.com/v1/projects/'+PROJ+'/databases/(default)/documents/';
+  var P=[],cart={},brand='',$=function(s){return document.querySelector(s)};
+  var esc=function(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  var tk=function(n){return '৳'+Number(n||0).toLocaleString('en-IN')};
   var val=function(f){if(!f)return '';return f.stringValue!==undefined?f.stringValue:f.integerValue!==undefined?Number(f.integerValue):f.doubleValue!==undefined?f.doubleValue:''};
-  fetch(API).then(function(r){return r.ok?r.json():{}}).then(function(j){
-    var d=(j.documents||[]).map(function(x){var o={};Object.keys(x.fields||{}).forEach(function(k){o[k]=val(x.fields[k])});return o}).filter(function(o){return o.name&&o.qty>0});
-    if(!d.length)return;
-    var box=document.getElementById('cat');
-    d.forEach(function(o){
-      var c=document.createElement('div');c.className='card pc';
-      if(typeof o.img==='string'&&o.img.indexOf('data:image/')===0){var im=document.createElement('img');im.src=o.img;im.alt=o.name;im.loading='lazy';c.appendChild(im)}
-      var h=document.createElement('h3');h.textContent=[o.brand,o.name,o.model].filter(Boolean).join(' ');c.appendChild(h);
-      var sp=[o.cpu,o.ram,o.ssd,o.disp,o.cond].filter(Boolean).join(' · ');
-      if(sp){var e=document.createElement('div');e.className='sp';e.textContent=sp;c.appendChild(e)}
-      if(o.war){var w=document.createElement('div');w.className='sp';w.textContent='ওয়ারেন্টি: '+o.war;c.appendChild(w)}
-      var p=document.createElement('div');p.className='pr';p.textContent='৳ '+Number(o.price||0).toLocaleString('en-IN');c.appendChild(p);
-      var a=document.createElement('a');a.className='btn';a.target='_blank';a.rel='noopener';
-      a.href='https://wa.me/8801316843984?text='+encodeURIComponent('আসসালামু আলাইকুম, আমি এই পণ্যটি নিতে চাই: '+h.textContent+' (৳'+Number(o.price||0)+')');
-      a.textContent='WhatsApp-এ অর্ডার করুন';c.appendChild(a);box.appendChild(c)});
-    document.getElementById('stock').hidden=false;
-  }).catch(function(){});
+  try{cart=JSON.parse(localStorage.getItem('scs_cart')||'{}')||{}}catch(e){cart={}}
+  var saveCart=function(){try{localStorage.setItem('scs_cart',JSON.stringify(cart))}catch(e){}};
+  var title=function(o){var b=o.brand||'',n=o.name||'';if(b&&n.toLowerCase().indexOf(b.toLowerCase())===0)b='';return [b,n,o.model].filter(Boolean).join(' ')};
+  var disc=function(o){return o.op>o.price&&o.price>0?Math.round((o.op-o.price)/o.op*100):0};
+  var byId=function(id){for(var i=0;i<P.length;i++)if(P[i].id===id)return P[i]};
+  var img=function(o){return typeof o.img==='string'&&o.img.indexOf('data:image/')===0?o.img:''};
+
+  fetch(BASE+'catalog?pageSize=300&key='+KEY).then(function(r){return r.ok?r.json():{}}).then(function(j){
+    P=(j.documents||[]).map(function(x){var o={};Object.keys(x.fields||{}).forEach(function(k){o[k]=val(x.fields[k])});return o}).filter(function(o){return o.name&&o.id});
+    if(!P.length){emptyMsg();return}
+    Object.keys(cart).forEach(function(id){var p=byId(id);if(!p||p.qty<=0)delete cart[id];else if(cart[id]>p.qty)cart[id]=p.qty});
+    $('#stock').hidden=false;$('#ostore').hidden=false;chips();draw();bar();
+  }).catch(function(){emptyMsg()});
+  function emptyMsg(){$('#stock').hidden=false;['.tools','#chips'].forEach(function(q){var e=$(q);if(e)e.hidden=true});var n=$('#none');n.hidden=false;n.innerHTML='এই মুহূর্তে অনলাইনে দেখানোর মতো পণ্য লোড হচ্ছে না। পণ্য ও দাম জানতে <a href="https://wa.me/'+WA+'" target="_blank" rel="noopener">WhatsApp-এ মেসেজ করুন</a> বা ফোন করুন।'}
+
+  function chips(){
+    var bs=[],seen={};P.forEach(function(o){var b=o.brand||'';if(b&&!seen[b]){seen[b]=1;bs.push(b)}});
+    var box=$('#chips');box.innerHTML='';
+    [''].concat(bs).forEach(function(b){var c=document.createElement('button');c.type='button';c.className='chip';c.textContent=b||'সব';c.setAttribute('aria-pressed',String(b===brand));
+      c.onclick=function(){brand=b;chips();draw()};box.appendChild(c)});
+    if(bs.length<2)box.hidden=true;
+  }
+  function draw(){
+    var q=($('#q').value||'').toLowerCase().trim(),s=$('#srt').value;
+    var L=P.filter(function(o){
+      if(brand&&o.brand!==brand)return false;
+      if(!q)return true;
+      return [o.brand,o.name,o.model,o.cpu,o.ram,o.ssd,o.disp,o.cond].join(' ').toLowerCase().indexOf(q)>=0});
+    L.sort(function(a,b){
+      var ao=a.qty>0?0:1,bo=b.qty>0?0:1;if(ao!==bo)return ao-bo;
+      if(s==='a')return a.price-b.price;if(s==='z')return b.price-a.price;return 0});
+    var box=$('#cat');box.innerHTML='';$('#none').hidden=L.length>0;
+    L.forEach(function(o){
+      var out=!(o.qty>0),d=disc(o),sp=[o.cpu,o.ram,o.ssd,o.cond].filter(Boolean).join(' · ');
+      var c=document.createElement('article');c.className='pcard'+(out?' out':'');
+      c.innerHTML=(d?'<span class="badge">-'+d+'%</span>':'')+(out?'<span class="so">স্টক আউট</span>':'')+
+        '<button class="im" type="button" aria-label="'+esc(title(o))+' বিস্তারিত দেখুন">'+(img(o)?'<img loading="lazy" alt="'+esc(title(o))+'" src="'+img(o)+'">':'💻')+(o.ni>1?'<span class="cam">📷 '+o.ni+'</span>':'')+'</button>'+
+        '<div class="bd">'+(o.brand?'<div class="br">'+esc(o.brand)+'</div>':'')+'<h3>'+esc([o.name,o.model].filter(Boolean).join(' '))+'</h3>'+(sp?'<div class="sp">'+esc(sp)+'</div>':'')+
+        '<div class="pr"><b>'+tk(o.price)+'</b>'+(d?'<s>'+tk(o.op)+'</s>':'')+'</div>'+
+        '<div class="acts">'+(out?'<button class="b1" disabled>স্টক আউট</button>':'<button class="b1" data-a="buy">অর্ডার করুন</button><button class="b2" data-a="add">কার্টে যোগ করুন</button>')+'</div></div>';
+      c.querySelector('.im').onclick=c.querySelector('h3').onclick=function(){detail(o.id)};
+      var bu=c.querySelector('[data-a=buy]'),ad=c.querySelector('[data-a=add]');
+      if(bu)bu.onclick=function(){add(o.id);openCart()};
+      if(ad)ad.onclick=function(e){add(o.id);var t=e.target;t.textContent='✓ যোগ হয়েছে';setTimeout(function(){t.textContent='কার্টে যোগ করুন'},1200)};
+      box.appendChild(c)});
+  }
+  $('#q').addEventListener('input',draw);$('#srt').addEventListener('change',draw);
+
+  function add(id,n){var p=byId(id);if(!p||!(p.qty>0))return;cart[id]=Math.min(p.qty,(cart[id]||0)+(n||1));saveCart();bar()}
+  function cnt(){var n=0;Object.keys(cart).forEach(function(k){n+=cart[k]});return n}
+  function sum(){var t=0;Object.keys(cart).forEach(function(k){var p=byId(k);if(p)t+=p.price*cart[k]});return t}
+  function bar(){var b=$('#cb'),n=cnt();b.style.display=n?'block':'none';b.textContent='🛒 কার্ট ('+n+') · '+tk(sum())}
+  $('#cb').onclick=function(){openCart()};
+
+  function openOv(id){$(id).classList.add('on');document.body.style.overflow='hidden'}
+  function closeOv(){['#ovp','#ovc','#ovz'].forEach(function(i){$(i).classList.remove('on')});document.body.style.overflow=''}
+  ['#ovp','#ovc'].forEach(function(i){$(i).addEventListener('click',function(e){if(e.target===this)closeOv()})});
+  $('#ovz').addEventListener('click',function(){this.classList.remove('on')});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){if($('#ovz').classList.contains('on'))$('#ovz').classList.remove('on');else closeOv()}});
+
+  var G=[],gx=0,gid='';
+  function showG(){var m=$('#gi');if(!m)return;m.src=G[gx];var t=$('#gt');t.innerHTML='';
+    if(G.length>1)G.forEach(function(u,i){var im=document.createElement('img');im.src=u;im.alt='ছবি '+(i+1);if(i===gx)im.className='on';im.onclick=function(){gx=i;showG()};t.appendChild(im)});
+    Array.prototype.forEach.call(document.querySelectorAll('.gn'),function(b){b.hidden=G.length<2})}
+  function step(d){if(G.length<2)return;gx=(gx+d+G.length)%G.length;showG()}
+  function loadGal(o){gid=o.id;G=img(o)?[img(o)]:[];gx=0;if(!G.length)return;showG();
+    var m=$('#gi'),g=document.querySelector('.gm');
+    document.querySelector('.gp').onclick=function(){step(-1)};document.querySelector('.gx').onclick=function(){step(1)};
+    m.onclick=function(){$('#zi').src=G[gx];openOv('#ovz')};
+    var sx=0;g.addEventListener('touchstart',function(e){sx=e.touches[0].clientX},{passive:true});
+    g.addEventListener('touchend',function(e){var d=e.changedTouches[0].clientX-sx;if(Math.abs(d)>40)step(d<0?1:-1)},{passive:true});
+    if(o.ni>=1)fetch(BASE+'pimg/'+encodeURIComponent(o.id)+'?key='+KEY).then(function(r){return r.ok?r.json():null}).then(function(j){
+      if(!j||!j.fields||gid!==o.id)return;
+      var L=[0,1,2].map(function(i){return val(j.fields['i'+i])}).filter(function(u){return typeof u==='string'&&u.indexOf('data:image/')===0});
+      if(L.length){G=L;gx=0;showG()}}).catch(function(){})}
+  function detail(id){
+    var o=byId(id);if(!o)return;var out=!(o.qty>0),d=disc(o);
+    var rows=[['ব্র্যান্ড',o.brand],['মডেল',o.model],['প্রসেসর',o.cpu],['RAM',o.ram],['স্টোরেজ',o.ssd],['ডিসপ্লে',o.disp],['কন্ডিশন',o.cond],['ওয়ারেন্টি',o.war]].filter(function(r){return r[1]});
+    $('#shp').innerHTML='<button class="x" type="button" aria-label="বন্ধ করুন" id="xp">×</button><h3>'+esc(title(o))+'</h3>'+
+      (img(o)?'<div class="gm"><img id="gi" alt="'+esc(title(o))+'" src="'+img(o)+'"><button class="gn gp" type="button" aria-label="আগের ছবি" hidden>‹</button><button class="gn gx" type="button" aria-label="পরের ছবি" hidden>›</button></div><div class="gt" id="gt"></div>':'')+
+      '<div class="pr" style="display:flex;gap:10px;align-items:baseline;margin:10px 0"><b style="font-size:26px;color:#16803a">'+tk(o.price)+'</b>'+(d?'<s style="color:var(--mut)">'+tk(o.op)+'</s> <span class="badge" style="position:static">-'+d+'%</span>':'')+'</div>'+
+      '<table class="dt">'+rows.map(function(r){return '<tr><td>'+r[0]+'</td><td>'+esc(r[1])+'</td></tr>'}).join('')+'<tr><td>স্টক</td><td>'+(out?'স্টক আউট':o.qty+' পিস আছে')+'</td></tr></table>'+
+      (o.desc?'<p>'+esc(o.desc)+'</p>':'')+
+      '<div class="acts">'+(out?'<button class="b1" disabled>স্টক আউট</button>':'<button class="b1" id="dbuy">অর্ডার করুন</button><button class="b2" id="dadd">কার্টে যোগ করুন</button>')+'</div>';
+    openOv('#ovp');$('#xp').onclick=closeOv;loadGal(o);
+    var b=$('#dbuy'),a=$('#dadd');
+    if(b)b.onclick=function(){add(id);closeOv();openCart()};
+    if(a)a.onclick=function(){add(id);closeOv()};
+  }
+
+  var bn=function(s){return String(s).replace(/[০-৯]/g,function(c){return '০১২৩৪৫৬৭৮৯'.indexOf(c)})};
+  function openCart(msg){
+    var ids=Object.keys(cart).filter(function(k){return byId(k)});
+    var h='<button class="x" type="button" aria-label="বন্ধ করুন" id="xc">×</button><h3>🛒 আপনার কার্ট</h3>';
+    if(!ids.length){$('#shc').innerHTML=h+'<p class="sub">কার্ট খালি। পছন্দের পণ্যে "কার্টে যোগ করুন" চাপুন।</p>';openOv('#ovc');$('#xc').onclick=closeOv;return}
+    ids.forEach(function(k){var p=byId(k);
+      h+='<div class="ln">'+(img(p)?'<img alt="" src="'+img(p)+'">':'<div class="ph">💻</div>')+'<div class="nm"><b>'+esc(title(p))+'</b><br>'+tk(p.price)+'</div><div class="qt"><button type="button" data-k="'+k+'" data-d="-1" aria-label="কমান">−</button><b>'+cart[k]+'</b><button type="button" data-k="'+k+'" data-d="1" aria-label="বাড়ান">+</button></div></div>'});
+    h+='<div class="tot"><span>মোট</span><span>'+tk(sum())+'</span></div>'+
+      '<form class="fm" id="of" novalidate><input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">'+
+      '<label for="fn">আপনার নাম *</label><input id="fn" autocomplete="name" maxlength="80" required>'+
+      '<label for="fp">মোবাইল নম্বর *</label><input id="fp" type="tel" inputmode="tel" autocomplete="tel" placeholder="01XXXXXXXXX" maxlength="20" required>'+
+      '<label for="fa">ঠিকানা *</label><textarea id="fa" rows="2" maxlength="300" placeholder="গ্রাম/এলাকা, থানা, জেলা" required></textarea>'+
+      '<label>কীভাবে নেবেন?</label><div class="rd"><label><input type="radio" name="dl" value="courier" checked> কুরিয়ারে পাঠান</label><label><input type="radio" name="dl" value="pickup"> দোকান থেকে নেব</label></div>'+
+      '<label for="fo">নোট (ঐচ্ছিক)</label><input id="fo" maxlength="300">'+
+      '<p class="err" id="er" role="alert">'+(msg?esc(msg):'')+'</p>'+
+      '<div class="acts"><button class="b1" type="submit" id="sub">✅ অর্ডার নিশ্চিত করুন</button><button class="b2" type="button" id="cc">আরও পণ্য দেখুন</button></div>'+
+      '<p class="sub" style="font-size:13px;margin-top:10px">অর্ডারের পর আমরা ফোনে নিশ্চিত করব। দাম ও স্টক বদলাতে পারে।</p></form>';
+    $('#shc').innerHTML=h;openOv('#ovc');$('#xc').onclick=closeOv;$('#cc').onclick=closeOv;
+    Array.prototype.forEach.call($('#shc').querySelectorAll('.qt button'),function(b){b.onclick=function(){
+      var k=b.getAttribute('data-k'),p=byId(k),n=(cart[k]||0)+Number(b.getAttribute('data-d'));
+      if(n<=0)delete cart[k];else cart[k]=Math.min(n,p.qty);saveCart();bar();openCart()}});
+    $('#of').onsubmit=submit;
+  }
+
+  function waText(no,name,phone,addr,items,total,dl){
+    return 'আসসালামু আলাইকুম, আমি অনলাইনে অর্ডার করেছি'+(no?' (অর্ডার '+no+')':'')+':\n'+items.map(function(i){return '• '+i.name+' × '+i.qty+' = '+tk(i.price*i.qty)}).join('\n')+'\nমোট: '+tk(total)+'\nনাম: '+name+'\nমোবাইল: '+phone+'\nঠিকানা: '+addr+'\n'+(dl==='pickup'?'দোকান থেকে নেব':'কুরিয়ারে পাঠান')}
+
+  function submit(e){
+    e.preventDefault();
+    var f=e.target,er=$('#er');er.textContent='';
+    if(f.website.value)return;
+    var name=$('#fn').value.trim(),ph=bn($('#fp').value).replace(/[\s\-]/g,'').replace(/^\+?88/,''),ad=$('#fa').value.trim(),
+        dl=(f.querySelector('input[name=dl]:checked')||{}).value||'courier',note=$('#fo').value.trim();
+    if(name.length<2){er.textContent='আপনার নাম লিখুন';$('#fn').focus();return}
+    if(!/^01[3-9]\d{8}$/.test(ph)){er.textContent='সঠিক মোবাইল নম্বর লিখুন (১১ ডিজিট, যেমন 01712345678)';$('#fp').focus();return}
+    if(ad.length<8){er.textContent='পুরো ঠিকানা লিখুন';$('#fa').focus();return}
+    var last=0;try{last=Number(localStorage.getItem('scs_last')||0)}catch(x){}
+    if(Date.now()-last<20000){er.textContent='একটু অপেক্ষা করে আবার চেষ্টা করুন';return}
+    var items=[];Object.keys(cart).forEach(function(k){var p=byId(k);if(p&&p.qty>0)items.push({id:p.id,name:title(p),price:Math.round(p.price),qty:Math.min(cart[k],p.qty)})});
+    if(!items.length){er.textContent='কার্ট খালি';return}
+    var total=items.reduce(function(a,i){return a+i.price*i.qty},0);
+    var d=new Date(),no='W'+String(d.getFullYear()).slice(2)+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2)+'-'+Math.random().toString(36).slice(2,5).toUpperCase();
+    var sv=function(x){return{stringValue:String(x)}},iv=function(n){return{integerValue:String(Math.round(n))}};
+    var body={fields:{no:sv(no),name:sv(name),phone:sv(ph),address:sv(ad),note:sv(note),delivery:sv(dl),status:sv('new'),total:iv(total),t:iv(Date.now()),
+      items:{arrayValue:{values:items.map(function(i){return{mapValue:{fields:{id:sv(i.id),name:sv(i.name),price:iv(i.price),qty:iv(i.qty)}}}})}}}};
+    var btn=$('#sub');btn.disabled=true;btn.textContent='পাঠানো হচ্ছে...';
+    var wa='https://wa.me/'+WA+'?text='+encodeURIComponent(waText(no,name,ph,ad,items,total,dl));
+    fetch(BASE+'webOrders?key='+KEY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){
+      if(!r.ok)throw new Error('http '+r.status);
+      try{localStorage.setItem('scs_last',String(Date.now()))}catch(x){}
+      cart={};saveCart();bar();
+      $('#shc').innerHTML='<button class="x" type="button" aria-label="বন্ধ করুন" id="xc">×</button><div class="ok2"><div class="big">✅</div><h3>অর্ডার পাঠানো হয়েছে!</h3><p>আপনার অর্ডার নম্বর: <b>'+esc(no)+'</b><br>আমরা শীঘ্রই ফোন করে নিশ্চিত করব।</p><p class="sub">দ্রুত নিশ্চিত করতে চাইলে WhatsApp-এও জানাতে পারেন।</p><div class="acts"><a class="btn w" style="justify-content:center" target="_blank" rel="noopener" href="'+wa+'">💬 WhatsApp-এ জানান</a><button class="b2" type="button" id="cc">আরও পণ্য দেখুন</button></div></div>';
+      $('#xc').onclick=closeOv;$('#cc').onclick=closeOv;
+    }).catch(function(){
+      btn.disabled=false;btn.textContent='✅ অর্ডার নিশ্চিত করুন';
+      er.innerHTML='সরাসরি পাঠানো যায়নি। নিচের বাটনে চেপে WhatsApp-এ অর্ডারটি পাঠান: <a target="_blank" rel="noopener" href="'+wa+'"><b>💬 WhatsApp-এ অর্ডার পাঠান</b></a>';
+    });
+  }
 })();
 </script>
 </body>

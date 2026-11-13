@@ -1359,6 +1359,14 @@ function fitA4(){const inv=document.querySelector('#mm .inv');if(!inv||!inv.quer
   if(h<A){if(fl)fl.style.height=Math.min(230,A-h-4)+'px'}else inv.style.zoom=(A/h).toFixed(3)}
 function fitReset(){const inv=document.querySelector('#mm .inv');if(!inv)return;inv.style.width='';inv.style.zoom='';const fl=inv.querySelector('tr.fl td');if(fl)fl.style.height=''}
 window.addEventListener('beforeprint',fitA4);window.addEventListener('afterprint',fitReset);
+/* ---- বিক্রির পর ওয়েবসাইট নিজে আপডেট ---- */
+setTimeout(()=>{try{syncCat()}catch(e){}},6000);setInterval(()=>{try{syncCat()}catch(e){}},120000);
+/* ---- Sold পণ্য ওয়েবসাইট থেকে সরানো ---- */
+function soldOff(id){const p=S.p.find(x=>x.id===id);if(!p)return;p.pub=false;save();R()}
+function soldOffAll(){const L=S.p.filter(p=>p.pub&&!(p.qty>0));if(!L.length)return;if(!confirm(L.length+'টা Sold পণ্য ওয়েবসাইট থেকে সরাবেন? (সফটওয়্যারে পণ্য থাকবে, শুধু ওয়েবসাইট থেকে সরবে)'))return;L.forEach(p=>p.pub=false);save();R()}
+{const cat12=V.cat;V.cat=()=>{const h=cat12(),L=S.p.filter(p=>p.pub&&!(p.qty>0));
+ const box=`<div class='card'><h2>🔴 ওয়েবসাইটে Sold দেখানো পণ্য (${L.length}টি)</h2>${L.length?`<p class='mut'>এই পণ্যগুলো বিক্রি হয়ে গেছে, ওয়েবসাইটে "Sold" লেখা আছে। সরালে ওয়েবসাইট থেকে মুছে যাবে (সফটওয়্যারে পণ্য থাকবে)।</p><button class='b' onclick='soldOffAll()'>সব Sold একসাথে সরান</button><div class='tw'><table>${L.map(p=>`<tr><td>${th(p)} ${esc(p.name)} ${esc(p.model||'')}</td><td class='n'>${fm(p.price)}</td><td><button class='x' onclick="soldOff('${p.id}')">ওয়েবসাইট থেকে সরান</button></td></tr>`).join('')}</table></div>`:`<p class='mut'>কোনো Sold পণ্য নেই।</p>`}</div>`;
+ return h+box}}
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 init();
 </script>

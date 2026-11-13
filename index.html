@@ -1367,6 +1367,31 @@ function soldOffAll(){const L=S.p.filter(p=>p.pub&&!(p.qty>0));if(!L.length)retu
 {const cat12=V.cat;V.cat=()=>{const h=cat12(),L=S.p.filter(p=>p.pub&&!(p.qty>0));
  const box=`<div class='card'><h2>🔴 ওয়েবসাইটে Sold দেখানো পণ্য (${L.length}টি)</h2>${L.length?`<p class='mut'>এই পণ্যগুলো বিক্রি হয়ে গেছে, ওয়েবসাইটে "Sold" লেখা আছে। সরালে ওয়েবসাইট থেকে মুছে যাবে (সফটওয়্যারে পণ্য থাকবে)।</p><button class='b' onclick='soldOffAll()'>সব Sold একসাথে সরান</button><div class='tw'><table>${L.map(p=>`<tr><td>${th(p)} ${esc(p.name)} ${esc(p.model||'')}</td><td class='n'>${fm(p.price)}</td><td><button class='x' onclick="soldOff('${p.id}')">ওয়েবসাইট থেকে সরান</button></td></tr>`).join('')}</table></div>`:`<p class='mut'>কোনো Sold পণ্য নেই।</p>`}</div>`;
  return h+box}}
+/* ---- ফেস / আঙুলের ছাপ লক (শুধু মালিক, ডিভাইসভিত্তিক) ---- */
+const FLK='scs_fl';
+const b64u=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const unb64u=t=>Uint8Array.from(atob(t.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
+const flId=()=>{try{return localStorage.getItem(FLK)||''}catch(e){return ''}};
+const flOK=()=>!!(window.PublicKeyCredential&&navigator.credentials);
+async function flEnable(){
+  if(!flOK()){alert('এই ব্রাউজারে ফেস/আঙুলের লক চলবে না। Chrome বা Safari-র নতুন ভার্সন ব্যবহার করুন।');return}
+  try{const ok=await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();if(!ok){alert('এই ডিভাইসে ফেস/আঙুলের লক চালু নেই। আগে ফোনের সেটিংসে ফেস আনলক বা ফিঙ্গারপ্রিন্ট চালু করুন।');return}}catch(e){}
+  try{const ch=crypto.getRandomValues(new Uint8Array(32)),cr=await navigator.credentials.create({publicKey:{challenge:ch,rp:{name:BRAND.name},user:{id:crypto.getRandomValues(new Uint8Array(16)),name:OWNER,displayName:'Owner'},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},timeout:60000}});
+    localStorage.setItem(FLK,b64u(cr.rawId));sessionStorage.setItem('scs_flok','1');alert('✅ ফেস/আঙুলের লক চালু হয়েছে। এরপর থেকে এই ডিভাইসে সফটওয়্যার খুললে আপনার ফেস বা আঙুল লাগবে।');R()}
+  catch(e){alert('লক চালু হয়নি: '+(e.name==='NotAllowedError'?'আপনি বাতিল করেছেন বা সময় শেষ হয়েছে। আবার চেষ্টা করুন।':e.message))}}
+function flOff(){if(!confirm('এই ডিভাইসে ফেস/আঙুলের লক বন্ধ করবেন?'))return;try{localStorage.removeItem(FLK)}catch(e){}R()}
+async function flAsk(){
+  try{await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:'public-key',id:unb64u(flId()),transports:['internal']}],userVerification:'required',timeout:60000}});
+    sessionStorage.setItem('scs_flok','1');const o=document.getElementById('flk');if(o)o.remove();return true}
+  catch(e){const t=document.getElementById('flm');if(t)t.textContent='মিলেনি বা বাতিল হয়েছে। আবার চেষ্টা করুন।';return false}}
+function flGoogle(){sessionStorage.setItem('scs_flok','1');AUTH.signOut().then(()=>location.reload())}
+function flShow(){if(document.getElementById('flk'))return;
+  const d=document.createElement('div');d.id='flk';d.style.cssText='position:fixed;inset:0;z-index:99999;background:#0b1730;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center';
+  d.innerHTML=`<img src='${LOGO}' style='width:96px;height:96px;border-radius:50%'><h2 style='margin:0'>${esc(BRAND.name)}</h2><p style='margin:0;opacity:.8'>সফটওয়্যার লক করা আছে।<br>ফেস বা আঙুলের ছাপ দিয়ে খুলুন।</p><button onclick='flAsk()' style='padding:14px 26px;font-size:17px;border:0;border-radius:12px;background:#d4a017;color:#000;font-weight:700'>🔓 ফেস / আঙুল দিয়ে খুলুন</button><div id='flm' style='color:#fca5a5;min-height:20px'></div><button onclick='flGoogle()' style='background:none;border:0;color:#9db4ff;text-decoration:underline;font-size:14px'>ফেস কাজ না করলে Google দিয়ে ঢুকুন</button>`;
+  document.body.appendChild(d);setTimeout(flAsk,300)}
+{const ar12=applyRole;applyRole=function(u){ar12(u);if(ROLE==='owner'&&flId()&&flOK()&&!sessionStorage.getItem('scs_flok'))flShow()}}
+{const set13=V.set;V.set=()=>{const h=set13();if(!OWN())return h;const on=!!flId();
+ return h+`<div class='card'><h2>🔒 ফেস / আঙুলের লক (এই ডিভাইসে)</h2><p class='mut'>চালু করলে এই ফোন/ল্যাপটপে সফটওয়্যার খুলতে ফোনের ফেস আনলক বা আঙুলের ছাপ লাগবে। আপনার মুখের ছবি সফটওয়্যারে যায় না। ফোনে যাদের ফেস/আঙুল নিবন্ধিত আছে তারাও খুলতে পারবে। কাজ না করলে Google দিয়ে ঢোকার বিকল্প আছে।</p>${on?`<p class='ok'>✅ এই ডিভাইসে চালু আছে</p><button class='x' onclick='flOff()'>বন্ধ করুন</button>`:`<button class='b' onclick='flEnable()'>🔒 ফেস লক চালু করুন</button>`}${flOK()?'':"<p class='bad'>এই ব্রাউজার ফেস লক সাপোর্ট করে না।</p>"}</div>`}}
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 init();
 </script>

@@ -392,7 +392,7 @@ function rows(){
   const L=S.p.filter(p=>(!q||[p.name,p.sn,p.model,p.brand].some(x=>String(x||'').toLowerCase().includes(q)))&&(!SF.b||p.brand===SF.b)&&(!SF.st||(SF.st==='a'?p.qty>0:stat(p)===SF.st)));
   const acts=p=>`<button class='g' onclick="pv('${p.id}')">দেখুন</button> <button class='g' onclick="pf('${p.id}')">এডিট</button> <button class='x' onclick="pd('${p.id}')">মুছুন</button>`;
   $('#tb').innerHTML=L.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.brand||'-')}</td><td>${esc(p.model||'-')}</td><td>${esc(p.sn||'-')}</td><td>${esc(p.cpu||'-')}</td><td>${esc(p.ram||'-')}</td><td>${esc(p.ssd||'-')}</td><td>${esc(p.bat||'-')}</td><td class='n'>${fm(p.cost)}</td><td class='n'>${fm(p.price)}</td><td>${badge(p)}</td><td>${acts(p)}</td></tr>`).join('')||"<tr><td colspan='12' class='mut'>কোনো পণ্য নেই।</td></tr>";
-  $('#cards').innerHTML=L.map(p=>`<div class='pcard'><div style='display:flex;justify-content:space-between;gap:8px'><b>${esc(p.name)}</b>${badge(p)}</div><div class='mut'>${esc([p.brand,p.model].filter(Boolean).join(' · '))}${p.sn?'<br>S/N: '+esc(p.sn):''}</div><div class='mut'>${esc([p.cpu,p.ram,p.ssd].filter(Boolean).join(' / '))}</div><div style='margin:6px 0'>বিক্রয়: <b>${fm(p.price)}</b></div>${acts(p)}</div>`).join('')||"<div class='mut'>কোনো পণ্য নেই।</div>";
+  $('#cards').innerHTML=L.map(p=>`<div class='pcard'><div style='display:flex;justify-content:space-between;gap:8px'><b>${esc(p.name)}</b>${badge(p)}</div><div class='mut'>${esc(nodup(p,[p.brand,p.model]).join(' · '))}${p.sn?'<br>S/N: '+esc(p.sn):''}</div><div class='mut'>${esc([p.cpu,p.ram,p.ssd].filter(Boolean).join(' / '))}</div><div style='margin:6px 0'>বিক্রয়: <b>${fm(p.price)}</b></div>${acts(p)}</div>`).join('')||"<div class='mut'>কোনো পণ্য নেই।</div>";
   $('#cnt').textContent=L.length+' টি পণ্য';
 }
 
@@ -474,7 +474,7 @@ function rows(){
   const L=S.p.filter(p=>(!q||[p.name,p.sn,p.model,p.brand].some(x=>String(x||'').toLowerCase().includes(q)))&&(!SF.b||p.brand===SF.b)&&(!SF.c||p.cond===SF.c)&&(!SF.st||(SF.st==='a'?p.qty>0:stat(p)===SF.st)));
   const acts=p=>`<button class='ic' title='View' onclick="pv('${p.id}')">👁</button> <button class='ic ed' title='Edit' onclick="pf('${p.id}')">✏️</button> <button class='ic rd' title='Delete' onclick="pd('${p.id}')">🗑</button>`;
   $('#tb').innerHTML=L.map((p,i)=>`<tr><td>${i+1}</td><td>${th(p)} ${esc(p.name)}</td><td>${esc(p.brand||'-')}</td><td>${esc(p.model||'-')}</td><td>${esc(p.sn||'-')}</td><td>${esc(p.cpu||'-')}</td><td>${esc(p.ram||'-')}</td><td>${esc(p.ssd||'-')}</td><td>${esc(p.bat||'-')}</td><td class='n'>${fm(p.price)}</td><td>${pill(p)}</td><td>${acts(p)}</td></tr>`).join('')||"<tr><td colspan='12' class='mut'>কোনো পণ্য নেই।</td></tr>";
-  $('#cards').innerHTML=L.map(p=>`<div class='pcard'><div style='display:flex;justify-content:space-between;gap:8px'><b>${th(p)} ${esc(p.name)}</b>${pill(p)}</div><div class='mut'>${p.sn?'S/N: '+esc(p.sn):''}${p.brand||p.model?'<br>'+esc([p.brand,p.model].filter(Boolean).join(' · ')):''}</div><div class='mut'>${esc([p.cpu,p.ram,p.ssd].filter(Boolean).join(' / '))}</div><div style='display:flex;justify-content:space-between;align-items:center;margin-top:8px'><b style='font-size:18px'>${fm(p.price)}</b><span>${acts(p)}</span></div></div>`).join('')||"<div class='mut'>কোনো পণ্য নেই।</div>";
+  $('#cards').innerHTML=L.map(p=>`<div class='pcard'><div style='display:flex;justify-content:space-between;gap:8px'><b>${th(p)} ${esc(p.name)}</b>${pill(p)}</div><div class='mut'>${p.sn?'S/N: '+esc(p.sn):''}${nodup(p,[p.brand,p.model]).length?'<br>'+esc(nodup(p,[p.brand,p.model]).join(' · ')):''}</div><div class='mut'>${esc([p.cpu,p.ram,p.ssd].filter(Boolean).join(' / '))}</div><div style='display:flex;justify-content:space-between;align-items:center;margin-top:8px'><b style='font-size:18px'>${fm(p.price)}</b><span>${acts(p)}</span></div></div>`).join('')||"<div class='mut'>কোনো পণ্য নেই।</div>";
   $('#cnt').textContent=L.length+' items';
 }
 function dls(fn,data){const b=new Blob([data],{type:fn.endsWith('.json')?'application/json':'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
@@ -486,9 +486,9 @@ function xl(){
 /* ===== Modules: service, parcel, company, reports, settings, invoice ===== */
 const nx=a=>Math.max(0,...a.map(x=>x.no||0))+1;
 const pdv=b=>b.paid==null?b.qty*b.cost:b.paid;
-const CF0={name:BRAND.name,owner:BRAND.owner,ph:BRAND.ph,addr:BRAND.addr,terms:'১. বিক্রিত পণ্য ফেরত (Return) হবে না।\n২. ডিসপ্লে ও মাদারবোর্ডের কোনো ওয়ারেন্টি/গ্যারান্টি নেই। পণ্য বুঝে নেওয়ার আগে যতক্ষণ ইচ্ছা চালিয়ে চেক করে নিন।\n৩. পণ্য নিয়ে যাওয়ার পর মাদারবোর্ড পুড়ে গেলে, ডিসপ্লেতে লাইন পড়লে বা ডিসপ্লে নষ্ট হলে কোনো ওয়ারেন্টি/গ্যারান্টি ক্লেম গ্রহণযোগ্য হবে না।\n৪. সফটওয়্যারজনিত কোনো সমস্যা হলে আমরা সমাধান করে দেব।'};
+const CF0={name:BRAND.name,owner:BRAND.owner,ph:BRAND.ph,addr:BRAND.addr,terms:'১. বিক্রিত পণ্য ফেরত (Return) হবে না।\n২. ১ বছর সার্ভিসিং ওয়ারেন্টি: ১ বছরের মধ্যে কোনো সমস্যা হলে আমরা ফ্রি সার্ভিস করে দেব। তবে কোনো পার্টস নষ্ট বা ড্যামেজ হলে সেই পার্টসের দাম কাস্টমারকে দিতে হবে।\n৩. ডিসপ্লে ও মাদারবোর্ডের কোনো ওয়ারেন্টি/গ্যারান্টি নেই। পণ্য বুঝে নেওয়ার আগে যতক্ষণ ইচ্ছা চালিয়ে চেক করে নিন।\n৪. পণ্য নিয়ে যাওয়ার পর মাদারবোর্ড পুড়ে গেলে, ডিসপ্লেতে লাইন পড়লে বা ডিসপ্লে নষ্ট হলে কোনো ওয়ারেন্টি/গ্যারান্টি ক্লেম গ্রহণযোগ্য হবে না।\n৫. সফটওয়্যারজনিত কোনো সমস্যা হলে আমরা সমাধান করে দেব।'};
 const OLDT='১. বিক্রিত পণ্য ফেরতযোগ্য নয়, তবে শপের নীতিমালায় বিশেষভাবে অনুমোদিত হলে ভিন্ন।\n২. ক্রেতা কেনার আগে পণ্য ভালোভাবে যাচাই করে নিতে পারবেন।\n৩. ১ বছর শপে ফ্রি সার্ভিসিং, সার্ভিসিং শর্ত সাপেক্ষে।\n৪. পরিবর্তিত যন্ত্রাংশ ও কম্পোনেন্টের দাম ক্রেতাকে বহন করতে হবে।\n৫. পণ্যের ওয়ারেন্টি শর্ত ইনভয়েসে উল্লেখ থাকবে।';
-const cfg=()=>{const m=Object.assign({},S.cf.find(x=>x.id==='main')||{});if(!m.terms||m.terms===OLDT)delete m.terms;const d=(typeof BKQ!=='undefined'&&LICM==='self')?{bkq:BKQ,bkn:'01316843984'}:{};return Object.assign({},CF0,d,m)};
+const cfg=()=>{const m=Object.assign({},S.cf.find(x=>x.id==='main')||{});if(!m.terms||m.terms===OLDT||m.terms==='১. বিক্রিত পণ্য ফেরত (Return) হবে না।\n২. ১ বছর সার্ভিসিং ওয়ারেন্টি: ১ বছরের মধ্যে কোনো সমস্যা হলে আমরা সার্ভিস করে দেব, শুধু কাস্টমারকে ৫% টাকা পরিশোধ করতে হবে।\n৩. ডিসপ্লে ও মাদারবোর্ডের কোনো ওয়ারেন্টি/গ্যারান্টি নেই। পণ্য বুঝে নেওয়ার আগে যতক্ষণ ইচ্ছা চালিয়ে চেক করে নিন।\n৪. পণ্য নিয়ে যাওয়ার পর মাদারবোর্ড পুড়ে গেলে, ডিসপ্লেতে লাইন পড়লে বা ডিসপ্লে নষ্ট হলে কোনো ওয়ারেন্টি/গ্যারান্টি ক্লেম গ্রহণযোগ্য হবে না।\n৫. সফটওয়্যারজনিত কোনো সমস্যা হলে আমরা সমাধান করে দেব।'||m.terms==='১. বিক্রিত পণ্য ফেরত (Return) হবে না।\n২. ডিসপ্লে ও মাদারবোর্ডের কোনো ওয়ারেন্টি/গ্যারান্টি নেই। পণ্য বুঝে নেওয়ার আগে যতক্ষণ ইচ্ছা চালিয়ে চেক করে নিন।\n৩. পণ্য নিয়ে যাওয়ার পর মাদারবোর্ড পুড়ে গেলে, ডিসপ্লেতে লাইন পড়লে বা ডিসপ্লে নষ্ট হলে কোনো ওয়ারেন্টি/গ্যারান্টি ক্লেম গ্রহণযোগ্য হবে না।\n৪. সফটওয়্যারজনিত কোনো সমস্যা হলে আমরা সমাধান করে দেব।')delete m.terms;const d=(typeof BKQ!=='undefined'&&LICM==='self')?{bkq:BKQ,bkn:'01316843984'}:{};return Object.assign({},CF0,d,m)};
 let PI=null,GF=null,QQ={sv:'',pc:''},RP={f:'',t:''};
 const th=p=>p.img?`<img src='${p.img}' class='th'>`:'💻';
 function imgPick(el){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,320/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);PI=c.toDataURL('image/jpeg',.72)};im.src=r.result};r.readAsDataURL(f)}
@@ -502,6 +502,9 @@ function gf(title,fl,fn,v){
 function gfs(e){e.preventDefault();const o={};GF.fl.forEach(f=>{const el=$('#g_'+f[0]);o[f[0]]=f[2]==='number'?num(el.value):el.value.trim()});GF.fn(o);cm();return false}
 
 function webLine(c){const w=c.web||(location.origin+location.pathname.replace(/[^/]*$/,'')+'shop/'),l=[];const em=c.em||OWNER;if(em)l.push('Email: '+esc(em));if(w)l.push('Website: '+esc(w));return l.length?'<br>'+l.join(' · '):''}
+const ndk=t=>String(t||'').toLowerCase().replace(/[^a-z0-9ঀ-৿]/g,'');
+function dn(p){let n=String(p.name||'').trim();const b=String(p.brand||'').trim(),m=String(p.model||'').trim();if(b&&!ndk(n).includes(ndk(b)))n=b+' '+n;if(m&&!ndk(n).includes(ndk(m)))n+=' '+m;return n.trim()}
+const nodup=(p,a)=>a.filter(x=>x&&!ndk(p.name).includes(ndk(x)));
 const pmEn=x=>({'নগদ':'Cash','বিকাশ':'bKash','নগদ (Nagad)':'Nagad','রকেট':'Rocket','ব্যাংক':'Bank','কার্ড':'Card'}[x]||x||'');
 function payBox(){const c=cfg(),L=[['bk','bKash','#e2136e'],['ng','Nagad','#f6921e']].filter(x=>c[x[0]+'q']||c[x[0]+'n']);if(!L.length)return '';
   return `<div style='margin-top:14px;padding:8px 10px;border:1px dashed #666;border-radius:8px;font-size:12px'><b>Pay by mobile banking (scan QR)</b><div style='display:flex;gap:22px;margin-top:6px;flex-wrap:wrap'>${L.map(x=>`<div style='text-align:center'>${c[x[0]+'q']?`<img src='${c[x[0]+'q']}' style='width:120px;height:120px;object-fit:contain'><br>`:''}<b style='color:${x[2]}'>${x[1]}</b>${c[x[0]+'n']?'<br>'+esc(c[x[0]+'n']):''}</div>`).join('')}</div></div>`}
@@ -512,14 +515,14 @@ const pbar=`<div class='noprint' style='display:flex;gap:8px;margin-top:16px'><b
 function memo(id){
   const s=S.s.find(x=>x.id===id);if(!s)return;const c=cfg(),g=S.s.filter(x=>x.no===s.no);
   const T=g.reduce((a,x)=>a+tot(x),0),P=g.reduce((a,x)=>a+x.paid,0),SUB=g.reduce((a,x)=>a+x.qty*x.price,0),TV=g.reduce((a,x)=>a+(x.tvl||0),0),ti=(g.find(x=>x.ti)||{}).ti||{};
-  const rows=g.map(x=>{const p=S.p.find(y=>y.id===x.pid)||{},spec=[p.brand,p.model,p.sn&&'S/N: '+p.sn,p.cpu,p.ram,p.ssd,p.bat&&'Battery: '+p.bat].filter(Boolean).map(esc).join(' · ');
-    return `<tr><td class='bq'>${x.qty}</td><td class='bq'>${esc(x.name)}</td><td class='bq' style='white-space:normal'>${spec||'-'}</td><td class='bq' style='text-align:right'>${fm(x.price)}</td><td class='bq' style='text-align:right'>${fm(x.qty*x.price)}</td></tr>`}).join('');
-  const war=g.map(x=>{const p=S.p.find(y=>y.id===x.pid)||{};return p.war?esc(x.name)+': '+esc(p.war):''}).filter(Boolean);
+  const rows=g.map(x=>{const p=S.p.find(y=>y.id===x.pid)||{},spec=[...nodup(p,[p.brand,p.model]),p.sn&&'S/N: '+p.sn,p.cpu,p.ram,p.ssd,p.bat&&'Battery: '+p.bat].filter(Boolean).map(esc).join(' · ');
+    return `<tr><td class='bq'>${x.qty}</td><td class='bq'>${esc(p.id?dn(p):x.name)}</td><td class='bq' style='white-space:normal'>${spec||'-'}</td><td class='bq' style='text-align:right'>${fm(x.price)}</td><td class='bq' style='text-align:right'>${fm(x.qty*x.price)}</td></tr>`}).join('');
+  const war=g.map(x=>{const p=S.p.find(y=>y.id===x.pid)||{};return '1 Year Servicing Warranty'}).filter(Boolean);
   shw('m a4',`<div class='inv'>${hdr('INVOICE',s.no,s.date,1)}<div style='margin:12px 0'>Customer: <b>${esc(s.cust)}</b>${s.ph?' · '+esc(s.ph):''}${s.ad?'<br>Address: '+esc(s.ad):''}</div>
   <style>.bx{width:100%;border:1.5px solid #000;border-collapse:collapse}.bx th{border-bottom:1.5px solid #000;border-left:1px solid #000;padding:8px}.bx th:first-child,.bx td:first-child{border-left:0}.bx td.bq{border-left:1px solid #000;padding:6px 8px;vertical-align:top}.bx tr.fl td{height:230px;border-left:1px solid #000}.bx tr.fl td:first-child{border-left:0}</style><table class='bx'><tr><th>Qty</th><th>Item</th><th>Description</th><th style='text-align:right'>Unit Price</th><th style='text-align:right'>Total</th></tr>${rows}<tr class='fl'><td></td><td></td><td></td><td></td><td></td></tr></table>
   <div style='text-align:right;margin-top:10px'>${T!==SUB?`Subtotal: ${fm(SUB)}<br>Discount: −${fm(SUB-T)}<br>`:''}Total: <b>${fm(T)}</b><br>${TV?`Old laptop (${esc(ti.name||'')}${ti.sn?' S/N '+esc(ti.sn):''}) adjusted: −${fm(TV)}<br>`:''}Paid${TV?' (cash/other)':''}: ${fm(P-TV)}${s.pm?' ('+esc(pmEn(s.pm))+')':''}<br>Due: <b>${fm(T-P)}</b></div>
   ${payBox()}
-  ${war.length?`<div style='margin-top:10px'>Warranty: ${war.join(' | ')}</div>`:''}
+  ${war.length?`<div style='margin-top:10px'>Warranty: ${[...new Set(war)].join(' | ')}</div>`:''}
   <div style='margin-top:16px;font-size:12px;white-space:pre-line'><b>শর্তাবলি:</b>\n${esc(c.terms)}</div>
   <div style='display:flex;justify-content:space-between;gap:30px;margin-top:56px;font-size:13px'><div style='flex:1;text-align:center;border-top:1px solid #000;padding-top:4px'>Customer Signature<br><b>${esc(s.cust)}</b></div><div style='flex:1;text-align:center;border-top:1px solid #000;padding-top:4px'>Owner / Manager Signature<br><b>${esc(c.owner||c.name)}</b></div></div></div>${pbar}`);
 }
@@ -1392,6 +1395,22 @@ function flShow(){if(document.getElementById('flk'))return;
 {const ar12=applyRole;applyRole=function(u){ar12(u);if(ROLE==='owner'&&flId()&&flOK()&&!sessionStorage.getItem('scs_flok'))flShow()}}
 {const set13=V.set;V.set=()=>{const h=set13();if(!OWN())return h;const on=!!flId();
  return h+`<div class='card'><h2>🔒 ফেস / আঙুলের লক (এই ডিভাইসে)</h2><p class='mut'>চালু করলে এই ফোন/ল্যাপটপে সফটওয়্যার খুলতে ফোনের ফেস আনলক বা আঙুলের ছাপ লাগবে। আপনার মুখের ছবি সফটওয়্যারে যায় না। ফোনে যাদের ফেস/আঙুল নিবন্ধিত আছে তারাও খুলতে পারবে। কাজ না করলে Google দিয়ে ঢোকার বিকল্প আছে।</p>${on?`<p class='ok'>✅ এই ডিভাইসে চালু আছে</p><button class='x' onclick='flOff()'>বন্ধ করুন</button>`:`<button class='b' onclick='flEnable()'>🔒 ফেস লক চালু করুন</button>`}${flOK()?'':"<p class='bad'>এই ব্রাউজার ফেস লক সাপোর্ট করে না।</p>"}</div>`}}
+/* ---- বিক্রয়ে পণ্য খুঁজে বাছা ---- */
+const spLbl=p=>dn(p)+' · '+[p.cpu,p.ram,p.ssd].filter(Boolean).join(' ')+(p.sn?' · S/N: '+p.sn:'')+' · '+fm(p.price)+' · স্টক '+p.qty;
+const spList=q=>{q=String(q||'').trim().toLowerCase();return S.p.filter(p=>p.qty>0&&(!q||[p.name,p.brand,p.model,p.sn,p.cpu,p.ram,p.ssd,p.bc,p.cond].some(x=>String(x||'').toLowerCase().includes(q))))};
+function spFilter(){const q=$('#spq').value,sel=$('#sp'),cur=sel.value,L=spList(q);
+  sel.innerHTML='<option value="">-- বাছুন ('+L.length+'টা পণ্য) --</option>'+L.map(p=>`<option value="${p.id}"${p.id===cur?' selected':''}>${esc(spLbl(p))}</option>`).join('');
+  sel.size=q.trim()?Math.min(8,L.length+1):1;
+  if(q.trim()&&L.length===1){sel.value=L[0].id;sf()}}
+function spKey(e){if(e.key!=='Enter')return;e.preventDefault();const v=$('#spq').value.trim();if(!v)return;const p=findCode(v);if(p&&p.qty>0){$('#sp').value=p.id;sf();$('#spq').value='';spFilter();$('#sp').size=1}}
+{const sell9=V.sell;V.sell=()=>{let h=sell9();const a=h.indexOf('<select id="sp"');if(a<0)return h;const b=h.indexOf('</select>',a)+9,L=spList('');
+ return h.slice(0,a)+`<input id='spq' placeholder='🔎 নাম / ব্র্যান্ড / মডেল / RAM / সিরিয়াল লিখে খুঁজুন' oninput='spFilter()' onkeydown='spKey(event)' autocomplete='off' style='margin-bottom:6px'><select id="sp" onchange="sf();this.size=1"><option value="">-- বাছুন (${L.length}টা পণ্য) --</option>${L.map(p=>`<option value="${p.id}">${esc(spLbl(p))}</option>`).join('')}</select>`+h.slice(b)}}
+/* ---- নতুন ল্যাপটপে সিরিয়াল নম্বর নিজে বসবে ---- */
+function nextSn(){let mx=0;S.p.forEach(p=>{const t=String(p.sn||'').trim();if(/^\d{1,6}$/.test(t))mx=Math.max(mx,parseInt(t,10))});return String(mx+1)}
+{const pf14=pf;pf=function(id){pf14(id);if(id)return;const sn=$('#f_sn'),q=$('#f_qty');if(!sn)return;
+  const fill=()=>{const n=parseInt(q&&q.value,10)||1;if(n>1){if(sn.dataset.auto==='1')sn.value='';sn.placeholder='একাধিক পিস, তাই ফাঁকা';}else if(!sn.value||sn.dataset.auto==='1'){sn.value=nextSn();sn.dataset.auto='1'}};
+  sn.addEventListener('input',()=>{sn.dataset.auto='0'});
+  sn.value=nextSn();sn.dataset.auto='1';if(q)q.addEventListener('input',fill)}}
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 init();
 </script>

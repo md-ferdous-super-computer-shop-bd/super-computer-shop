@@ -509,7 +509,7 @@ const pmEn=x=>({'নগদ':'Cash','বিকাশ':'bKash','নগদ (Nagad)'
 function payBox(){const c=cfg(),L=[['bk','bKash','#e2136e'],['ng','Nagad','#f6921e']].filter(x=>c[x[0]+'q']||c[x[0]+'n']);if(!L.length)return '';
   return `<div style='margin-top:14px;padding:8px 10px;border:1px dashed #666;border-radius:8px;font-size:12px'><b>Pay by mobile banking (scan QR)</b><div style='display:flex;gap:22px;margin-top:6px;flex-wrap:wrap'>${L.map(x=>`<div style='text-align:center'>${c[x[0]+'q']?`<img src='${c[x[0]+'q']}' style='width:120px;height:120px;object-fit:contain'><br>`:''}<b style='color:${x[2]}'>${x[1]}</b>${c[x[0]+'n']?'<br>'+esc(c[x[0]+'n']):''}</div>`).join('')}</div></div>`}
 const hdr=(t,no,d,en)=>{const c=cfg();return `<div style='display:flex;gap:14px;align-items:center;border-bottom:3px solid #0b1730;padding-bottom:10px'><img src='${LOGO}' style='width:70px;height:70px;border-radius:50%;flex:none'><div style='flex:1'><div style='font-size:22px;font-weight:700'>${esc(c.name)}</div><div style='font-size:13px'>${en?'Owner':'মালিক'}: ${esc(c.owner)} · ${en?'Phone/WhatsApp':'ফোন/WhatsApp'}: ${esc(c.ph)}<br>${esc(c.addr)}${en?webLine(c):''}</div></div><div style='text-align:right'><b style='font-size:18px'>${t}</b><br>#${no}<br>${d}</div></div>`};
-const pbar=`<div class='noprint' style='display:flex;gap:8px;margin-top:16px'><button class='b' onclick='print()'>প্রিন্ট / PDF সেভ</button><button class='g' style='color:#111' onclick='cm()'>বন্ধ করুন</button></div>`;
+const pbar=`<div class='noprint' style='display:flex;gap:8px;margin-top:16px'><button class='b' onclick='memoPrint(this)'>প্রিন্ট / PDF সেভ</button><button class='g' style='color:#111' onclick='cm()'>বন্ধ করুন</button></div>`;
 
 /* A4 invoice (never shows cost or profit) */
 function memo(id){
@@ -1411,6 +1411,26 @@ function nextSn(){let mx=0;S.p.forEach(p=>{const t=String(p.sn||'').trim();if(/^
   const fill=()=>{const n=parseInt(q&&q.value,10)||1;if(n>1){if(sn.dataset.auto==='1')sn.value='';sn.placeholder='একাধিক পিস, তাই ফাঁকা';}else if(!sn.value||sn.dataset.auto==='1'){sn.value=nextSn();sn.dataset.auto='1'}};
   sn.addEventListener('input',()=>{sn.dataset.auto='0'});
   sn.value=nextSn();sn.dataset.auto='1';if(q)q.addEventListener('input',fill)}}
+/* ---- ফোনে PDF সেভ (iPhone/Android এ print() কাজ করে না) ---- */
+const isMob=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Android|Mobile/.test(navigator.userAgent))||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const ldJs=src=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>no(new Error('load '+src));document.head.appendChild(s)});
+async function memoPrint(btn){
+  if(!isMob()){print();return}
+  const inv=document.querySelector('#mm .inv');if(!inv){print();return}
+  const old=btn?btn.textContent:'';if(btn){btn.disabled=true;btn.textContent='⏳ PDF বানানো হচ্ছে...'}
+  try{
+    if(!window.html2canvas)await ldJs('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+    if(!(window.jspdf&&window.jspdf.jsPDF))await ldJs('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    fitA4();inv.style.zoom='';
+    const cv=await html2canvas(inv,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false});
+    fitReset();
+    const pdf=new window.jspdf.jsPDF({orientation:'p',unit:'mm',format:'a4'}),mw=194,mh=281,r=cv.width/cv.height;let w=mw,h=w/r;if(h>mh){h=mh;w=h*r}
+    pdf.addImage(cv.toDataURL('image/jpeg',.93),'JPEG',(210-w)/2,8,w,h);
+    const nm=(inv.textContent.match(/#\s*([A-Za-z]{1,4}-\d+?)(?=\d{4}-\d{2}-\d{2}|\D|$)/)||[])[1]||'memo',fn='Memo-'+nm+'.pdf',blob=pdf.output('blob'),file=new File([blob],fn,{type:'application/pdf'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:fn});}catch(e){if(e&&e.name!=='AbortError')throw e}}
+    else{const u=URL.createObjectURL(blob);window.open(u,'_blank')||(location.href=u)}
+  }catch(e){fitReset();alert('PDF বানানো যায়নি ('+(e&&e.message||e)+')। নেট চালু আছে কিনা দেখুন, অথবা মেমোর স্ক্রিনশট নিন।')}
+  if(btn){btn.disabled=false;btn.textContent=old}}
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 init();
 </script>

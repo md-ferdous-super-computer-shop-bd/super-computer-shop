@@ -507,7 +507,7 @@ function dn(p){let n=String(p.name||'').trim();const b=String(p.brand||'').trim(
 const nodup=(p,a)=>a.filter(x=>x&&!ndk(p.name).includes(ndk(x)));
 const pmEn=x=>({'নগদ':'Cash','বিকাশ':'bKash','নগদ (Nagad)':'Nagad','রকেট':'Rocket','ব্যাংক':'Bank','কার্ড':'Card'}[x]||x||'');
 function payMini(){const c=cfg(),L=[['bk','bKash','#e2136e'],['ng','Nagad','#f6921e']].filter(x=>c[x[0]+'q']||c[x[0]+'n']);if(!L.length)return '';
-  return `<div style='display:flex;gap:8px;justify-content:flex-end;margin-top:6px;font-size:10px;line-height:1.2'>${L.map(x=>`<div style='text-align:center'>${c[x[0]+'q']?`<img src='${c[x[0]+'q']}' style='width:86px;height:86px;object-fit:contain'><br>`:''}<b style='color:${x[2]}'>${x[1]}</b>${c[x[0]+'n']?'<br>'+esc(c[x[0]+'n']):''}</div>`).join('')}</div>`}
+  return `<div style='display:flex;gap:8px;justify-content:flex-end;margin-top:6px;font-size:10px;line-height:1.2'>${L.map(x=>`<div style='text-align:center'>${c[x[0]+'q']?`<img class='qrp' src='${c[x[0]+'q']}' style='width:86px;height:86px;object-fit:contain;filter:grayscale(1) contrast(20)'><br>`:''}<b style='color:${x[2]}'>${x[1]}</b>${c[x[0]+'n']?'<br>'+esc(c[x[0]+'n']):''}</div>`).join('')}</div>`}
 function payBox(){const c=cfg(),L=[['bk','bKash','#e2136e'],['ng','Nagad','#f6921e']].filter(x=>c[x[0]+'q']||c[x[0]+'n']);if(!L.length)return '';
   return `<div style='margin-top:14px;padding:8px 10px;border:1px dashed #666;border-radius:8px;font-size:12px'><b>Pay by mobile banking (scan QR)</b><div style='display:flex;gap:22px;margin-top:6px;flex-wrap:wrap'>${L.map(x=>`<div style='text-align:center'>${c[x[0]+'q']?`<img src='${c[x[0]+'q']}' style='width:120px;height:120px;object-fit:contain'><br>`:''}<b style='color:${x[2]}'>${x[1]}</b>${c[x[0]+'n']?'<br>'+esc(c[x[0]+'n']):''}</div>`).join('')}</div></div>`}
 const hdr=(t,no,d,en,pay)=>{const c=cfg();return `<div style='display:flex;gap:14px;align-items:flex-start;border-bottom:3px solid #0b1730;padding-bottom:10px'><img src='${LOGO}' style='width:70px;height:70px;border-radius:50%;flex:none'><div style='flex:1'><div style='font-size:22px;font-weight:700'>${esc(c.name)}</div><div style='font-size:13px'>${en?'Owner':'মালিক'}: ${esc(c.owner)} · ${en?'Phone/WhatsApp':'ফোন/WhatsApp'}: ${esc(c.ph)}<br>${esc(c.addr)}${en?webLine(c):''}</div></div><div style='text-align:right;flex:none'><b style='font-size:18px'>${t}</b><br>#${no}<br>${d}${pay||''}</div></div>`};
@@ -1415,6 +1415,7 @@ function nextSn(){let mx=0;S.p.forEach(p=>{const t=String(p.sn||'').trim();if(/^
 /* ---- ফোনে PDF সেভ (iPhone/Android এ print() কাজ করে না) ---- */
 const isMob=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Android|Mobile/.test(navigator.userAgent))||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const ldJs=src=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>no(new Error('load '+src));document.head.appendChild(s)});
+function qrBlack(src){return new Promise(res=>{const im=new Image();im.onload=()=>{try{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0);const d=x.getImageData(0,0,c.width,c.height),p=d.data;for(let i=0;i<p.length;i+=4){const l=.299*p[i]+.587*p[i+1]+.114*p[i+2],v=l<170?0:255;p[i]=p[i+1]=p[i+2]=v;p[i+3]=255}x.putImageData(d,0,0);res(c.toDataURL('image/png'))}catch(e){res(src)}};im.onerror=()=>res(src);im.src=src})}
 async function memoPrint(btn){
   if(!isMob()){print();return}
   const inv=document.querySelector('#mm .inv');if(!inv){print();return}
@@ -1423,9 +1424,10 @@ async function memoPrint(btn){
     if(!window.html2canvas)await ldJs('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
     if(!(window.jspdf&&window.jspdf.jsPDF))await ldJs('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
     wrap=document.createElement('div');wrap.style.cssText='position:fixed;left:0;top:0;width:700px;background:#fff;z-index:-1;pointer-events:none;overflow:visible';
-    const cl=inv.cloneNode(true);cl.style.width='700px';cl.style.zoom='';cl.style.maxWidth='none';wrap.appendChild(cl);document.body.appendChild(wrap);
+    const cl=inv.cloneNode(true);cl.style.width='700px';cl.style.zoom='';cl.style.maxWidth='none';wrap.className='pfw';const stl=document.createElement('style');stl.textContent='.pfw,.pfw *:not([style*="color"]){color:#000!important;-webkit-text-fill-color:#000!important}.pfw,.pfw .inv{background:#fff!important}';wrap.appendChild(stl);wrap.appendChild(cl);document.body.appendChild(wrap);
     const fl=cl.querySelector('tr.fl td');if(fl){fl.style.height='0px';const hh=cl.scrollHeight;if(hh<1000)fl.style.height=Math.min(230,1000-hh-4)+'px'}
-    await Promise.all([...cl.querySelectorAll('img')].map(i=>i.decode?i.decode().catch(()=>{}):0));
+    for(const q of cl.querySelectorAll('img.qrp')){q.style.filter='none';q.src=await qrBlack(q.src)}
+           await Promise.all([...cl.querySelectorAll('img')].map(i=>i.decode?i.decode().catch(()=>{}):0));
     const cv=await html2canvas(cl,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false,windowWidth:700,windowHeight:Math.max(cl.scrollHeight,1000),scrollX:0,scrollY:0,x:0,y:0,width:700,height:cl.scrollHeight});
     wrap.remove();wrap=null;
     const pdf=new window.jspdf.jsPDF({orientation:'p',unit:'mm',format:'a4'}),mw=194,mh=281,r=cv.width/cv.height;let w=mw,h=w/r;if(h>mh){h=mh;w=h*r}

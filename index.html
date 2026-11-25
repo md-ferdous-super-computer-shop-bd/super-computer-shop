@@ -1255,6 +1255,20 @@ async function woDel(id){if(!confirm('এই অনলাইন অর্ডা�
 {const ord0=V.ord;V.ord=()=>woHtml()+ord0();
  const dash8=V.dash;V.dash=()=>(LICM==='self'&&WN>0?`<div class='card' onclick="go('ord')" style='cursor:pointer;border:2px solid #dc2626;background:rgba(220,38,38,.08)'>🔔 <b>${WN}টা নতুন অনলাইন অর্ডার</b> এসেছে — দেখতে চাপুন</div>`:'')+dash8();
  if(LICM==='self'){setTimeout(woNew,4000);setInterval(()=>{if(!document.hidden)woNew()},180000)}}
+
+/* ---- কাস্টমার রিভিউ (মালিক অনুমোদন দিলে সাইটে দেখায়) ---- */
+let RV=null,RVE='';
+async function rvLoad(force){if(LICM!=='self'||!DB)return;if(!force&&RV)return;
+  try{const r=await DB.collection('reviews').limit(100).get();RV=r.docs.map(d=>Object.assign({id:d.id},d.data())).sort((a,b)=>(b.t||0)-(a.t||0));RVE=''}
+  catch(e){RV=RV||[];RVE=(e.code||e.message)+' — Firestore Rules-এ reviews-এর নিয়ম বসিয়েছেন কি?'}
+  if(tab==='ord')R()}
+async function rvSet(id,ok){try{await DB.collection('reviews').doc(id).update({ok});const o=RV.find(x=>x.id===id);if(o)o.ok=ok;R()}catch(e){alert('হয়নি: '+(e.message||e))}}
+async function rvDel(id){if(!confirm('এই রিভিউ মুছবেন?'))return;try{await DB.collection('reviews').doc(id).delete();RV=RV.filter(x=>x.id!==id);R()}catch(e){alert('মোছা যায়নি: '+(e.message||e))}}
+function rvHtml(){if(LICM!=='self')return '';if(RV===null){rvLoad();return `<div class='card'>⭐ রিভিউ লোড হচ্ছে...</div>`}
+  const np=RV.filter(x=>!x.ok).length;
+  return `<div class='card'><h2>⭐ কাস্টমার রিভিউ${np?` <span style='color:#dc2626'>(${np}টা অপেক্ষায়)</span>`:''}</h2><p class='mut'>কাস্টমার সাইট থেকে রিভিউ দিলে এখানে আসবে। "সাইটে দেখান" চাপলে তবেই ওয়েবসাইটে দেখাবে।</p>${RVE?`<p style='color:#dc2626'>${esc(RVE)}</p>`:''}<button class='g' onclick="RV=null;rvLoad(true)">🔄 রিফ্রেশ</button>
+  ${RV.length?RV.map(o=>`<div class='card' style='margin:8px 0;border-left:5px solid ${o.ok?'#16a34a':'#f59e0b'}'><div style='display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap'><b>${esc(o.name||'')} · ${'★'.repeat(o.rating||0)}${'☆'.repeat(5-(o.rating||0))}</b><span class='mut'>${new Date(o.t||0).toLocaleString('bn-BD')} · ${o.ok?'✅ সাইটে দেখাচ্ছে':'⏳ অপেক্ষায়'}</span></div><div style='margin:6px 0;white-space:pre-line'>${esc(o.text||'')}</div><div style='display:flex;gap:6px;flex-wrap:wrap'>${o.ok?`<button class='g' onclick="rvSet('${o.id}',false)">সাইট থেকে লুকান</button>`:`<button class='b' onclick="rvSet('${o.id}',true)">✅ সাইটে দেখান</button>`}<button class='g' style='color:#dc2626' onclick="rvDel('${o.id}')">🗑 মুছুন</button></div></div>`).join(''):`<p class='mut'>এখনো কোনো রিভিউ আসেনি।</p>`}</div>`}
+{const ord1=V.ord;V.ord=()=>rvHtml()+ord1()}
 /* ---- একাধিক ভালো মানের ছবি (সর্বোচ্চ ৩টা) ---- */
 let PG=[],PGd=false;
 const pgLoad=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=r.result};r.onerror=rej;r.readAsDataURL(f)});

@@ -108,6 +108,12 @@ svg{width:22px;height:22px;flex:none}
 .dt{width:100%;border-collapse:collapse;margin:10px 0}.dt td{padding:6px 4px;border-bottom:1px solid var(--line);font-size:15px}.dt td:first-child{color:var(--mut);width:34%}
 .gm{clear:both;position:relative;background:rgba(127,127,127,.08);border-radius:12px;overflow:hidden;touch-action:pan-y}.gm img{width:100%;height:min(56vh,380px);object-fit:contain;display:block;cursor:zoom-in}.gn{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:0;background:rgba(0,0,0,.5);color:#fff;font-size:26px;line-height:1;cursor:pointer}.gp{left:8px}.gx{right:8px}.gt{display:flex;gap:8px;margin:8px 0;overflow-x:auto}.gt img{width:62px;height:62px;object-fit:cover;border-radius:8px;border:2px solid transparent;cursor:pointer;flex:none}.gt img.on{border-color:#16a34a}#ovz{align-items:center;background:rgba(0,0,0,.92)}#ovz img{max-width:100vw;max-height:100vh;object-fit:contain}.cam{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;border-radius:999px;padding:2px 9px;font-size:13px;z-index:1}
 .ok2{text-align:center;padding:10px 0}.ok2 .big{font-size:52px}
+.rvl{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));margin:12px 0 16px}
+.rv{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.rv .st{color:var(--gold);letter-spacing:2px;font-size:18px}.rv b{display:block}.rv p{margin:6px 0 0;color:var(--ink);white-space:pre-line;word-break:break-word}.rv small{color:var(--mut)}
+.rvf{max-width:560px}.rvf .fm label{display:block;margin:10px 0 4px;font-weight:600}
+.stars{display:flex;gap:4px}.stars button{background:none;border:0;font-size:32px;line-height:1;color:var(--line);cursor:pointer;padding:2px;min-width:40px;min-height:44px}.stars button.on{color:var(--gold)}
+.rer{color:#dc2626;margin:8px 0;min-height:1em}.rok{color:#16a34a;font-weight:600}
 </style>
 </head>
 <body>
@@ -161,6 +167,24 @@ svg{width:22px;height:22px;flex:none}
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5z"/><path d="M3 8v8l9 5 9-5V8"/></svg></div>
         <h3>কুরিয়ারে পণ্য পাঠানো</h3>
         <p>বগুড়ার বাইরে থেকেও অর্ডার করতে পারবেন, কুরিয়ারে পাঠানো হয়।</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="reviews">
+    <h2>⭐ কাস্টমারদের রিভিউ</h2>
+    <p class="sub" id="rvsum">রিভিউ লোড হচ্ছে...</p>
+    <div id="rvl" class="rvl"></div>
+    <div class="card rvf">
+      <h3>আপনিও রিভিউ দিন</h3>
+      <p>আমাদের থেকে কিনে থাকলে বা সার্ভিস নিলে আপনার অভিজ্ঞতা জানান। মালিক দেখে অনুমোদন দিলে সাইটে আসবে।</p>
+      <div class="fm">
+        <label for="rn">আপনার নাম *</label><input id="rn" maxlength="40" autocomplete="name">
+        <label>রেটিং *</label><div class="stars" id="rst" role="radiogroup" aria-label="রেটিং"></div>
+        <label for="rt">আপনার মতামত *</label><textarea id="rt" rows="3" maxlength="400" placeholder="পণ্য ও সার্ভিস কেমন লেগেছে?"></textarea>
+        <input id="rh" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+        <div id="rer" class="rer" role="alert"></div>
+        <button class="btn p" type="button" id="rsb">রিভিউ পাঠান</button>
       </div>
     </div>
   </section>
@@ -348,6 +372,41 @@ svg{width:22px;height:22px;flex:none}
       er.innerHTML='সরাসরি পাঠানো যায়নি। নিচের বাটনে চেপে WhatsApp-এ অর্ডারটি পাঠান: <a target="_blank" rel="noopener" href="'+wa+'"><b>💬 WhatsApp-এ অর্ডার পাঠান</b></a>';
     });
   }
+})();
+</script>
+<script>
+(function(){
+  var PROJ='super-computer-shop',KEY='AIzaSyCALif1Eso_UIVDII_hpsBwmyvFC4ALSvM';
+  var BASE='https://firestore.googleapis.com/v1/projects/'+PROJ+'/databases/(default)/documents';
+  var $=function(s){return document.querySelector(s)},rate=0;
+  var esc=function(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  var bn=function(n){return String(n).replace(/\d/g,function(d){return '০১২৩৪৫৬৭৮৯'[d]})};
+  var star=function(n){return '★★★★★'.slice(0,n)+'☆☆☆☆☆'.slice(0,5-n)};
+  function load(){
+    fetch(BASE+':runQuery?key='+KEY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({structuredQuery:{from:[{collectionId:'reviews'}],where:{fieldFilter:{field:{fieldPath:'ok'},op:'EQUAL',value:{booleanValue:true}}},limit:30}})})
+    .then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
+      var L=(j||[]).filter(function(x){return x.document}).map(function(x){var f=x.document.fields||{};return{n:(f.name||{}).stringValue||'',r:Number((f.rating||{}).integerValue||0),t:(f.text||{}).stringValue||'',d:Number((f.t||{}).integerValue||0)}}).filter(function(o){return o.n&&o.t&&o.r>=1&&o.r<=5}).sort(function(a,b){return b.d-a.d});
+      if(!L.length){$('#rvsum').textContent='এখনো কোনো রিভিউ নেই। আপনিই প্রথম রিভিউ দিন!';$('#rvl').innerHTML='';return}
+      var avg=L.reduce(function(a,o){return a+o.r},0)/L.length;
+      $('#rvsum').innerHTML='<b style="color:var(--gold)">'+star(Math.round(avg))+'</b> গড় '+bn(avg.toFixed(1))+' / ৫ · '+bn(L.length)+'টা রিভিউ';
+      $('#rvl').innerHTML=L.map(function(o){return '<div class="rv"><div class="st" aria-label="'+o.r+' স্টার">'+star(o.r)+'</div><b>'+esc(o.n)+'</b><p>'+esc(o.t)+'</p><small>'+(o.d?new Date(o.d).toLocaleDateString('bn-BD'):'')+'</small></div>'}).join('');
+    }).catch(function(){$('#rvsum').textContent='রিভিউ এই মুহূর্তে দেখানো যাচ্ছে না।'});
+  }
+  var st=$('#rst');for(var i=1;i<=5;i++){(function(i){var b=document.createElement('button');b.type='button';b.textContent='★';b.setAttribute('aria-label',i+' স্টার');b.onclick=function(){rate=i;[].forEach.call(st.children,function(c,k){c.classList.toggle('on',k<i)})};st.appendChild(b)})(i)}
+  $('#rsb').onclick=function(){
+    var er=$('#rer'),n=$('#rn').value.trim(),t=$('#rt').value.trim();er.className='rer';er.textContent='';
+    if($('#rh').value)return;
+    if(!n||!t||!rate){er.textContent='নাম, রেটিং (স্টার) ও মতামত দিন';return}
+    var last=0;try{last=Number(localStorage.getItem('scs_rv')||0)}catch(e){}
+    if(Date.now()-last<60000){er.textContent='একটু অপেক্ষা করে আবার চেষ্টা করুন';return}
+    var sv=function(x){return{stringValue:String(x)}},btn=$('#rsb');btn.disabled=true;btn.textContent='পাঠানো হচ্ছে...';
+    fetch(BASE+'/reviews?key='+KEY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:sv(n.slice(0,40)),text:sv(t.slice(0,400)),rating:{integerValue:String(rate)},t:{integerValue:String(Date.now())},ok:{booleanValue:false}}})})
+    .then(function(r){if(!r.ok)throw 0;try{localStorage.setItem('scs_rv',String(Date.now()))}catch(e){}
+      $('#rn').value='';$('#rt').value='';rate=0;[].forEach.call(st.children,function(c){c.classList.remove('on')});
+      er.className='rer rok';er.textContent='ধন্যবাদ! আপনার রিভিউ পাঠানো হয়েছে। মালিক দেখে অনুমোদন দিলে সাইটে দেখা যাবে।';btn.disabled=false;btn.textContent='রিভিউ পাঠান'})
+    .catch(function(){er.textContent='রিভিউ পাঠানো যায়নি। একটু পরে আবার চেষ্টা করুন।';btn.disabled=false;btn.textContent='রিভিউ পাঠান'});
+  };
+  load();
 })();
 </script>
 </body>

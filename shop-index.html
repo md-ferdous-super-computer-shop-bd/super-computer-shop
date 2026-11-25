@@ -76,6 +76,7 @@ svg{width:22px;height:22px;flex:none}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .pcard .pr b{color:#4ade80}}
 .pcard .pr s{color:var(--mut);font-size:14px}
 .badge{position:absolute;top:10px;left:10px;background:#16a34a;color:#fff;border-radius:999px;padding:3px 10px;font-size:13px;font-weight:700;z-index:1}
+.wr{font-size:12px;color:var(--mut);margin:0 0 8px}.qn{font-size:12px;color:#047857;margin:2px 0 6px;font-weight:600}.qn.lo{color:#b45309}.qn.z{color:#b91c1c}
 .so{position:absolute;top:10px;right:0;background:#111;color:#fff;padding:4px 12px;font-weight:700;font-size:14px;border-radius:6px 0 0 6px;z-index:1}
 .pcard.out .im{opacity:.55}
 .acts{display:grid;gap:8px;margin-top:8px}
@@ -107,6 +108,12 @@ svg{width:22px;height:22px;flex:none}
 .dt{width:100%;border-collapse:collapse;margin:10px 0}.dt td{padding:6px 4px;border-bottom:1px solid var(--line);font-size:15px}.dt td:first-child{color:var(--mut);width:34%}
 .gm{clear:both;position:relative;background:rgba(127,127,127,.08);border-radius:12px;overflow:hidden;touch-action:pan-y}.gm img{width:100%;height:min(56vh,380px);object-fit:contain;display:block;cursor:zoom-in}.gn{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:0;background:rgba(0,0,0,.5);color:#fff;font-size:26px;line-height:1;cursor:pointer}.gp{left:8px}.gx{right:8px}.gt{display:flex;gap:8px;margin:8px 0;overflow-x:auto}.gt img{width:62px;height:62px;object-fit:cover;border-radius:8px;border:2px solid transparent;cursor:pointer;flex:none}.gt img.on{border-color:#16a34a}#ovz{align-items:center;background:rgba(0,0,0,.92)}#ovz img{max-width:100vw;max-height:100vh;object-fit:contain}.cam{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;border-radius:999px;padding:2px 9px;font-size:13px;z-index:1}
 .ok2{text-align:center;padding:10px 0}.ok2 .big{font-size:52px}
+.rvl{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));margin:12px 0 16px}
+.rv{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.rv .st{color:var(--gold);letter-spacing:2px;font-size:18px}.rv b{display:block}.rv p{margin:6px 0 0;color:var(--ink);white-space:pre-line;word-break:break-word}.rv small{color:var(--mut)}
+.rvf{max-width:560px}.rvf .fm label{display:block;margin:10px 0 4px;font-weight:600}
+.stars{display:flex;gap:4px}.stars button{background:none;border:0;font-size:32px;line-height:1;color:var(--line);cursor:pointer;padding:2px;min-width:40px;min-height:44px}.stars button.on{color:var(--gold)}
+.rer{color:#dc2626;margin:8px 0;min-height:1em}.rok{color:#16a34a;font-weight:600}
 </style>
 </head>
 <body>
@@ -164,6 +171,24 @@ svg{width:22px;height:22px;flex:none}
     </div>
   </section>
 
+  <section id="reviews">
+    <h2>⭐ কাস্টমারদের রিভিউ</h2>
+    <p class="sub" id="rvsum">রিভিউ লোড হচ্ছে...</p>
+    <div id="rvl" class="rvl"></div>
+    <div class="card rvf">
+      <h3>আপনিও রিভিউ দিন</h3>
+      <p>আমাদের থেকে কিনে থাকলে বা সার্ভিস নিলে আপনার অভিজ্ঞতা জানান। মালিক দেখে অনুমোদন দিলে সাইটে আসবে।</p>
+      <div class="fm">
+        <label for="rn">আপনার নাম *</label><input id="rn" maxlength="40" autocomplete="name">
+        <label>রেটিং *</label><div class="stars" id="rst" role="radiogroup" aria-label="রেটিং"></div>
+        <label for="rt">আপনার মতামত *</label><textarea id="rt" rows="3" maxlength="400" placeholder="পণ্য ও সার্ভিস কেমন লেগেছে?"></textarea>
+        <input id="rh" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+        <div id="rer" class="rer" role="alert"></div>
+        <button class="btn p" type="button" id="rsb">রিভিউ পাঠান</button>
+      </div>
+    </div>
+  </section>
+
   <section id="contact">
     <h2>যোগাযোগ</h2>
     <p class="sub">সরাসরি দোকানে আসতে পারেন বা ফোনে কথা বলতে পারেন।</p>
@@ -198,17 +223,19 @@ svg{width:22px;height:22px;flex:none}
   var val=function(f){if(!f)return '';return f.stringValue!==undefined?f.stringValue:f.integerValue!==undefined?Number(f.integerValue):f.doubleValue!==undefined?f.doubleValue:''};
   try{cart=JSON.parse(localStorage.getItem('scs_cart')||'{}')||{}}catch(e){cart={}}
   var saveCart=function(){try{localStorage.setItem('scs_cart',JSON.stringify(cart))}catch(e){}};
-  var title=function(o){var b=o.brand||'',n=o.name||'';if(b&&n.toLowerCase().indexOf(b.toLowerCase())===0)b='';return [b,n,o.model].filter(Boolean).join(' ')};
+  var nk=function(t){return String(t||'').toLowerCase().replace(/[^a-z0-9\u0980-\u09ff]/g,'')};var title=function(o){var n=String(o.name||'').trim(),b=String(o.brand||'').trim(),m=String(o.model||'').trim();if(b&&nk(n).indexOf(nk(b))<0)n=b+' '+n;if(m&&nk(n).indexOf(nk(m))<0)n+=' '+m;return n.trim()};
   var disc=function(o){return o.op>o.price&&o.price>0?Math.round((o.op-o.price)/o.op*100):0};
   var byId=function(id){for(var i=0;i<P.length;i++)if(P[i].id===id)return P[i]};
   var img=function(o){return typeof o.img==='string'&&o.img.indexOf('data:image/')===0?o.img:''};
 
   fetch(BASE+'catalog?pageSize=300&key='+KEY).then(function(r){return r.ok?r.json():{}}).then(function(j){
     P=(j.documents||[]).map(function(x){var o={};Object.keys(x.fields||{}).forEach(function(k){o[k]=val(x.fields[k])});return o}).filter(function(o){return o.name&&o.id});
-    if(!P.length)return;
+    P.forEach(function(o){var b=String(o.brand||'').trim();if(b&&(b===b.toLowerCase()||b===b.toUpperCase()))b=b.length<=3?b.toUpperCase():b.charAt(0).toUpperCase()+b.slice(1).toLowerCase();o.brand=b});
+    if(!P.length){emptyMsg();return}
     Object.keys(cart).forEach(function(id){var p=byId(id);if(!p||p.qty<=0)delete cart[id];else if(cart[id]>p.qty)cart[id]=p.qty});
     $('#stock').hidden=false;$('#ostore').hidden=false;chips();draw();bar();
-  }).catch(function(){});
+  }).catch(function(){emptyMsg()});
+  function emptyMsg(){$('#stock').hidden=false;['.tools','#chips'].forEach(function(q){var e=$(q);if(e)e.hidden=true});var n=$('#none');n.hidden=false;n.innerHTML='এই মুহূর্তে অনলাইনে দেখানোর মতো পণ্য লোড হচ্ছে না। পণ্য ও দাম জানতে <a href="https://wa.me/'+WA+'" target="_blank" rel="noopener">WhatsApp-এ মেসেজ করুন</a> বা ফোন করুন।'}
 
   function chips(){
     var bs=[],seen={};P.forEach(function(o){var b=o.brand||'';if(b&&!seen[b]){seen[b]=1;bs.push(b)}});
@@ -230,12 +257,13 @@ svg{width:22px;height:22px;flex:none}
     L.forEach(function(o){
       var out=!(o.qty>0),d=disc(o),sp=[o.cpu,o.ram,o.ssd,o.cond].filter(Boolean).join(' · ');
       var c=document.createElement('article');c.className='pcard'+(out?' out':'');
-      c.innerHTML=(d?'<span class="badge">-'+d+'%</span>':'')+(out?'<span class="so">স্টক আউট</span>':'')+
+      c.innerHTML=(d?'<span class="badge">-'+d+'%</span>':'')+(out?'<span class="so">Sold</span>':'')+
         '<button class="im" type="button" aria-label="'+esc(title(o))+' বিস্তারিত দেখুন">'+(img(o)?'<img loading="lazy" alt="'+esc(title(o))+'" src="'+img(o)+'">':'💻')+(o.ni>1?'<span class="cam">📷 '+o.ni+'</span>':'')+'</button>'+
-        '<div class="bd">'+(o.brand?'<div class="br">'+esc(o.brand)+'</div>':'')+'<h3>'+esc([o.name,o.model].filter(Boolean).join(' '))+'</h3>'+(sp?'<div class="sp">'+esc(sp)+'</div>':'')+
+        '<div class="bd">'+'<h3>'+esc(title(o))+'</h3>'+(sp?'<div class="sp">'+esc(sp)+'</div>':'')+
         '<div class="pr"><b>'+tk(o.price)+'</b>'+(d?'<s>'+tk(o.op)+'</s>':'')+'</div>'+
-        '<div class="acts">'+(out?'<button class="b1" disabled>স্টক আউট</button>':'<button class="b1" data-a="buy">অর্ডার করুন</button><button class="b2" data-a="add">কার্টে যোগ করুন</button>')+'</div></div>';
-      c.querySelector('.im').onclick=c.querySelector('h3').onclick=function(){detail(o.id)};
+        '<div class="qn'+(out?' z':(o.qty<=3?' lo':''))+'">'+(out?'Sold':(o.qty<=3?'মাত্র '+o.qty+' পিস বাকি':o.qty+' পিস স্টকে আছে'))+'</div>'+
+        '<div class="wr">🛡 ১ বছর সার্ভিসিং ওয়ারেন্টি</div><div class="acts">'+(out?'<button class="b1" disabled>Sold</button>':'<button class="b1" data-a="buy">অর্ডার করুন</button><button class="b2" data-a="add">কার্টে যোগ করুন</button>')+'<button class="b2" data-a="dt">🔍 বিস্তারিত দেখুন</button></div></div>';
+      c.querySelector('.im').onclick=c.querySelector('h3').onclick=c.querySelector('[data-a=dt]').onclick=function(){detail(o.id)};c.querySelector('.sp')&&(c.querySelector('.sp').onclick=function(){detail(o.id)});
       var bu=c.querySelector('[data-a=buy]'),ad=c.querySelector('[data-a=add]');
       if(bu)bu.onclick=function(){add(o.id);openCart()};
       if(ad)ad.onclick=function(e){add(o.id);var t=e.target;t.textContent='✓ যোগ হয়েছে';setTimeout(function(){t.textContent='কার্টে যোগ করুন'},1200)};
@@ -272,13 +300,14 @@ svg{width:22px;height:22px;flex:none}
       if(L.length){G=L;gx=0;showG()}}).catch(function(){})}
   function detail(id){
     var o=byId(id);if(!o)return;var out=!(o.qty>0),d=disc(o);
-    var rows=[['ব্র্যান্ড',o.brand],['মডেল',o.model],['প্রসেসর',o.cpu],['RAM',o.ram],['স্টোরেজ',o.ssd],['ডিসপ্লে',o.disp],['কন্ডিশন',o.cond],['ওয়ারেন্টি',o.war]].filter(function(r){return r[1]});
+    var rows=[['ব্র্যান্ড',o.brand],['মডেল',o.model],['প্রসেসর',o.cpu],['RAM',o.ram],['স্টোরেজ',o.ssd],['ডিসপ্লে',o.disp],['কন্ডিশন',o.cond],['ওয়ারেন্টি','১ বছর সার্ভিসিং ওয়ারেন্টি']].filter(function(r){return r[1]});
     $('#shp').innerHTML='<button class="x" type="button" aria-label="বন্ধ করুন" id="xp">×</button><h3>'+esc(title(o))+'</h3>'+
       (img(o)?'<div class="gm"><img id="gi" alt="'+esc(title(o))+'" src="'+img(o)+'"><button class="gn gp" type="button" aria-label="আগের ছবি" hidden>‹</button><button class="gn gx" type="button" aria-label="পরের ছবি" hidden>›</button></div><div class="gt" id="gt"></div>':'')+
       '<div class="pr" style="display:flex;gap:10px;align-items:baseline;margin:10px 0"><b style="font-size:26px;color:#16803a">'+tk(o.price)+'</b>'+(d?'<s style="color:var(--mut)">'+tk(o.op)+'</s> <span class="badge" style="position:static">-'+d+'%</span>':'')+'</div>'+
-      '<table class="dt">'+rows.map(function(r){return '<tr><td>'+r[0]+'</td><td>'+esc(r[1])+'</td></tr>'}).join('')+'<tr><td>স্টক</td><td>'+(out?'স্টক আউট':o.qty+' পিস আছে')+'</td></tr></table>'+
+      '<table class="dt">'+rows.map(function(r){return '<tr><td>'+r[0]+'</td><td>'+esc(r[1])+'</td></tr>'}).join('')+'<tr><td>স্টক</td><td>'+(out?'Sold':o.qty+' পিস আছে')+'</td></tr></table>'+
       (o.desc?'<p>'+esc(o.desc)+'</p>':'')+
-      '<div class="acts">'+(out?'<button class="b1" disabled>স্টক আউট</button>':'<button class="b1" id="dbuy">অর্ডার করুন</button><button class="b2" id="dadd">কার্টে যোগ করুন</button>')+'</div>';
+      '<p style="font-size:13px;line-height:1.6;background:rgba(22,128,58,.1);border-radius:8px;padding:8px 10px">🛡 <b>১ বছর সার্ভিসিং ওয়ারেন্টি:</b> ১ বছরের মধ্যে কোনো সমস্যা হলে আমরা ফ্রি সার্ভিস করে দেব। তবে কোনো পার্টস নষ্ট বা ড্যামেজ হলে সেই পার্টসের দাম দিতে হবে। ডিসপ্লে ও মাদারবোর্ডে কোনো ওয়ারেন্টি/গ্যারান্টি নেই।</p>'+
+      '<div class="acts">'+(out?'<button class="b1" disabled>Sold</button>':'<button class="b1" id="dbuy">অর্ডার করুন</button><button class="b2" id="dadd">কার্টে যোগ করুন</button>')+'</div>';
     openOv('#ovp');$('#xp').onclick=closeOv;loadGal(o);
     var b=$('#dbuy'),a=$('#dadd');
     if(b)b.onclick=function(){add(id);closeOv();openCart()};
@@ -343,6 +372,41 @@ svg{width:22px;height:22px;flex:none}
       er.innerHTML='সরাসরি পাঠানো যায়নি। নিচের বাটনে চেপে WhatsApp-এ অর্ডারটি পাঠান: <a target="_blank" rel="noopener" href="'+wa+'"><b>💬 WhatsApp-এ অর্ডার পাঠান</b></a>';
     });
   }
+})();
+</script>
+<script>
+(function(){
+  var PROJ='super-computer-shop',KEY='AIzaSyCALif1Eso_UIVDII_hpsBwmyvFC4ALSvM';
+  var BASE='https://firestore.googleapis.com/v1/projects/'+PROJ+'/databases/(default)/documents';
+  var $=function(s){return document.querySelector(s)},rate=0;
+  var esc=function(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  var bn=function(n){return String(n).replace(/\d/g,function(d){return '০১২৩৪৫৬৭৮৯'[d]})};
+  var star=function(n){return '★★★★★'.slice(0,n)+'☆☆☆☆☆'.slice(0,5-n)};
+  function load(){
+    fetch(BASE+':runQuery?key='+KEY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({structuredQuery:{from:[{collectionId:'reviews'}],where:{fieldFilter:{field:{fieldPath:'ok'},op:'EQUAL',value:{booleanValue:true}}},limit:30}})})
+    .then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
+      var L=(j||[]).filter(function(x){return x.document}).map(function(x){var f=x.document.fields||{};return{n:(f.name||{}).stringValue||'',r:Number((f.rating||{}).integerValue||0),t:(f.text||{}).stringValue||'',d:Number((f.t||{}).integerValue||0)}}).filter(function(o){return o.n&&o.t&&o.r>=1&&o.r<=5}).sort(function(a,b){return b.d-a.d});
+      if(!L.length){$('#rvsum').textContent='এখনো কোনো রিভিউ নেই। আপনিই প্রথম রিভিউ দিন!';$('#rvl').innerHTML='';return}
+      var avg=L.reduce(function(a,o){return a+o.r},0)/L.length;
+      $('#rvsum').innerHTML='<b style="color:var(--gold)">'+star(Math.round(avg))+'</b> গড় '+bn(avg.toFixed(1))+' / ৫ · '+bn(L.length)+'টা রিভিউ';
+      $('#rvl').innerHTML=L.map(function(o){return '<div class="rv"><div class="st" aria-label="'+o.r+' স্টার">'+star(o.r)+'</div><b>'+esc(o.n)+'</b><p>'+esc(o.t)+'</p><small>'+(o.d?new Date(o.d).toLocaleDateString('bn-BD'):'')+'</small></div>'}).join('');
+    }).catch(function(){$('#rvsum').textContent='রিভিউ এই মুহূর্তে দেখানো যাচ্ছে না।'});
+  }
+  var st=$('#rst');for(var i=1;i<=5;i++){(function(i){var b=document.createElement('button');b.type='button';b.textContent='★';b.setAttribute('aria-label',i+' স্টার');b.onclick=function(){rate=i;[].forEach.call(st.children,function(c,k){c.classList.toggle('on',k<i)})};st.appendChild(b)})(i)}
+  $('#rsb').onclick=function(){
+    var er=$('#rer'),n=$('#rn').value.trim(),t=$('#rt').value.trim();er.className='rer';er.textContent='';
+    if($('#rh').value)return;
+    if(!n||!t||!rate){er.textContent='নাম, রেটিং (স্টার) ও মতামত দিন';return}
+    var last=0;try{last=Number(localStorage.getItem('scs_rv')||0)}catch(e){}
+    if(Date.now()-last<60000){er.textContent='একটু অপেক্ষা করে আবার চেষ্টা করুন';return}
+    var sv=function(x){return{stringValue:String(x)}},btn=$('#rsb');btn.disabled=true;btn.textContent='পাঠানো হচ্ছে...';
+    fetch(BASE+'/reviews?key='+KEY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:sv(n.slice(0,40)),text:sv(t.slice(0,400)),rating:{integerValue:String(rate)},t:{integerValue:String(Date.now())},ok:{booleanValue:false}}})})
+    .then(function(r){if(!r.ok)throw 0;try{localStorage.setItem('scs_rv',String(Date.now()))}catch(e){}
+      $('#rn').value='';$('#rt').value='';rate=0;[].forEach.call(st.children,function(c){c.classList.remove('on')});
+      er.className='rer rok';er.textContent='ধন্যবাদ! আপনার রিভিউ পাঠানো হয়েছে। মালিক দেখে অনুমোদন দিলে সাইটে দেখা যাবে।';btn.disabled=false;btn.textContent='রিভিউ পাঠান'})
+    .catch(function(){er.textContent='রিভিউ পাঠানো যায়নি। একটু পরে আবার চেষ্টা করুন।';btn.disabled=false;btn.textContent='রিভিউ পাঠান'});
+  };
+  load();
 })();
 </script>
 </body>

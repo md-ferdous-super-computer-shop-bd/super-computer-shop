@@ -1289,6 +1289,54 @@ function rvHtml(){if(LICM!=='self')return '';if(RV===null){rvLoad();return `<div
 V.rev=()=>rvHtml();if(LICM==='self'){const i=M.findIndex(m=>m[0]==='ord');M.splice(i>=0?i+1:M.length-1,0,['rev','⭐','Customer Reviews'])}
 {const dash9=V.dash;V.dash=()=>{const np=RV?RV.filter(x=>!x.ok).length:0;return (LICM==='self'&&np>0?`<div class='card' onclick="go('rev')" style='cursor:pointer;border:2px solid #f59e0b;background:rgba(245,158,11,.1)'>⭐ <b>${np}টা নতুন কাস্টমার রিভিউ</b> অনুমোদনের অপেক্ষায় — এখানে চাপুন</div>`:'')+dash9()}
  if(LICM==='self'){setTimeout(()=>rvLoad(true),5000);setInterval(()=>{if(!document.hidden)rvLoad(true)},300000)}}
+
+/* ---- কাস্টমার চ্যাট (মেসেঞ্জারের মতো; প্রতিটা কাস্টমারের কথা আলাদা) ---- */
+let CH={list:[],open:null,msgs:[],un:null,um:null,first:true,rend:null};
+const chT=t=>{try{return new Date(t||0).toLocaleString('bn-BD',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}catch(e){return ''}};
+const chWa=p=>{let d=digits(p||'');if(!d)return '';if(d.startsWith('0'))d='88'+d;else if(d.length===10)d='880'+d;return d.length>=12?d:''};
+function chBadge(n){const m=M.find(x=>x[0]==='chat');if(m)m[2]='Customer Chat'+(n?' ('+n+')':'');
+  const b=[...document.querySelectorAll('#sb button.mi')].find(x=>(x.getAttribute('onclick')||'').includes("'chat'"));if(b){const s=b.querySelector('.tx');if(s)s.textContent=m?m[2]:''}
+  document.title=(n?'('+n+') ':'')+document.title.replace(/^\(\d+\)\s*/,'')}
+function chToast(c){let d=document.getElementById('chToast');if(!d){d=document.createElement('div');d.id='chToast';d.style.cssText='position:fixed;right:14px;bottom:16px;z-index:9999;max-width:320px;background:#0b1730;color:#fff;border:2px solid #d4a017;border-radius:14px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer';document.body.appendChild(d)}
+  d.innerHTML='💬 <b>'+esc(c.name||'কাস্টমার')+'</b><br><small>'+esc(c.last||'')+'</small>';d.style.display='block';d.onclick=()=>{d.style.display='none';CH.open=c.id;chOpen(c.id);go('chat')};clearTimeout(d._t);d._t=setTimeout(()=>d.style.display='none',9000)}
+function chStart(){if(LICM!=='self'||CH.un||typeof AUTH==='undefined'||!AUTH.currentUser||String(AUTH.currentUser.email||'').toLowerCase()!==String(OWNER).toLowerCase())return;
+  try{CH.un=DB.collection('chats').orderBy('lt','desc').limit(60).onSnapshot(s=>{const prev=new Map(CH.list.map(x=>[x.id,x]));CH.list=s.docs.map(d=>Object.assign({id:d.id},d.data()));
+    chBadge(CH.list.filter(x=>x.uo).length);
+    if(!CH.first)CH.list.forEach(c=>{const p=prev.get(c.id);if(c.uo&&(!p||p.lt!==c.lt)&&!(tab==='chat'&&CH.open===c.id))chToast(c)});
+    CH.first=false;if(tab==='chat')chRender()},e=>{CH.un=null;CH.err=(e.code||e.message)+' — Firestore Rules-এ chats-এর নিয়ম বসিয়েছেন কি?';if(tab==='chat')chRender()})}catch(e){CH.un=null}}
+if(LICM==='self')setInterval(chStart,4000);
+function chOpen(id){if(CH.um){CH.um();CH.um=null}CH.open=id;CH.msgs=[];CH.rend=null;
+  CH.um=DB.collection('chats').doc(id).collection('m').orderBy('t').limit(300).onSnapshot(s=>{CH.msgs=s.docs.map(d=>Object.assign({id:d.id},d.data()));if(tab==='chat')chMsgs();
+    const c=CH.list.find(x=>x.id===id);if(c&&c.uo)DB.collection('chats').doc(id).update({uo:false}).catch(()=>{})});
+  if(tab==='chat')chRender()}
+function chBack(){if(CH.um){CH.um();CH.um=null}CH.open=null;CH.rend=null;chRender()}
+function chMsgs(){const b=document.getElementById('chm');if(!b)return;const end=b.scrollHeight-b.scrollTop-b.clientHeight<90;
+  b.innerHTML=CH.msgs.length?CH.msgs.map(m=>`<div style='max-width:80%;padding:8px 12px;border-radius:14px;white-space:pre-wrap;word-break:break-word;line-height:1.45;${m.from!=='c'?"align-self:flex-end;background:#d4a017;color:#2a1d00;border-bottom-right-radius:4px":"align-self:flex-start;background:rgba(127,127,127,.18);border-bottom-left-radius:4px"}'>${esc(m.text||'')}<div style='font-size:11px;opacity:.65;margin-top:3px'>${m.from==='o'?'আপনি · ':m.from==='a'?'🤖 স্বয়ংক্রিয় উত্তর · ':''}${chT(m.t)}</div></div>`).join(''):"<p class='mut' style='margin:auto'>কোনো মেসেজ নেই</p>";
+  if(end||CH.msgs.length<2)b.scrollTop=b.scrollHeight}
+function chRender(){const root=document.getElementById('chroot');if(!root)return;
+  if(!CH.open){CH.rend=null;root.innerHTML=(CH.err?`<p style='color:#dc2626'>${esc(CH.err)}</p>`:'')+(CH.list.length?CH.list.map(c=>`<div onclick="chOpen('${c.id}')" style='display:flex;gap:10px;align-items:center;padding:10px;border-bottom:1px solid rgba(127,127,127,.25);cursor:pointer;${c.uo?'background:rgba(245,158,11,.12)':''}'><div style='width:42px;height:42px;border-radius:50%;background:#d4a017;color:#2a1d00;display:grid;place-items:center;font-weight:700;flex:none'>${esc((c.name||'?').charAt(0))}</div><div style='flex:1;min-width:0'><div style='display:flex;justify-content:space-between;gap:8px'><b>${esc(c.name||'')}</b><small class='mut'>${chT(c.lt)}</small></div><div class='mut' style='white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>${c.uo?'🔴 ':''}${esc(c.last||'')}</div></div></div>`).join(''):`<p class='mut'>এখনো কোনো কাস্টমার মেসেজ করেনি। কাস্টমার সাইটের নিচের বাঁ দিকের "💬 চ্যাট করুন" বাটন থেকে মেসেজ করবে।</p>`);return}
+  const c=CH.list.find(x=>x.id===CH.open)||{name:'কাস্টমার',id:CH.open},wa=chWa(c.phone);
+  if(CH.rend!==CH.open){CH.rend=CH.open;root.innerHTML=`<div style='display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px'><button class='g' onclick='chBack()'>← সব চ্যাট</button><b style='flex:1'>${esc(c.name||'')}${c.phone?` · ${esc(c.phone)}`:''}</b>${wa?`<a class='b' target='_blank' rel='noopener' href='https://wa.me/${wa}' style='text-decoration:none'>WhatsApp-এ কথা বলুন</a>`:''}<button class='g' style='color:#dc2626' onclick="chDel('${c.id}')">🗑 মুছুন</button></div><div id='chm' style='display:flex;flex-direction:column;gap:8px;height:55vh;overflow:auto;padding:10px;border:1px solid rgba(127,127,127,.3);border-radius:12px'></div><div style='display:flex;gap:8px;margin-top:8px'><textarea id='chi' rows='2' maxlength='1000' placeholder='উত্তর লিখুন...' style='flex:1;font:inherit;padding:10px;border-radius:10px'></textarea><button class='b' onclick='chSend()'>পাঠান</button></div>`;
+    const i=document.getElementById('chi');i.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();chSend()}});chMsgs()}}
+async function chSend(){const i=document.getElementById('chi');if(!i||!CH.open)return;const x=i.value.trim();if(!x)return;i.value='';const now=Date.now();
+  try{await DB.collection('chats').doc(CH.open).collection('m').add({from:'o',text:x,t:now});await DB.collection('chats').doc(CH.open).update({last:'আপনি: '+x.slice(0,120),lt:now,uo:false})}catch(e){i.value=x;alert('পাঠানো যায়নি: '+(e.message||e))}}
+async function chDel(id){if(!confirm('এই চ্যাটের সব মেসেজ মুছে যাবে। মুছবেন?'))return;try{const r=await DB.collection('chats').doc(id).collection('m').get();for(const d of r.docs)await d.ref.delete();await DB.collection('chats').doc(id).delete();chBack()}catch(e){alert('মোছা যায়নি: '+(e.message||e))}}
+const CHD='আসসালামু আলাইকুম! আপনার মেসেজের জন্য ধন্যবাদ। আমরা এখন অফলাইনে আছি, ফিরে এসেই উত্তর দেব। জরুরি হলে কল বা WhatsApp করুন: 01316843984';
+let CHC=null;
+async function chCfgLoad(){try{const d=await DB.collection('chatcfg').doc('main').get();CHC=d.exists?d.data():{}}catch(e){CHC={}}const el=document.getElementById('chcfg');if(el)el.innerHTML=chCfgHtml()}
+function chCfgHtml(){const c=CHC||{};return `<label style='display:flex;gap:8px;align-items:center'><input type='checkbox' id='cfOn' ${c.on?'checked':''}> অটো রিপ্লাই চালু</label>
+ <label>কখন পাঠাবে?</label><select id='cfMode'><option value='auto' ${c.mode!=='always'?'selected':''}>শুধু আমি অফলাইন থাকলে (সফটওয়্যার ৫ মিনিট ব্যবহার না করলে/বন্ধ থাকলে)</option><option value='always' ${c.mode==='always'?'selected':''}>সবসময় (নতুন চ্যাটের প্রথম মেসেজে)</option></select>
+ <label>অটো মেসেজের লেখা</label><textarea id='cfTx' rows='4' maxlength='500' style='width:100%;font:inherit;padding:10px;border-radius:10px'>${esc(c.text||CHD)}</textarea>
+ <p class='mut' style='margin:6px 0'>একই কাস্টমারকে ৬ ঘণ্টায় একবারই অটো মেসেজ যাবে। আপনি নিজে উত্তর দিলে আর যাবে না।</p>
+ <button class='b' onclick='chCfgSave()'>💾 সেভ করুন</button> <span id='cfMsg' class='mut'></span>`}
+async function chCfgSave(){const o={on:document.getElementById('cfOn').checked,mode:document.getElementById('cfMode').value,text:document.getElementById('cfTx').value.trim().slice(0,500)};
+  try{await DB.collection('chatcfg').doc('main').set(o,{merge:true});CHC=Object.assign(CHC||{},o);document.getElementById('cfMsg').textContent='✅ সেভ হয়েছে'}catch(e){document.getElementById('cfMsg').textContent='❌ '+(e.message||e)+' — Firestore Rules Publish করেছেন কি?'}}
+let LAST_ACT=Date.now();['pointerdown','keydown','touchstart'].forEach(e=>addEventListener(e,()=>{LAST_ACT=Date.now()},{passive:true}));
+function chBeat(){if(LICM!=='self'||typeof DB==='undefined'||!DB||document.hidden||Date.now()-LAST_ACT>600000||typeof AUTH==='undefined'||!AUTH.currentUser||String(AUTH.currentUser.email||'').toLowerCase()!==String(OWNER).toLowerCase())return;DB.collection('chatcfg').doc('main').set({seen:Date.now()},{merge:true}).catch(()=>{})}
+if(LICM==='self'){setInterval(chBeat,120000);setTimeout(chBeat,8000)}
+V.chat=()=>{setTimeout(()=>{chRender();if(!CHC)chCfgLoad()},0);return `<div class='card'><h2>🤖 অটো রিপ্লাই</h2><details ${CHC&&CHC.on?'':'open'}><summary style='cursor:pointer'>অফলাইনে থাকলে কাস্টমারকে স্বয়ংক্রিয় উত্তর (চাপুন)</summary><div id='chcfg' style='margin-top:8px'>${CHC?chCfgHtml():'লোড হচ্ছে...'}</div></details></div><div class='card'><h2>💬 কাস্টমার চ্যাট</h2><p class='mut'>কাস্টমার সাইট থেকে মেসেজ করলে এখানে আসবে। উত্তর দিলে কাস্টমার সাইটে সেটা দেখবে। প্রতিটা কাস্টমারের কথোপকথন আলাদা, অন্য কাস্টমার দেখতে পারে না।</p><div id='chroot'></div></div>`};
+if(LICM==='self'){const i=M.findIndex(m=>m[0]==='rev');M.splice(i>=0?i+1:M.length-1,0,['chat','💬','Customer Chat'])}
+{const dash8=V.dash;V.dash=()=>{const n=CH.list.filter(x=>x.uo).length;return (LICM==='self'&&n>0?`<div class='card' onclick="go('chat')" style='cursor:pointer;border:2px solid #d4a017;background:rgba(212,160,23,.12)'>💬 <b>${n}জন কাস্টমারের নতুন মেসেজ</b> — এখানে চাপুন</div>`:'')+dash8()}}
 /* ---- একাধিক ভালো মানের ছবি (সর্বোচ্চ ৩টা) ---- */
 let PG=[],PGd=false;
 const pgLoad=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=r.result};r.onerror=rej;r.readAsDataURL(f)});
@@ -1297,9 +1345,9 @@ function pgResize(im,max,q){const k=Math.min(1,max/Math.max(im.width,im.height))
 async function pgPick(el){const fs=[...el.files];el.value='';
   for(const f of fs){if(PG.length>=3){alert('সর্বোচ্চ ৩টা ছবি দেওয়া যাবে');break}
     try{const im=await pgLoad(f);let q=.82,full=pgResize(im,1000,q);while(full.length>300000&&q>.5){q-=.08;full=pgResize(im,1000,q)}if(full.length>300000)full=pgResize(im,800,.6);
-      PG.push({f:full,t:pgResize(im,480,.76)});PGd=true}catch(e){alert('একটা ছবি পড়া যায়নি, অন্য ছবি দিন')}}
+      PG.push({f:full,t:pgResize(im,720,.8)});PGd=true}catch(e){alert('একটা ছবি পড়া যায়নি, অন্য ছবি দিন')}}
   pgDraw()}
-async function pgEnsure(){for(const x of PG){if(!x.t||x.t.length>90000){try{x.t=pgResize(await pgUrl(x.f),480,.76)}catch(e){x.t=x.f}}}}
+async function pgEnsure(){for(const x of PG){if(!x.t||x.t.length>170000){try{x.t=pgResize(await pgUrl(x.f),720,.8)}catch(e){x.t=x.f}}}}
 function pgDraw(){const b=$('#pgbox');if(!b)return;
   b.innerHTML=PG.map((x,i)=>`<div style='position:relative;display:inline-block;margin:0 8px 8px 0'><img src='${x.t||x.f}' style='width:90px;height:90px;object-fit:cover;border-radius:8px;border:2px solid ${i?'transparent':'#16a34a'}'>${i===0?`<small style='position:absolute;left:4px;bottom:6px;background:#16a34a;color:#fff;border-radius:4px;padding:0 5px'>মূল</small>`:`<button type='button' class='g' style='position:absolute;left:2px;bottom:2px;padding:0 6px' onclick='pgMain(${i})'>মূল করুন</button>`}<button type='button' class='x' style='position:absolute;right:0;top:0' onclick='pgDel(${i})'>✖</button></div>`).join('')+`<div class='mut'>${PG.length}/3 ছবি · প্রথম ছবিটাই সাইটে আগে দেখাবে</div>`;
   const a=$('#pgadd');if(a)a.style.display=PG.length>=3?'none':''}
@@ -1352,8 +1400,11 @@ async function siteTest(){
     else bad('কাস্টমার সাইটে এখনও পুরনো shop/index.html আছে','shop-index.html ফাইলের নাম বদলে index.html করে GitHub-এর shop ফোল্ডারে আপলোড করুন (পুরনোটার জায়গায়)।')}
   catch(e){bad('shop/index.html পরীক্ষা হয়নি','')}
   box.innerHTML=out.join('<br>')+'<p class="mut" style="margin-top:8px">এই লেখাগুলোর স্ক্রিনশট আমাকে পাঠালে আমি বলে দেব কী করতে হবে।</p>'}
+async function thHD(){if(!DB||!confirm('সব পণ্যের ক্যাটালগ ছবি আরও পরিষ্কার (বড় সাইজের) করা হবে। কয়েক মিনিট লাগতে পারে। শুরু করবেন?'))return;
+  let n=0,bad=0;for(const p of S.p.filter(p=>p.pub&&p.nimg>0)){try{const d=await DB.collection('pimg').doc(p.id).get();if(!d.exists)continue;const full=d.data().i0;if(!full)continue;const im=await pgUrl(full);let q=.8,t=pgResize(im,720,q);while(t.length>150000&&q>.5){q-=.08;t=pgResize(im,720,q)}p.img=t;n++}catch(e){bad++}}
+  save();csnap=null;try{await syncCat()}catch(e){}alert('✅ '+n+'টা পণ্যের ছবি পরিষ্কার করা হয়েছে'+(bad?(' ('+bad+'টা পারা যায়নি)'):'')+'। সাইটে রিফ্রেশ করে দেখুন।')}
 function catNow(){csnap=null;syncCat().then(()=>alert('✅ ক্যাটালগ সিঙ্ক শেষ। এবার পরীক্ষা বাটন চাপুন।'))}
-{const cat9=V.cat;V.cat=()=>{const h=cat9();return h.replace("</p>","</p><button class='b' onclick='catNow()'>🔄 ক্যাটালগ এখনই সিঙ্ক করুন</button> <button class='b' onclick='siteTest()'>🔍 সাইট ও অর্ডার ব্যবস্থা পরীক্ষা করুন</button><div id='sitet' class='mut' style='margin:8px 0;line-height:1.7'></div>")}}
+{const cat9=V.cat;V.cat=()=>{const h=cat9();return h.replace("</p>","</p><button class='b' onclick='catNow()'>🔄 ক্যাটালগ এখনই সিঙ্ক করুন</button> <button class='b' onclick='thHD()'>🖼 সাইটের ছবি আরও পরিষ্কার করুন</button> <button class='b' onclick='siteTest()'>🔍 সাইট ও অর্ডার ব্যবস্থা পরীক্ষা করুন</button><div id='sitet' class='mut' style='margin:8px 0;line-height:1.7'></div>")}}
 /* ---- ক্রয়ে পুরনো পণ্য খুঁজে দ্রুত স্টক বাড়ানো ---- */
 function lastBuy(p){return S.pu.filter(b=>b.pid===p.id).sort((a,b)=>String(a.date).localeCompare(String(b.date))).pop()}
 function bSearch(){

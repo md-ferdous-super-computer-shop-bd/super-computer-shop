@@ -118,7 +118,7 @@ svg{width:22px;height:22px;flex:none}
 .rv .hd{display:flex;gap:10px;align-items:center;margin:6px 0 2px}.rv .av{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:none;border:2px solid var(--gold)}.rv .av0{width:44px;height:44px;border-radius:50%;flex:none;background:rgba(212,160,23,.18);color:var(--gold);display:grid;place-items:center;font-weight:700}
 .rv .vf{display:inline-block;margin-top:6px;font-size:13px;padding:3px 10px;border-radius:999px;background:rgba(22,163,74,.12);color:#16a34a;font-weight:600}
 .rv .ac{display:inline-block;margin-top:6px;font-size:13px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink);text-decoration:none}
-.rdt{margin-top:12px}.rdt summary{cursor:pointer;font-weight:600;padding:8px 0}
+.opt{margin-top:16px;padding:12px;border:1px dashed var(--line);border-radius:12px}.opt>b{display:block;color:var(--mut)}em.req{font-style:normal;font-size:12px;color:#dc2626;border:1px solid #dc2626;border-radius:999px;padding:1px 8px;margin-left:4px}em.op{font-style:normal;font-size:12px;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:1px 8px;margin-left:4px}
 .rer{color:#dc2626;margin:8px 0;min-height:1em}.rok{color:#16a34a;font-weight:600}
 </style>
 </head>
@@ -142,6 +142,7 @@ svg{width:22px;height:22px;flex:none}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
         ম্যাপে দেখুন
       </a>
+      <a class="btn g" href="#reviews">⭐ কাস্টমারদের রিভিউ দেখুন</a>
     </div>
   </div>
 </header>
@@ -185,17 +186,17 @@ svg{width:22px;height:22px;flex:none}
       <h3>আপনিও রিভিউ দিন</h3>
       <p>আমাদের থেকে কিনে থাকলে বা সার্ভিস নিলে আপনার অভিজ্ঞতা জানান। মালিক দেখে অনুমোদন দিলে সাইটে আসবে।</p>
       <div class="fm">
-        <label for="rn">আপনার নাম *</label><input id="rn" maxlength="40" autocomplete="name">
-        <label>রেটিং *</label><div class="stars" id="rst" role="radiogroup" aria-label="রেটিং"></div>
-        <label for="rcm">মেমো নম্বর (ইচ্ছা হলে)</label><input id="rcm" maxlength="20" placeholder="যেমন S-1024 (মেমোর ওপরে লেখা আছে)">
-        <label for="rcp">মেমোতে দেওয়া মোবাইল নম্বর (ইচ্ছা হলে)</label><input id="rcp" maxlength="20" inputmode="tel" placeholder="01XXXXXXXXX">
+        <label for="rn">আপনার নাম <em class="req">প্রয়োজন</em></label><input id="rn" maxlength="40" autocomplete="name">
+        <label>রেটিং (স্টার দিন) <em class="req">প্রয়োজন</em></label><div class="stars" id="rst" role="radiogroup" aria-label="রেটিং"></div>
+        <label for="rt">আপনার মতামত <em class="req">প্রয়োজন</em></label><textarea id="rt" rows="3" maxlength="400" placeholder="পণ্য ও সার্ভিস কেমন লেগেছে?"></textarea>
+        <div class="opt"><b>ইচ্ছা হলে দিতে পারেন — না দিলেও চলবে</b>
+        <label for="rcm">মেমো নম্বর <em class="op">ইচ্ছা হলে</em></label><input id="rcm" maxlength="20" placeholder="যেমন S-1024 (মেমোর ওপরে লেখা আছে)">
+        <label for="rcp">মেমোতে দেওয়া মোবাইল নম্বর <em class="op">ইচ্ছা হলে</em></label><input id="rcp" maxlength="20" inputmode="tel" placeholder="01XXXXXXXXX">
         <small class="rhint">এই দুটো দিলে "✓ যাচাইকৃত ক্রেতা" ব্যাজ পাবেন। এই তথ্য সাইটে কখনো দেখানো হয় না, শুধু মালিক দেখেন।</small>
-        <details class="rdt"><summary>📷 ছবি ও অ্যাকাউন্ট যোগ করুন (ইচ্ছা হলে)</summary>
-        <label for="rph">আপনার ছবি</label><input id="rph" type="file" accept="image/*"><div id="rpv" class="rpv"></div>
-        <label for="rat">আপনার অ্যাকাউন্ট (ইচ্ছা হলে)</label>
+        <label for="rph">আপনার ছবি <em class="op">ইচ্ছা হলে</em></label><input id="rph" type="file" accept="image/*"><div id="rpv" class="rpv"></div>
+        <label for="rat">আপনার অ্যাকাউন্ট <em class="op">ইচ্ছা হলে</em></label>
         <div class="rac"><select id="rat"><option value="">— বেছে নিন —</option><option value="fb">Facebook</option><option value="wa">WhatsApp</option><option value="web">ওয়েবসাইট</option></select><input id="rav" maxlength="150" placeholder="লিংক বা নম্বর" disabled></div>
-        <small class="rhint">Facebook-এর প্রোফাইল লিংক, WhatsApp-এর নম্বর বা আপনার ওয়েবসাইটের লিংক দিতে পারেন। WhatsApp নম্বর সাইটে আংশিক লুকানো থাকবে।</small></details>
-        <label for="rt">আপনার মতামত *</label><textarea id="rt" rows="3" maxlength="400" placeholder="পণ্য ও সার্ভিস কেমন লেগেছে?"></textarea>
+        <small class="rhint">Facebook-এর প্রোফাইল লিংক, WhatsApp-এর নম্বর বা আপনার ওয়েবসাইটের লিংক দিতে পারেন। WhatsApp নম্বর সাইটে আংশিক লুকানো থাকবে।</small></div>
         <input id="rh" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
         <div id="rer" class="rer" role="alert"></div>
         <button class="btn p" type="button" id="rsb">রিভিউ পাঠান</button>

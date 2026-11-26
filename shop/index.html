@@ -183,6 +183,7 @@ svg{width:22px;height:22px;flex:none}
         ম্যাপে দেখুন
       </a>
       <a class="btn g" href="#reviews">⭐ কাস্টমারদের রিভিউ দেখুন</a>
+      <a class="btn g" href="#" id="hchat">💬 চ্যাট করুন</a>
     </div>
   </div>
 </header>
@@ -527,7 +528,7 @@ svg{width:22px;height:22px;flex:none}
     else p=J(BASE+'/chats/'+ST.cid+'?updateMask.fieldPaths=last&updateMask.fieldPaths=lt&updateMask.fieldPaths=uo&key='+KEY,'PATCH',{fields:meta});
     p.then(function(){return J(BASE+'/chats/'+ST.cid+'/m?key='+KEY,'POST',{fields:{from:sv('c'),text:sv(txt.slice(0,1000)),t:iv(now)}})})
      .then(function(){t.value='';draft='';msgs.push({from:'c',text:txt,t:now});draw();setSeen(Math.max(now,seenT()));maybeAuto()})
-     .catch(function(){$('#che').textContent='মেসেজ পাঠানো যায়নি। নেট দেখে আবার চেষ্টা করুন।'})
+     .catch(function(e){$('#che').textContent=(e&&e.message==='403')?'দুঃখিত, এই চ্যাটে এখন মেসেজ পাঠানো যাচ্ছে না।':'মেসেজ পাঠানো যায়নি। নেট দেখে আবার চেষ্টা করুন।'})
      .then(function(){busy=false;var b=$('#csd');if(b)b.disabled=false})}
   var autoBusy=false;
   function maybeAuto(){if(autoBusy)return;autoBusy=true;
@@ -541,7 +542,7 @@ svg{width:22px;height:22px;flex:none}
     .catch(function(){}).then(function(){setTimeout(function(){autoBusy=false},5000)})}
   function open(pre){$('#ovch').classList.add('on');document.body.style.overflow='hidden';every();
     if(!ST||!ST.cid){intro(pre);return}thread(pre)}
-  $('#chb').onclick=function(){open()};
+  $('#chb').onclick=function(){open()};var hc=$('#hchat');if(hc)hc.onclick=function(e){e.preventDefault();open()};
   $('#ovch').addEventListener('click',function(e){if(e.target===this)close()});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('#ovch').classList.contains('on'))close()});
   window.SCchat={open:open};

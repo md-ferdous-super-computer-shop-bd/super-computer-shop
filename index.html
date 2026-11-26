@@ -1261,14 +1261,34 @@ let RV=null,RVE='';
 async function rvLoad(force){if(LICM!=='self'||!DB)return;if(!force&&RV)return;
   try{const r=await DB.collection('reviews').limit(100).get();RV=r.docs.map(d=>Object.assign({id:d.id},d.data())).sort((a,b)=>(b.t||0)-(a.t||0));RVE=''}
   catch(e){RV=RV||[];RVE=(e.code||e.message)+' — Firestore Rules-এ reviews-এর নিয়ম বসিয়েছেন কি?'}
-  if(tab==='ord')R()}
-async function rvSet(id,ok){try{await DB.collection('reviews').doc(id).update({ok});const o=RV.find(x=>x.id===id);if(o)o.ok=ok;R()}catch(e){alert('হয়নি: '+(e.message||e))}}
+  if(tab==='rev'||tab==='dash')R()}
+const rvL=v=>digits(v).slice(-10);
+function rvFull(o){return !!(o.cm&&o.cp&&S.s.some(s=>String(s.no||'').trim().toLowerCase()===String(o.cm).trim().toLowerCase()&&s.ph&&rvL(s.ph)===rvL(o.cp)))}
+function rvUpd(o,ok){const u={ok};const FV=window.firebase&&firebase.firestore&&firebase.firestore.FieldValue;
+  if(ok){if(rvFull(o))u.vf=true;
+    if(o.at==='wa'&&o.av&&String(o.av).indexOf('•')<0){const d=digits(o.av);u.av=d.slice(0,5)+'••••••'+d.slice(-2)}
+    if(FV){if(o.cm!==undefined)u.cm=FV.delete();if(o.cp!==undefined)u.cp=FV.delete()}}
+  return u}
+async function rvSet(id,ok){const o=RV.find(x=>x.id===id);if(!o)return;try{const u=rvUpd(o,ok);await DB.collection('reviews').doc(id).update(u);if(u.ok!==undefined)o.ok=u.ok;if(u.vf)o.vf=true;if(u.av)o.av=u.av;if(ok){delete o.cm;delete o.cp}R()}catch(e){alert('হয়নি: '+(e.message||e))}}
+async function rvAll(){const L=RV.filter(x=>!x.ok&&rvFull(x));if(!L.length)return alert('মিল পাওয়া কোনো অপেক্ষমাণ রিভিউ নেই');if(!confirm(L.length+'টা রিভিউ (মেমো ও মোবাইল মিলেছে) একসাথে অনুমোদন করবেন?'))return;for(const o of L)await rvSet(o.id,true)}
+async function rvVf(id,v){try{await DB.collection('reviews').doc(id).update({vf:v});const o=RV.find(x=>x.id===id);if(o)o.vf=v;R()}catch(e){alert('হয়নি: '+(e.message||e))}}
+function rvMatch(o){
+  if(rvFull(o))return `<div style='color:#16a34a'>✔ মেমো নম্বর ও মোবাইল দুটোই বিক্রির রেকর্ডের সঙ্গে মিলেছে — অনুমোদন করলে "যাচাইকৃত ক্রেতা" ব্যাজ নিজে থেকে বসবে</div>`;
+  const m=o.cm&&S.s.find(s=>String(s.no||'').trim().toLowerCase()===String(o.cm).trim().toLowerCase());
+  if(m)return `<div class='mut'>ℹ️ মেমো ${esc(m.no)} আছে (ক্রেতা: ${esc(m.cust||'')}) কিন্তু মোবাইল নম্বর মেলেনি। কাস্টমার অন্যের নম্বর দিয়ে কিনে থাকতে পারে — নিজে নিশ্চিত হলে "ক্রেতা হিসেবে যাচাই করেছি" চাপুন</div>`;
+  if(o.cm)return `<div class='mut'>⚠️ মেমো নম্বর "${esc(o.cm)}" বিক্রির রেকর্ডে পাওয়া যায়নি</div>`;
+  return `<div class='mut'>মেমো নম্বর দেয়নি — ব্যাজ ছাড়াই দেখানো যাবে</div>`}
 async function rvDel(id){if(!confirm('এই রিভিউ মুছবেন?'))return;try{await DB.collection('reviews').doc(id).delete();RV=RV.filter(x=>x.id!==id);R()}catch(e){alert('মোছা যায়নি: '+(e.message||e))}}
+function rvAcc(o){if(!o.at||!o.av)return '';const v=String(o.av);
+  if(o.at==='wa'){const d=v.replace(/\D/g,'');return `<div>💬 WhatsApp: <a target='_blank' rel='noopener' href='https://wa.me/${d}'>+${esc(d)}</a> <small class='mut'>(সাইটে আংশিক লুকানো দেখায়)</small></div>`}
+  if(!/^https:\/\//.test(v))return '';return `<div>${o.at==='fb'?'📘 Facebook':'🌐 ওয়েবসাইট'}: <a target='_blank' rel='noopener nofollow' href='${esc(v)}'>${esc(v)}</a> <small class='mut'>(কাস্টমারের নিজের দেওয়া, যাচাই করা নয় — লিংকে চেপে দেখে নিন)</small></div>`}
 function rvHtml(){if(LICM!=='self')return '';if(RV===null){rvLoad();return `<div class='card'>⭐ রিভিউ লোড হচ্ছে...</div>`}
   const np=RV.filter(x=>!x.ok).length;
-  return `<div class='card'><h2>⭐ কাস্টমার রিভিউ${np?` <span style='color:#dc2626'>(${np}টা অপেক্ষায়)</span>`:''}</h2><p class='mut'>কাস্টমার সাইট থেকে রিভিউ দিলে এখানে আসবে। "সাইটে দেখান" চাপলে তবেই ওয়েবসাইটে দেখাবে।</p>${RVE?`<p style='color:#dc2626'>${esc(RVE)}</p>`:''}<button class='g' onclick="RV=null;rvLoad(true)">🔄 রিফ্রেশ</button>
-  ${RV.length?RV.map(o=>`<div class='card' style='margin:8px 0;border-left:5px solid ${o.ok?'#16a34a':'#f59e0b'}'><div style='display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap'><b>${esc(o.name||'')} · ${'★'.repeat(o.rating||0)}${'☆'.repeat(5-(o.rating||0))}</b><span class='mut'>${new Date(o.t||0).toLocaleString('bn-BD')} · ${o.ok?'✅ সাইটে দেখাচ্ছে':'⏳ অপেক্ষায়'}</span></div><div style='margin:6px 0;white-space:pre-line'>${esc(o.text||'')}</div><div style='display:flex;gap:6px;flex-wrap:wrap'>${o.ok?`<button class='g' onclick="rvSet('${o.id}',false)">সাইট থেকে লুকান</button>`:`<button class='b' onclick="rvSet('${o.id}',true)">✅ সাইটে দেখান</button>`}<button class='g' style='color:#dc2626' onclick="rvDel('${o.id}')">🗑 মুছুন</button></div></div>`).join(''):`<p class='mut'>এখনো কোনো রিভিউ আসেনি।</p>`}</div>`}
-{const ord1=V.ord;V.ord=()=>rvHtml()+ord1()}
+  return `<div class='card'><h2>⭐ কাস্টমার রিভিউ${np?` <span style='color:#dc2626'>(${np}টা অপেক্ষায়)</span>`:''}</h2><p class='mut'>কাস্টমার সাইট থেকে রিভিউ দিলে এখানে আসবে (বাম মেনুর ⭐ Customer Reviews)। "সাইটে দেখান" চাপলে তবেই ওয়েবসাইটে দেখাবে।</p>${RVE?`<p style='color:#dc2626'>${esc(RVE)}</p>`:''}<button class='g' onclick="RV=null;rvLoad(true)">🔄 রিফ্রেশ</button> ${RV.some(x=>!x.ok&&rvFull(x))?`<button class='b' onclick='rvAll()'>✅ মিল পাওয়া সব রিভিউ একসাথে অনুমোদন</button>`:''}
+  ${RV.length?RV.map(o=>`<div class='card' style='margin:8px 0;border-left:5px solid ${o.ok?'#16a34a':'#f59e0b'}'><div style='display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap'><span style='display:flex;gap:8px;align-items:center'>${o.photo&&String(o.photo).startsWith('data:image/')?`<img src='${esc(o.photo)}' style='width:44px;height:44px;border-radius:50%;object-fit:cover'>`:''}<b>${esc(o.name||'')} · ${'★'.repeat(o.rating||0)}${'☆'.repeat(5-(o.rating||0))}</b></span><span class='mut'>${new Date(o.t||0).toLocaleString('bn-BD')} · ${o.vf?'✓ যাচাইকৃত · ':''}${o.ok?'✅ সাইটে দেখাচ্ছে':'⏳ অপেক্ষায়'}</span></div><div style='margin:6px 0;white-space:pre-line'>${esc(o.text||'')}</div>${rvAcc(o)}${o.cm||o.cp?`<div class='mut'>🔒 মেমো: ${esc(o.cm||'-')} · মোবাইল: ${esc(o.cp||'-')} (অনুমোদনের পর এগুলো মুছে যায়)</div>`:''}${o.ok?'':rvMatch(o)}<div style='display:flex;gap:6px;flex-wrap:wrap'>${o.ok?`<button class='g' onclick="rvSet('${o.id}',false)">সাইট থেকে লুকান</button>`:`<button class='b' onclick="rvSet('${o.id}',true)">✅ সাইটে দেখান</button>`}<button class='g' onclick="rvVf('${o.id}',${!o.vf})">${o.vf?'যাচাই বাতিল':'✔ ক্রেতা হিসেবে যাচাই করেছি'}</button><button class='g' style='color:#dc2626' onclick="rvDel('${o.id}')">🗑 মুছুন</button></div></div>`).join(''):`<p class='mut'>এখনো কোনো রিভিউ আসেনি।</p>`}</div>`}
+V.rev=()=>rvHtml();if(LICM==='self'){const i=M.findIndex(m=>m[0]==='ord');M.splice(i>=0?i+1:M.length-1,0,['rev','⭐','Customer Reviews'])}
+{const dash9=V.dash;V.dash=()=>{const np=RV?RV.filter(x=>!x.ok).length:0;return (LICM==='self'&&np>0?`<div class='card' onclick="go('rev')" style='cursor:pointer;border:2px solid #f59e0b;background:rgba(245,158,11,.1)'>⭐ <b>${np}টা নতুন কাস্টমার রিভিউ</b> অনুমোদনের অপেক্ষায় — এখানে চাপুন</div>`:'')+dash9()}
+ if(LICM==='self'){setTimeout(()=>rvLoad(true),5000);setInterval(()=>{if(!document.hidden)rvLoad(true)},300000)}}
 /* ---- একাধিক ভালো মানের ছবি (সর্বোচ্চ ৩টা) ---- */
 let PG=[],PGd=false;
 const pgLoad=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=r.result};r.onerror=rej;r.readAsDataURL(f)});

@@ -120,6 +120,35 @@ svg{width:22px;height:22px;flex:none}
 .rv .ac{display:inline-block;margin-top:6px;font-size:13px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink);text-decoration:none}
 .opt{margin-top:16px;padding:12px;border:1px dashed var(--line);border-radius:12px}.opt>b{display:block;color:var(--mut)}em.req{font-style:normal;font-size:12px;color:#dc2626;border:1px solid #dc2626;border-radius:999px;padding:1px 8px;margin-left:4px}em.op{font-style:normal;font-size:12px;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:1px 8px;margin-left:4px}
 .rer{color:#dc2626;margin:8px 0;min-height:1em}.rok{color:#16a34a;font-weight:600}
+
+/* ---- কম্প্যাক্ট প্রিমিয়াম কার্ড (২ কলাম, ছোট ছবি) ---- */
+.pg{gap:10px;grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(min-width:620px){.pg{gap:14px;grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:900px){.pg{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.pcard{border:0;border-radius:12px;box-shadow:0 1px 3px rgba(11,23,48,.08),0 4px 14px rgba(11,23,48,.05);transition:transform .15s,box-shadow .15s}
+@media(hover:hover){.pcard:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(11,23,48,.16)}}
+.pcard .im{aspect-ratio:1/1;background:#fff;border-radius:0;position:relative}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .pcard .im{background:#fff}}
+.pcard .im img{padding:6px}
+.pcard .bd{padding:8px 10px 10px;gap:3px}
+.pcard h3{font-size:13.5px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em}
+.pcard .sp{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.pcard .pr{padding-top:2px;gap:6px}
+.pcard .pr b{font-size:19px;color:#e8590c;font-weight:800}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .pcard .pr b{color:#ff8a4c}}
+.pcard .pr s{font-size:12px}
+.pcard .qn{font-size:11.5px;margin:0}
+.pcard .wr{font-size:11px;margin:0 0 4px}
+.badge{top:8px;left:8px;background:#e11d48;font-size:11px;padding:2px 8px}
+.so{top:8px;font-size:12px;padding:3px 10px}
+.cam{right:6px;bottom:6px;font-size:11px;padding:1px 7px}
+.acts{grid-template-columns:1fr 44px;gap:6px;margin-top:4px}
+.b1,.b2{min-height:38px;padding:6px;font-size:13.5px;border-radius:8px}
+.b1{background:linear-gradient(135deg,#f0c14b,#d4a017);color:#2a1d00}
+.b2{border-color:#d4a017;color:#b7791f;font-size:17px}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .b2{color:#f0c14b;border-color:#f0c14b}}
+.acts .lk{grid-column:1/-1;background:none;border:0;font:inherit;font-size:12px;color:var(--mut);padding:2px 0 0;cursor:pointer;text-align:center}
+.pcard.out .b1{background:#9ca3af;color:#fff}
 </style>
 </head>
 <body>
@@ -277,11 +306,11 @@ svg{width:22px;height:22px;flex:none}
         '<div class="bd">'+'<h3>'+esc(title(o))+'</h3>'+(sp?'<div class="sp">'+esc(sp)+'</div>':'')+
         '<div class="pr"><b>'+tk(o.price)+'</b>'+(d?'<s>'+tk(o.op)+'</s>':'')+'</div>'+
         '<div class="qn'+(out?' z':(o.qty<=3?' lo':''))+'">'+(out?'Sold':(o.qty<=3?'মাত্র '+o.qty+' পিস বাকি':o.qty+' পিস স্টকে আছে'))+'</div>'+
-        '<div class="wr">🛡 ১ বছর সার্ভিসিং ওয়ারেন্টি</div><div class="acts">'+(out?'<button class="b1" disabled>Sold</button>':'<button class="b1" data-a="buy">অর্ডার করুন</button><button class="b2" data-a="add">কার্টে যোগ করুন</button>')+'<button class="b2" data-a="dt">🔍 বিস্তারিত দেখুন</button></div></div>';
+        '<div class="wr">🛡 ১ বছর সার্ভিসিং ওয়ারেন্টি</div><div class="acts">'+(out?'<button class="b1" disabled>Sold</button>':'<button class="b1" data-a="buy">অর্ডার করুন</button><button class="b2" data-a="add" aria-label="কার্টে যোগ করুন">🛒</button>')+'<button class="lk" data-a="dt">বিস্তারিত দেখুন ›</button></div></div>';
       c.querySelector('.im').onclick=c.querySelector('h3').onclick=c.querySelector('[data-a=dt]').onclick=function(){detail(o.id)};c.querySelector('.sp')&&(c.querySelector('.sp').onclick=function(){detail(o.id)});
       var bu=c.querySelector('[data-a=buy]'),ad=c.querySelector('[data-a=add]');
       if(bu)bu.onclick=function(){add(o.id);openCart()};
-      if(ad)ad.onclick=function(e){add(o.id);var t=e.target;t.textContent='✓ যোগ হয়েছে';setTimeout(function(){t.textContent='কার্টে যোগ করুন'},1200)};
+      if(ad)ad.onclick=function(e){add(o.id);var t=e.target;t.textContent='✓';setTimeout(function(){t.textContent='🛒'},1200)};
       box.appendChild(c)});
   }
   $('#q').addEventListener('input',draw);$('#srt').addEventListener('change',draw);

@@ -151,6 +151,7 @@ svg{width:22px;height:22px;flex:none}
 .pcard .acts .lk{grid-column:1/-1;background:none;border:0;font:inherit;font-size:12px;color:var(--mut);padding:2px 0 0;cursor:pointer;text-align:center}
 .pcard.out .b1{background:#9ca3af;color:#fff}
 #chb{position:fixed;left:12px;bottom:78px;z-index:40;background:#0b1730;color:#fff;border:2px solid var(--gold);border-radius:999px;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer;min-height:46px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+#hchat .cbd{display:inline-block;margin-left:6px;vertical-align:middle;min-width:20px;height:20px;border-radius:10px;background:#e11d48;color:#fff;font:700 12px/20px sans-serif;text-align:center;font-style:normal;padding:0 5px}
 #chb i{position:absolute;top:-4px;right:-2px;min-width:20px;height:20px;border-radius:10px;background:#e11d48;color:#fff;font:700 12px/20px sans-serif;text-align:center;font-style:normal;padding:0 5px}
 #shch{padding:0;display:flex;flex-direction:column;height:min(82vh,660px);overflow:hidden}
 .ch-h{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#0b1730;color:#fff}.ch-h b{flex:1}.ch-h small{display:block;font-weight:400;opacity:.75}.ch-h button{background:none;border:0;color:#fff;font-size:26px;cursor:pointer;min-width:40px;min-height:40px}
@@ -160,6 +161,21 @@ svg{width:22px;height:22px;flex:none}
 .ch-f{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line);background:var(--card)}.ch-f textarea{flex:1;font:inherit;border:1px solid var(--line);border-radius:12px;padding:10px;resize:none;background:var(--bg);color:var(--ink);max-height:90px}.ch-f button{background:linear-gradient(135deg,#f0c14b,#d4a017);border:0;border-radius:12px;font:inherit;font-weight:700;padding:0 16px;cursor:pointer;color:#2a1d00}
 .ch-i{padding:16px;overflow:auto}.ch-i label{display:block;margin:10px 0 4px;font-weight:600}.ch-i input{width:100%;font:inherit;border:1px solid var(--line);border-radius:10px;padding:11px;background:var(--bg);color:var(--ink);box-sizing:border-box}
 .ch-e{color:#dc2626;min-height:1.2em;margin-top:6px}
+/* full-screen messenger-style chat */
+#ovch{padding:0;align-items:stretch;justify-content:stretch;background:var(--card)}
+#ovch .sheet,#shch{width:100%;max-width:none;height:100vh;height:100dvh;max-height:none;border-radius:0}
+.ch-h{padding:12px 14px;padding-top:max(12px,env(safe-area-inset-top))}
+.ch-h button{font-size:30px}
+.ch-m{padding:14px 12px;gap:10px}
+.bb{font-size:16px;max-width:80%;padding:10px 14px;border-radius:20px}
+.ch-f{align-items:flex-end;gap:10px;padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom))}
+.ch-f textarea{font-size:16px;border-radius:24px;padding:12px 16px;min-height:48px;box-sizing:border-box;max-height:140px;line-height:1.35}
+.ch-f #csd{flex:none;width:52px;height:52px;padding:0;border-radius:50%;font-size:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.ch-f #csd:before{content:"";width:24px;height:24px;background:#2a1d00;-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M2 21l21-9L2 3v7l15 2-15 2z'/></svg>") center/contain no-repeat;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M2 21l21-9L2 3v7l15 2-15 2z'/></svg>") center/contain no-repeat}
+.ch-f #csd:disabled{opacity:.5}
+.ch-i input{font-size:16px;padding:13px}
+@media(min-width:700px){#ovch .sheet,#shch{max-width:520px;margin:0 auto;border-left:1px solid var(--line);border-right:1px solid var(--line)}}
+
 </style>
 </head>
 <body>
@@ -266,7 +282,6 @@ svg{width:22px;height:22px;flex:none}
 </footer>
 <script>document.getElementById('y').textContent=new Date().getFullYear()</script>
 <button id="cb" type="button" aria-label="কার্ট খুলুন"></button>
-<button id="chb" type="button" aria-label="চ্যাট করুন">💬 চ্যাট করুন</button>
 <div class="ov" id="ovch" role="dialog" aria-modal="true" aria-label="চ্যাট"><div class="sheet" id="shch"></div></div>
 <div class="ov" id="ovp" role="dialog" aria-modal="true" aria-label="পণ্যের বিবরণ"><div class="sheet" id="shp"></div></div>
 <div class="ov" id="ovz" role="dialog" aria-modal="true" aria-label="বড় ছবি"><img id="zi" alt=""></div>
@@ -502,7 +517,7 @@ svg{width:22px;height:22px;flex:none}
   function load(){if(!ST||!ST.cid)return Promise.resolve([]);
     return J(BASE+'/chats/'+ST.cid+'/m?orderBy=t&pageSize=300&key='+KEY).then(function(j){return(j.documents||[]).map(function(d){var f=d.fields||{};return{from:(f.from||{}).stringValue,text:(f.text||{}).stringValue||'',t:Number((f.t||{}).integerValue||0)}}).filter(function(m){return m.text})})}
   function unread(){var s=seenT();return msgs.filter(function(m){return m.from==='o'&&m.t>s}).length}
-  function dot(){var b=$('#chb'),n=unread();b.innerHTML='💬 চ্যাট করুন'+(n?'<i>'+n+'</i>':'')}
+  function dot(){var b=$('#hchat');if(!b)return;var n=unread();b.innerHTML='💬 চ্যাট করুন'+(n?' <i class="cbd">'+n+'</i>':'')}
   function tm(t){try{return new Date(t).toLocaleString('bn-BD',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}catch(e){return ''}}
   function draw(){var box=$('#chm');if(!box)return;var atEnd=box.scrollHeight-box.scrollTop-box.clientHeight<80;
     box.innerHTML=msgs.length?msgs.map(function(m){return '<div class="bb '+(m.from==='c'?'c':'o')+'">'+esc(m.text)+'<small>'+(m.from==='o'?'Super Computer Shop · ':m.from==='a'?'🤖 স্বয়ংক্রিয় উত্তর · ':'')+tm(m.t)+'</small></div>'}).join(''):'<p style="color:var(--mut);text-align:center;margin:auto">আপনার প্রশ্ন বা সমস্যা লিখুন। আমরা উত্তর দেব। এই কথোপকথন শুধু আপনি ও আমরা দেখতে পারি।</p>';
@@ -510,6 +525,8 @@ svg{width:22px;height:22px;flex:none}
   function poll(){if(!ST||!ST.cid||document.hidden)return;load().then(function(L){var changed=L.length!==msgs.length||(L.length&&L[L.length-1].t!==(msgs[msgs.length-1]||{}).t);msgs=L;
       if($('#ovch').classList.contains('on')){if(L.length){var last=L[L.length-1].t;setSeen(Math.max(last,seenT()))}if(changed)draw()}dot()}).catch(function(){})}
   function every(){clearInterval(timer);timer=setInterval(poll,$('#ovch').classList.contains('on')?4000:25000)}
+  function fit(){var v=window.visualViewport,s=$('#shch');if(s&&v&&$('#ovch').classList.contains('on')){s.style.height=v.height+'px';var m=$('#chm');if(m)m.scrollTop=m.scrollHeight}}
+  if(window.visualViewport){visualViewport.addEventListener('resize',fit);visualViewport.addEventListener('scroll',fit)}
   function close(){$('#ovch').classList.remove('on');document.body.style.overflow='';every();var t=$('#cin');if(t)draft=t.value}
   function intro(pre){
     $('#shch').innerHTML='<div class="ch-h"><div style="flex:1"><b>💬 চ্যাট শুরু করুন</b><small>Super Computer Shop</small></div><button type="button" id="chx" aria-label="বন্ধ">×</button></div><div class="ch-i"><p style="margin:0;color:var(--mut)">নাম দিয়ে সরাসরি আমাদের মেসেজ করুন। আপনার কথোপকথন অন্য কেউ দেখতে পারবে না।</p><label for="chn">আপনার নাম <em class="req">প্রয়োজন</em></label><input id="chn" maxlength="40" autocomplete="name"><label for="chp">মোবাইল নম্বর <em class="op">ইচ্ছা হলে</em></label><input id="chp" maxlength="20" inputmode="tel" placeholder="WhatsApp-এ কথা বলতে চাইলে দিন"><div id="che" class="ch-e" role="alert"></div><button class="b1" type="button" id="chs" style="width:100%;margin-top:6px">চ্যাট শুরু করুন</button></div>';
@@ -519,7 +536,7 @@ svg{width:22px;height:22px;flex:none}
   function thread(pre){
     $('#shch').innerHTML='<div class="ch-h"><div style="flex:1"><b>💬 Super Computer Shop</b><small>আমরা সাধারণত দ্রুত উত্তর দিই</small></div><button type="button" id="chx" aria-label="বন্ধ">×</button></div><div class="ch-m" id="chm"></div><div class="ch-e" id="che" style="padding:0 12px" role="alert"></div><div class="ch-f"><textarea id="cin" rows="1" maxlength="1000" placeholder="মেসেজ লিখুন..."></textarea><button type="button" id="csd">পাঠান</button></div>';
     $('#chx').onclick=close;var t=$('#cin');t.value=pre!=null?pre:draft;
-    t.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});$('#csd').onclick=send;
+    t.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});$('#csd').onclick=send;var gr=function(){t.style.height='auto';t.style.height=Math.min(t.scrollHeight,140)+'px'};t.addEventListener('input',gr);gr();fit();
     draw();poll();setTimeout(function(){t.focus()},200)}
   function send(){var t=$('#cin'),txt=(t.value||'').trim();if(!txt||busy)return;
     if(Date.now()-lastSend<1500)return;busy=true;lastSend=Date.now();$('#csd').disabled=true;$('#che').textContent='';
@@ -542,7 +559,7 @@ svg{width:22px;height:22px;flex:none}
     .catch(function(){}).then(function(){setTimeout(function(){autoBusy=false},5000)})}
   function open(pre){$('#ovch').classList.add('on');document.body.style.overflow='hidden';every();
     if(!ST||!ST.cid){intro(pre);return}thread(pre)}
-  $('#chb').onclick=function(){open()};var hc=$('#hchat');if(hc)hc.onclick=function(e){e.preventDefault();open()};
+  var hc=$('#hchat');if(hc)hc.onclick=function(e){e.preventDefault();open()};
   $('#ovch').addEventListener('click',function(e){if(e.target===this)close()});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('#ovch').classList.contains('on'))close()});
   window.SCchat={open:open};

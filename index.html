@@ -1342,6 +1342,171 @@ if(LICM==='self'){setInterval(chBeat,120000);setTimeout(chBeat,8000)}
 V.chat=()=>{setTimeout(()=>{chRender();if(!CHC)chCfgLoad()},0);return `<div class='card'><h2>🤖 অটো রিপ্লাই</h2><details ${CHC&&CHC.on?'':'open'}><summary style='cursor:pointer'>অফলাইনে থাকলে কাস্টমারকে স্বয়ংক্রিয় উত্তর (চাপুন)</summary><div id='chcfg' style='margin-top:8px'>${CHC?chCfgHtml():'লোড হচ্ছে...'}</div></details></div><div class='card'><h2>💬 কাস্টমার চ্যাট</h2><p class='mut'>কাস্টমার সাইট থেকে মেসেজ করলে এখানে আসবে। উত্তর দিলে কাস্টমার সাইটে সেটা দেখবে। প্রতিটা কাস্টমারের কথোপকথন আলাদা, অন্য কাস্টমার দেখতে পারে না।</p><div id='chroot'></div></div>`};
 if(LICM==='self'){const i=M.findIndex(m=>m[0]==='rev');M.splice(i>=0?i+1:M.length-1,0,['chat','💬','Customer Chat'])}
 {const dash8=V.dash;V.dash=()=>{const n=CH.list.filter(x=>x.uo&&!x.blocked).length;return (LICM==='self'&&n>0?`<div class='card' onclick="go('chat')" style='cursor:pointer;border:2px solid #d4a017;background:rgba(212,160,23,.12)'>💬 <b>${n}জন কাস্টমারের নতুন মেসেজ</b> — এখানে চাপুন</div>`:'')+dash8()}}
+
+/* ---- ভিজিটিং কার্ড (মালিক ও কর্মচারী; ৯০×৫০ মিমি, A4 শিটে ১০টা) ---- */
+let VC=null,VCE=null;
+const VK='scs_vc';
+async function vcLoad(force){if(VC&&!force)return;
+  try{if(DB){const r=await DB.collection('vcards').get();VC=r.docs.map(d=>Object.assign({id:d.id},d.data())).sort((a,b)=>(a.t||0)-(b.t||0))}else VC=JSON.parse(localStorage.getItem(VK)||'[]')}catch(e){VC=VC||[]}
+  if(tab==='vc')R()}
+function vcWeb(){const c=cfg();return c.web||(location.origin+location.pathname.replace(/[^/]*$/,'')+'shop/')}
+const vcShort=u=>String(u||'').replace(/^https?:\/\//,'').replace(/\/$/,'');
+function vcFront(p){const c=cfg(),W=vcWeb(),em=p.em||c.em||'';
+  return `<div class='vcc' style='width:340px;height:189px;box-sizing:border-box;position:relative;overflow:hidden;background:linear-gradient(135deg,#0b1730 0%,#12254d 100%);color:#fff;font-family:Arial,Helvetica,sans-serif;padding:13px 16px;-webkit-print-color-adjust:exact;print-color-adjust:exact'>
+  <div style='position:absolute;right:-38px;top:-38px;width:130px;height:130px;border-radius:50%;border:1px solid rgba(212,160,23,.35)'></div>
+  <div style='position:absolute;right:-12px;top:-12px;width:78px;height:78px;border-radius:50%;border:1px solid rgba(212,160,23,.5)'></div>
+  <div style='display:flex;align-items:center;gap:9px;position:relative'><img src='${LOGO}' style='width:42px;height:42px;border-radius:50%;border:1.5px solid #d4a017;object-fit:cover;background:#000'><div><div style='color:#d4a017;font-weight:800;font-size:13px;letter-spacing:1px'>${esc(String(c.name||'').toUpperCase())}</div><div style='font-size:7.5px;opacity:.8;letter-spacing:.6px;margin-top:2px'>LAPTOP BUY · SELL · SERVICE</div></div></div>
+  <div style='height:1px;background:linear-gradient(90deg,#d4a017,rgba(212,160,23,0));margin:9px 0 8px'></div>
+  <div style='font-size:18px;font-weight:700;line-height:1.1'>${esc(p.n||'')}</div>
+  <div style='color:#d4a017;font-size:9px;letter-spacing:1.4px;text-transform:uppercase;margin-top:3px'>${esc(p.d||'')}</div>
+  <div style='position:absolute;left:16px;right:14px;bottom:11px;font-size:9px;line-height:1.5'>
+   ${p.ph?`<div><b style='color:#d4a017'>☎</b>&nbsp; ${esc(p.ph)}${p.wa?` &nbsp;<b style='color:#d4a017'>WhatsApp</b> ${esc(p.wa)}`:''}</div>`:''}
+   ${em?`<div><b style='color:#d4a017'>✉</b>&nbsp; ${esc(em)}</div>`:''}
+   <div><b style='color:#d4a017'>◉</b>&nbsp; ${esc(vcShort(W))}</div>
+   ${c.addr?`<div style='opacity:.9'><b style='color:#d4a017'>⌂</b>&nbsp; ${esc(c.addr)}</div>`:''}
+  </div></div>`}
+function vcBack(p){const c=cfg(),W=vcWeb(),wa=chWa(p.wa||p.ph),q=(p.qr==='wa'&&wa)?'https://wa.me/'+wa:W,lab=(p.qr==='wa'&&wa)?'Scan to chat on WhatsApp':'Scan to visit our online shop';
+  return `<div class='vcc' style='width:340px;height:189px;box-sizing:border-box;position:relative;overflow:hidden;background:#f7f3e8;color:#0b1730;font-family:Arial,Helvetica,sans-serif;padding:14px 16px;display:flex;align-items:center;gap:16px;-webkit-print-color-adjust:exact;print-color-adjust:exact'>
+  <img src='${LOGO}' style='position:absolute;right:-30px;bottom:-30px;width:170px;height:170px;border-radius:50%;opacity:.09'>
+  <div style='background:#fff;padding:6px;border-radius:6px;border:1px solid #d4a017;flex:none;text-align:center'>${qrSvg(q,92)}<div style='font-size:6.5px;margin-top:2px;max-width:92px'>${lab}</div></div>
+  <div style='position:relative;min-width:0'><img src='${LOGO}' style='width:44px;height:44px;border-radius:50%;border:1.5px solid #d4a017;object-fit:cover;background:#000'><div style='font-weight:800;font-size:13px;letter-spacing:.8px;margin-top:6px;color:#0b1730'>${esc(String(c.name||'').toUpperCase())}</div><div style='font-size:8px;margin-top:3px;line-height:1.5'>Laptop Buy · Sell · Service<br><b style='color:#8a6508'>1 Year Servicing Warranty</b><br>${esc(c.addr||'')}</div></div></div>`}
+function vcList(){return (VC||[])}
+function vcFind(id){return vcList().find(x=>x.id===id)}
+function vcForm(p){p=p||{};const c=cfg();return `<div class='card'><h2>${p.id?'✏️ কার্ড বদলান':'➕ নতুন কার্ড'}</h2>
+ <div class='g2'><div><label>নাম *</label><input id='vcN' value='${esc(p.n||'')}' maxlength='40'></div><div><label>পদবি (যেমন Owner, Sales Executive)</label><input id='vcD' value='${esc(p.d||'')}' maxlength='40'></div>
+ <div><label>মোবাইল নম্বর</label><input id='vcP' value='${esc(p.ph||c.ph||'')}' maxlength='24' inputmode='tel'></div><div><label>WhatsApp নম্বর (আলাদা হলে)</label><input id='vcW' value='${esc(p.wa||'')}' maxlength='24' inputmode='tel'></div>
+ <div><label>ইমেইল</label><input id='vcE' value='${esc(p.em||c.em||'')}' maxlength='60'></div>
+ <div><label>পিছনের QR কিসের?</label><select id='vcQ'><option value='web' ${p.qr!=='wa'?'selected':''}>অনলাইন দোকান (ওয়েবসাইট)</option><option value='wa' ${p.qr==='wa'?'selected':''}>WhatsApp চ্যাট</option></select></div></div>
+ <div style='display:flex;gap:8px;margin-top:10px;flex-wrap:wrap'><button class='b' onclick="vcSave('${p.id||''}')">💾 সেভ করুন</button>${p.id?`<button class='g' onclick='VCE=null;R()'>বাতিল</button>`:''}</div></div>`}
+async function vcSave(id){const g=i=>(document.getElementById(i).value||'').trim();const o={n:g('vcN'),d:g('vcD'),ph:g('vcP'),wa:g('vcW'),em:g('vcE'),qr:g('vcQ'),t:Date.now()};
+  if(!o.n)return alert('নাম লিখুন');
+  try{if(DB){if(id){delete o.t;await DB.collection('vcards').doc(id).set(o,{merge:true})}else await DB.collection('vcards').add(o)}else{VC=VC||[];if(id)Object.assign(VC.find(x=>x.id===id)||{},o);else VC.push(Object.assign({id:'l'+Date.now()},o));localStorage.setItem(VK,JSON.stringify(VC))}
+    VCE=null;await vcLoad(true);R()}catch(e){alert('সেভ হয়নি: '+(e.message||e))}}
+async function vcDel(id){if(!confirm('এই কার্ডটা মুছবেন?'))return;try{if(DB)await DB.collection('vcards').doc(id).delete();else{VC=VC.filter(x=>x.id!==id);localStorage.setItem(VK,JSON.stringify(VC))}await vcLoad(true);R()}catch(e){alert('মোছা যায়নি: '+(e.message||e))}}
+function vcEdit(id){VCE=id;R();setTimeout(()=>window.scrollTo(0,0),0)}
+function vcOwner(){const c=cfg();VCE='';VC=VC||[];const p={n:c.owner||'',d:'Owner',ph:c.ph||'',em:c.em||''};R();setTimeout(()=>{['N','D','P','E'].forEach((k,i)=>{const e=document.getElementById('vc'+k);if(e)e.value=[p.n,p.d,p.ph,p.em][i]||''});window.scrollTo(0,0)},0)}
+function vcView(id){const p=vcFind(id);if(!p)return;
+  shw('m',`<div class='noprint' style='color:#111'><h2 style='margin-top:0;color:#111'>🪪 ${esc(p.n)}</h2><div style='display:flex;gap:14px;flex-wrap:wrap;justify-content:center'><div><div style='margin-bottom:4px;color:#555;font-size:12px'>সামনে</div>${vcFront(p)}</div><div><div style='margin-bottom:4px;color:#555;font-size:12px'>পিছনে</div>${vcBack(p)}</div></div>
+  <div style='display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap'><label style='margin:0;color:#111'>কপি:</label><input id='vcQty' type='number' min='1' max='100' value='10' style='width:80px;background:#fff;color:#111;border:1px solid #999'><button class='b' onclick="vcPrint('${id}','f')">🖨 সামনের পাশ প্রিন্ট (A4)</button><button class='b' onclick="vcPrint('${id}','b')">🖨 পিছনের পাশ প্রিন্ট (A4)</button><button class='b' onclick="vcImg('${id}',this)">📤 ছবি সেভ/শেয়ার</button><button class='g' style='color:#111;border-color:#999' onclick='cm()'>বন্ধ করুন</button></div>
+  <p style='color:#555;font-size:12px'>ডবল সাইড চান তো আগে সামনের শিট ছাপুন, তারপর একই কাগজ উল্টে পিছনের শিট ছাপুন। কাগজের A4 সাইজ ও "Actual size / 100%" দিয়ে ছাপলে কার্ড ঠিক ৯০×৫০ মিমি আসবে। কাটার দাগ ঝাপসা ধূসর রেখা।</p></div><div id='vcPr'></div>`)}
+function vcSheet(id,side){const p=vcFind(id),n=Math.max(1,Math.min(100,+((document.getElementById('vcQty')||{}).value)||10)),f=side==='b'?vcBack:vcFront;let h='';
+  for(let pg=0;pg<Math.ceil(n/10);pg++){const k=Math.min(10,n-pg*10);h+=`<div style='display:grid;grid-template-columns:repeat(2,90mm);justify-content:center;width:180mm;margin:0 auto;${pg<Math.ceil(n/10)-1?'page-break-after:always;':''}'>${Array.from({length:k},()=>`<div style='width:90mm;height:50mm;outline:.2mm dashed #bbb;overflow:hidden'><div style='transform:scale(1.0003);transform-origin:0 0;zoom:${(340/340).toFixed(4)}'>${f(p)}</div></div>`).join('')}</div>`}
+  return h}
+function vcPrint(id,side){const r=document.getElementById('vcPr');r.innerHTML=vcSheet(id,side);window.print();setTimeout(()=>{r.innerHTML=''},500)}
+async function vcImg(id,btn){const p=vcFind(id);const old=btn.textContent;btn.disabled=true;btn.textContent='⏳ বানানো হচ্ছে...';let w=null;
+  try{if(!window.html2canvas)await ldJs('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+    w=document.createElement('div');w.style.cssText='position:fixed;left:0;top:0;width:700px;background:#fff;padding:10px;z-index:-1;pointer-events:none;display:flex;gap:10px';w.innerHTML=vcFront(p)+vcBack(p);document.body.appendChild(w);
+    await Promise.all([...w.querySelectorAll('img')].map(i=>i.decode?i.decode().catch(()=>{}):0));
+    const cv=await html2canvas(w,{scale:3,backgroundColor:'#ffffff',useCORS:true,logging:false,windowWidth:720,x:0,y:0,scrollX:0,scrollY:0});w.remove();w=null;
+    const blob=await new Promise(r=>cv.toBlob(r,'image/png')),fn='Visiting-Card-'+(p.n||'card').replace(/\s+/g,'-')+'.png',file=new File([blob],fn,{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:fn})}catch(e){if(e&&e.name!=='AbortError')throw e}}
+    else{const u=URL.createObjectURL(blob);window.open(u,'_blank')||(location.href=u)}
+  }catch(e){if(w)w.remove();alert('ছবি বানানো যায়নি ('+(e&&e.message||e)+')। নেট চালু আছে কিনা দেখুন।')}
+  btn.disabled=false;btn.textContent=old}
+
+/* ---- পরিচয়পত্র / ID Card (মালিক ও কর্মচারী; ৫৪×৮৬ মিমি, A4 শিটে ৯টা) ---- */
+let IC=null,ICE=null,ICP='';
+async function icLoad(force){if(IC&&!force)return;if(ICFG===null)await icCfgLoad();
+  try{if(DB){const r=await DB.collection('idcards').get();IC=r.docs.map(d=>Object.assign({id:d.id},d.data())).sort((a,b)=>(a.t||0)-(b.t||0))}else IC=JSON.parse(localStorage.getItem('scs_ic')||'[]')}catch(e){IC=IC||[]}
+  if(tab==='idc')R()}
+const icFind=id=>(IC||[]).find(x=>x.id===id);
+const icDate=s=>{if(!s)return '';const d=new Date(s);return isNaN(d)?s:d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})};
+const ICD={hc:'#0b1730',ac:'#d4a017',bg:'#ffffff',tc:'#0b1730',title:'EMPLOYEE IDENTITY CARD',shape:'circle',logo:1,addr:1,qr:1,qrurl:'',
+ lab:{no:'ID No',ph:'Phone',bg:'Blood',jd:'Joined',vt:'Valid'},show:{no:1,ph:1,bg:1,jd:1,vt:1},
+ back:'• This card is the property of {shop}.\n• Please show it when asked.\n• If found, kindly return it to the address above.',sig1:'Card Holder',sig2:'Authorized Signature',sigon:1};
+let ICFG=null;
+function icC(){const o=JSON.parse(JSON.stringify(ICD)),u=ICFG||{};Object.keys(u).forEach(k=>{if(k==='lab'||k==='show')Object.assign(o[k],u[k]);else o[k]=u[k]});return o}
+async function icCfgLoad(){try{let j=null;if(DB){const r=await DB.doc('idcfg/main').get();if(r&&r.exists)j=r.data()}else j=JSON.parse(localStorage.getItem('scs_icfg')||'null');ICFG=j||{}}catch(e){ICFG=ICFG||{}}}
+function icFront(p){const c=cfg(),g=icC(),r=g.shape==='square'?'8px':'50%';
+  const ph=p.pic?`<img src='${p.pic}' style='display:inline-block;vertical-align:top;width:84px;height:84px;border-radius:${r};object-fit:cover;border:3px solid ${g.ac};background:#fff'>`:`<div style='display:inline-block;width:84px;height:84px;border-radius:${r};border:3px solid ${g.ac};background:#e5e7eb;color:#9ca3af;font-size:40px;line-height:78px;text-align:center;box-sizing:border-box'>👤</div>`;
+  const rows=[['no',p.no],['ph',p.ph],['bg',p.bg],['jd',icDate(p.jd)],['vt',icDate(p.vt)]].filter(x=>g.show[x[0]]&&x[1]).map(x=>[g.lab[x[0]],x[1]]);
+  [1,2,3].forEach(i=>{if(p['x'+i+'v'])rows.push([p['x'+i+'l']||'',p['x'+i+'v']])});
+  const fs=rows.length>6?8:rows.length>5?8.8:9.5;
+  const row=x=>`<div style='display:flex;gap:4px;font-size:${fs}px;line-height:1.45'><span style='width:48px;color:#6b7280;flex:none'>${esc(x[0])}</span><b style='color:${g.tc};word-break:break-word'>: ${esc(x[1])}</b></div>`;
+  return `<div class='icc' style='width:204px;height:325px;box-sizing:border-box;position:relative;overflow:hidden;background:${g.bg};color:${g.tc};font-family:Arial,Helvetica,sans-serif;border:1px solid #cbd5e1;-webkit-print-color-adjust:exact;print-color-adjust:exact'>
+  <div style='background:${g.hc};height:104px;padding:10px 8px 0;text-align:center;color:#fff'>${g.logo?`<img src='${LOGO}' style='width:34px;height:34px;border-radius:50%;border:1.5px solid ${g.ac};object-fit:cover;background:#000'>`:'<div style="height:12px"></div>'}<div style='color:${g.ac};font-weight:800;font-size:11px;letter-spacing:.8px;margin-top:3px'>${esc(String(c.name||'').toUpperCase())}</div><div style='font-size:6.5px;letter-spacing:1px;opacity:.85'>${esc(g.title)}</div></div>
+  <div style='position:absolute;left:0;right:0;top:90px;text-align:center'>${ph}</div>
+  <div style='position:absolute;left:0;right:0;top:182px;text-align:center'><div style='font-size:15px;font-weight:800;padding:0 6px;line-height:1.15'>${esc(p.n||'')}</div><div style='color:${g.ac};filter:brightness(.8);font-size:9.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-top:2px'>${esc(p.d||'')}</div></div>
+  <div style='position:absolute;left:14px;right:10px;top:232px;bottom:14px;overflow:hidden'>${rows.map(row).join('')}</div>
+  <div style='position:absolute;left:0;right:0;bottom:0;height:10px;background:${g.ac}'></div></div>`}
+function icBack(p){const c=cfg(),g=icC(),W=g.qrurl||vcWeb();
+  const lines=String(g.back||'').replace(/\{shop\}/g,c.name||'the shop').split('\n').filter(x=>x.trim()).map(esc).join('<br>');
+  return `<div class='icc' style='width:204px;height:325px;box-sizing:border-box;position:relative;overflow:hidden;background:#f7f3e8;color:${g.tc};font-family:Arial,Helvetica,sans-serif;border:1px solid #cbd5e1;padding:14px 12px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact'>
+  ${g.logo?`<img src='${LOGO}' style='position:absolute;left:50%;top:50%;width:190px;height:190px;margin:-95px 0 0 -95px;border-radius:50%;opacity:.07'>`:''}
+  <div style='position:relative'><div style='font-weight:800;font-size:11px;letter-spacing:.8px'>${esc(String(c.name||'').toUpperCase())}</div>${g.addr?`<div style='font-size:8px;margin-top:2px'>${esc(c.addr||'')}</div><div style='font-size:8px'>${esc(c.ph||'')}</div>`:''}
+  ${g.qr?`<div style='background:#fff;display:inline-block;padding:5px;border:1px solid ${g.ac};border-radius:6px;margin:10px 0 4px'>${qrSvg(W,84)}</div><div style='font-size:7px'>Scan to visit our shop</div>`:'<div style="height:14px"></div>'}
+  ${lines?`<div style='text-align:left;font-size:7.8px;line-height:1.5;margin:10px 0 0;padding:6px 8px;border:1px solid ${g.ac};border-radius:5px;background:rgba(255,255,255,.6)'>${lines}</div>`:''}
+  ${g.sigon?`<div style='position:absolute;left:0;right:0;top:${g.qr?'258':'200'}px;display:flex;justify-content:space-between;font-size:7.5px'><div style='width:70px;border-top:1px solid ${g.tc};padding-top:2px'>${esc(g.sig1)}</div><div style='width:78px;border-top:1px solid ${g.tc};padding-top:2px'>${esc(g.sig2)}</div></div>`:''}</div></div>`}
+function icCfgForm(){const g=icC(),L=g.lab,S=g.show,ck=(k,v)=>`<label style='display:flex;gap:6px;align-items:center;margin:0'><input type='checkbox' id='cs_${k}' ${v?'checked':''} onchange='icPrev()' style='width:auto'> দেখান</label>`;
+  const fld=k=>`<div style='display:flex;gap:8px;align-items:end;margin-bottom:6px'><div style='flex:1'><label>${k==='no'?'আইডি নম্বর':k==='ph'?'মোবাইল':k==='bg'?'রক্তের গ্রুপ':k==='jd'?'যোগদান':'মেয়াদ'}-এর লেখা</label><input id='cl_${k}' value='${esc(L[k])}' maxlength='14' oninput='icPrev()'></div>${ck('f_'+k,S[k])}</div>`;
+  const col=(k,l)=>`<div><label>${l}</label><input type='color' id='cc_${k}' value='${g[k]}' oninput='icPrev()' style='height:42px;padding:2px'></div>`;
+  return `<div class='card'><h2>🎨 কার্ডের ডিজাইন নিজের মতো সাজান</h2><p class='mut'>এখানে যা বদলাবেন সব কার্ডে (সামনে-পিছনে) একসাথে বদলে যাবে। নিচে সাথে সাথে নমুনা দেখাবে।</p>
+ <div style='display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start'><div style='flex:1;min-width:260px'>
+ <div class='g2'>${col('hc','ওপরের অংশের রং')}${col('ac','সোনালি/হাইলাইট রং')}${col('bg','কার্ডের পিছনের রং (সামনে)')}${col('tc','লেখার রং')}</div>
+ <label>কার্ডের শিরোনাম (নামের নিচের ছোট লেখা)</label><input id='cg_title' value='${esc(g.title)}' maxlength='40' oninput='icPrev()'>
+ <div class='g2'><div><label>ছবির আকার</label><select id='cg_shape' onchange='icPrev()'><option value='circle' ${g.shape!=='square'?'selected':''}>গোল</option><option value='square' ${g.shape==='square'?'selected':''}>চারকোনা</option></select></div>
+ <div style='display:flex;flex-direction:column;gap:6px;justify-content:end'><label style='display:flex;gap:6px;align-items:center;margin:0'><input type='checkbox' id='cg_logo' ${g.logo?'checked':''} onchange='icPrev()' style='width:auto'> লোগো দেখান</label><label style='display:flex;gap:6px;align-items:center;margin:0'><input type='checkbox' id='cg_addr' ${g.addr?'checked':''} onchange='icPrev()' style='width:auto'> পিছনে ঠিকানা/ফোন দেখান</label></div></div>
+ <h3 style='margin:12px 0 6px'>সামনের তথ্যের সারি</h3>${['no','ph','bg','jd','vt'].map(fld).join('')}
+ <h3 style='margin:12px 0 6px'>পিছনের পাশ</h3>
+ <label style='display:flex;gap:6px;align-items:center'><input type='checkbox' id='cg_qr' ${g.qr?'checked':''} onchange='icPrev()' style='width:auto'> QR কোড দেখান</label>
+ <label>QR-এ কোন লিংক? <small class='mut'>(খালি রাখলে দোকানের ওয়েবসাইট)</small></label><input id='cg_qrurl' value='${esc(g.qrurl)}' placeholder='https://...' oninput='icPrev()'>
+ <label>নিয়মের লেখা <small class='mut'>(প্রতি লাইনে একটা; দোকানের নামের জন্য {shop} লিখুন)</small></label><textarea id='cg_back' rows='5' oninput='icPrev()'>${esc(g.back)}</textarea>
+ <label style='display:flex;gap:6px;align-items:center'><input type='checkbox' id='cg_sigon' ${g.sigon?'checked':''} onchange='icPrev()' style='width:auto'> সইয়ের জায়গা দেখান</label>
+ <div class='g2'><div><label>বাম সইয়ের লেখা</label><input id='cg_sig1' value='${esc(g.sig1)}' maxlength='24' oninput='icPrev()'></div><div><label>ডান সইয়ের লেখা</label><input id='cg_sig2' value='${esc(g.sig2)}' maxlength='24' oninput='icPrev()'></div></div>
+ <div style='display:flex;gap:8px;margin-top:12px;flex-wrap:wrap'><button class='b' onclick='icCfgSave()'>💾 ডিজাইন সেভ করুন</button><button class='g' onclick='icCfgReset()'>↺ আগের মতো করুন</button></div></div>
+ <div id='icPv2' style='display:flex;gap:10px;flex-wrap:wrap;justify-content:center'></div></div></div>`}
+function icCfgRead(){const v=i=>{const e=document.getElementById(i);return e?e.value:''},c=i=>{const e=document.getElementById(i);return !!(e&&e.checked)};
+  const o={hc:v('cc_hc'),ac:v('cc_ac'),bg:v('cc_bg'),tc:v('cc_tc'),title:v('cg_title'),shape:v('cg_shape'),logo:c('cg_logo')?1:0,addr:c('cg_addr')?1:0,qr:c('cg_qr')?1:0,qrurl:v('cg_qrurl').trim(),back:v('cg_back'),sigon:c('cg_sigon')?1:0,sig1:v('cg_sig1'),sig2:v('cg_sig2'),lab:{},show:{}};
+  ['no','ph','bg','jd','vt'].forEach(k=>{o.lab[k]=v('cl_'+k)||ICD.lab[k];o.show[k]=c('cs_f_'+k)?1:0});return o}
+function icPrev(){const old=ICFG;ICFG=icCfgRead();const p={n:'Md Rahim',d:'Technician',no:'SCS-001',ph:'01700-000000',bg:'B+',jd:'2024-03-01',vt:'2027-03-01',x1l:'NID',x1v:'1234567890'},el=document.getElementById('icPv2');if(el)el.innerHTML=icFront(p)+icBack(p);ICFG=old;icPrev.cur=icCfgRead()}
+async function icCfgSave(){const o=icCfgRead();try{if(DB)await DB.doc('idcfg/main').set(o);else localStorage.setItem('scs_icfg',JSON.stringify(o));ICFG=o;alert('ডিজাইন সেভ হয়েছে');R()}catch(e){alert('সেভ হয়নি: '+(e.message||e))}}
+async function icCfgReset(){if(!confirm('ডিজাইন আগের মতো (ডিফল্ট) করবেন?'))return;try{if(DB)await DB.doc('idcfg/main').set({});else localStorage.removeItem('scs_icfg');ICFG={};R()}catch(e){alert('হয়নি: '+(e.message||e))}}
+function icForm(p){p=p||{};ICP=p.pic||'';const c=cfg();return `<div class='card'><h2>${p.id?'✏️ পরিচয়পত্র বদলান':'➕ নতুন পরিচয়পত্র'}</h2>
+ <div class='g2'><div><label>নাম * <small class='mut'>(প্রয়োজন)</small></label><input id='icN' value='${esc(p.n||'')}' maxlength='40'></div><div><label>পদবি <small class='mut'>(যেমন Owner, Technician)</small></label><input id='icD' value='${esc(p.d||'')}' maxlength='40'></div>
+ <div><label>আইডি নম্বর <small class='mut'>(ইচ্ছা হলে; খালি রাখলে নিজে বসবে)</small></label><input id='icO' value='${esc(p.no||'')}' maxlength='20'></div><div><label>মোবাইল</label><input id='icP' value='${esc(p.ph||'')}' maxlength='24' inputmode='tel'></div>
+ <div><label>রক্তের গ্রুপ <small class='mut'>(ইচ্ছা হলে)</small></label><select id='icB'>${['','A+','A-','B+','B-','O+','O-','AB+','AB-'].map(x=>`<option ${p.bg===x?'selected':''}>${x}</option>`).join('')}</select></div>
+ <div><label>যোগদানের তারিখ <small class='mut'>(ইচ্ছা হলে)</small></label><input id='icJ' type='date' value='${esc(p.jd||'')}'></div>
+ <div><label>মেয়াদ শেষ <small class='mut'>(ইচ্ছা হলে)</small></label><input id='icV' type='date' value='${esc(p.vt||'')}'></div>
+ <div><label>বাড়তি তথ্য 1 — নাম <small class='mut'>(যেমন NID, ঠিকানা)</small></label><input id='icX1l' value='${esc(p.x1l||'')}' maxlength='14'></div><div><label>বাড়তি তথ্য 1 — লেখা</label><input id='icX1v' value='${esc(p.x1v||'')}' maxlength='40'></div><div><label>বাড়তি তথ্য 2 — নাম <small class='mut'>(যেমন NID, ঠিকানা)</small></label><input id='icX2l' value='${esc(p.x2l||'')}' maxlength='14'></div><div><label>বাড়তি তথ্য 2 — লেখা</label><input id='icX2v' value='${esc(p.x2v||'')}' maxlength='40'></div><div><label>বাড়তি তথ্য 3 — নাম <small class='mut'>(যেমন NID, ঠিকানা)</small></label><input id='icX3l' value='${esc(p.x3l||'')}' maxlength='14'></div><div><label>বাড়তি তথ্য 3 — লেখা</label><input id='icX3v' value='${esc(p.x3v||'')}' maxlength='40'></div><div><label>ছবি <small class='mut'>(ইচ্ছা হলে)</small></label><input id='icF' type='file' accept='image/*' onchange='icPic(this)'><div id='icPv' style='margin-top:6px'>${p.pic?`<img src='${p.pic}' style='width:60px;height:60px;border-radius:50%;object-fit:cover'>`:''}</div></div></div>
+ <div style='display:flex;gap:8px;margin-top:10px;flex-wrap:wrap'><button class='b' onclick="icSave('${p.id||''}')">💾 সেভ করুন</button>${p.id?`<button class='g' onclick='ICE=null;R()'>বাতিল</button>`:`<button class='g' onclick='icOwner()'>👤 মালিকের তথ্য বসান</button>`}</div></div>`}
+function icPic(inp){const f=inp.files&&inp.files[0];if(!f)return;const im=new Image(),u=URL.createObjectURL(f);im.onload=()=>{const s=Math.min(im.width,im.height),cv=document.createElement('canvas');cv.width=cv.height=240;cv.getContext('2d').drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,240,240);ICP=cv.toDataURL('image/jpeg',.82);URL.revokeObjectURL(u);document.getElementById('icPv').innerHTML=`<img src='${ICP}' style='width:60px;height:60px;border-radius:50%;object-fit:cover'>`};im.onerror=()=>alert('ছবি পড়া যায়নি');im.src=u}
+function icOwner(){const c=cfg(),s=(i,v)=>{const e=document.getElementById(i);if(e)e.value=v||''};s('icN',c.owner);s('icD','Owner');s('icP',c.ph)}
+async function icSave(id){const g=i=>(document.getElementById(i).value||'').trim();const o={n:g('icN'),d:g('icD'),no:g('icO'),ph:g('icP'),bg:g('icB'),jd:g('icJ'),vt:g('icV'),pic:ICP||'',t:Date.now()};[1,2,3].forEach(i=>{o['x'+i+'l']=g('icX'+i+'l');o['x'+i+'v']=g('icX'+i+'v')});
+  if(!o.n)return alert('নাম লিখুন');
+  if(!o.no&&!id)o.no='SCS-'+String((IC||[]).length+1).padStart(3,'0');
+  try{if(DB){if(id){delete o.t;await DB.collection('idcards').doc(id).set(o,{merge:true})}else await DB.collection('idcards').add(o)}else{IC=IC||[];if(id)Object.assign(IC.find(x=>x.id===id)||{},o);else IC.push(Object.assign({id:'l'+Date.now()},o));localStorage.setItem('scs_ic',JSON.stringify(IC))}
+    ICE=null;ICP='';await icLoad(true);R()}catch(e){alert('সেভ হয়নি: '+(e.message||e))}}
+async function icDel(id){if(!confirm('এই পরিচয়পত্রটা মুছবেন?'))return;try{if(DB)await DB.collection('idcards').doc(id).delete();else{IC=IC.filter(x=>x.id!==id);localStorage.setItem('scs_ic',JSON.stringify(IC))}await icLoad(true);R()}catch(e){alert('মোছা যায়নি: '+(e.message||e))}}
+function icEdit(id){ICE=id;R();setTimeout(()=>window.scrollTo(0,0),0)}
+function icView(id){const p=icFind(id);if(!p)return;
+  shw('m',`<div class='noprint' style='color:#111'><h2 style='margin-top:0;color:#111'>🪪 ${esc(p.n)}</h2><div style='display:flex;gap:14px;flex-wrap:wrap;justify-content:center'><div><div style='margin-bottom:4px;color:#555;font-size:12px'>সামনে</div>${icFront(p)}</div><div><div style='margin-bottom:4px;color:#555;font-size:12px'>পিছনে</div>${icBack(p)}</div></div>
+  <div style='display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap'><button class='b' onclick="icPrint('${id}','f')">🖨 সামনের পাশ প্রিন্ট (A4)</button><button class='b' onclick="icPrint('${id}','b')">🖨 পিছনের পাশ প্রিন্ট (A4)</button><button class='b' onclick="icImg('${id}',this)">📤 ছবি সেভ/শেয়ার</button><button class='g' style='color:#111;border-color:#999' onclick='cm()'>বন্ধ করুন</button></div>
+  <p style='color:#555;font-size:12px'>প্রিন্টে কার্ডটা A4 কাগজে ১টা করে ছাপা হয়, কেটে নিয়ে ল্যামিনেশন করুন। একসাথে কয়েকজনের কার্ড ছাপতে নিচের "সবার কার্ড একসাথে" ব্যবহার করুন। "Actual size / 100%" দিয়ে ছাপলে মাপ ঠিক ৫৪×৮৬ মিমি আসবে।</p></div><div id='vcPr'></div>`)}
+function icSheet(ids,side){const f=side==='b'?icBack:icFront,list=ids.map(icFind).filter(Boolean);let h='';
+  for(let i=0;i<list.length;i+=9){h+=`<div style='display:grid;grid-template-columns:repeat(3,54mm);gap:0;justify-content:center;width:162mm;margin:0 auto;${i+9<list.length?'page-break-after:always;':''}'>${list.slice(i,i+9).map(p=>`<div style='width:54mm;height:86mm;outline:.2mm dashed #bbb;overflow:hidden'>${f(p)}</div>`).join('')}</div>`}return h}
+function icPrint(id,side,all){const r=document.getElementById('vcPr');r.innerHTML=icSheet(all?IC.map(x=>x.id):[id],side);window.print();setTimeout(()=>{r.innerHTML=''},500)}
+function icAll(side){shw('m',`<div id='vcPr'></div><div class='noprint'></div>`);icPrint('',side,true);cm()}
+async function icImg(id,btn){const p=icFind(id);const old=btn.textContent;btn.disabled=true;btn.textContent='⏳ বানানো হচ্ছে...';let w=null;
+  try{if(!window.html2canvas)await ldJs('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+    w=document.createElement('div');w.style.cssText='position:fixed;left:0;top:0;width:460px;background:#fff;padding:10px;z-index:-1;pointer-events:none;display:flex;gap:12px';w.innerHTML=icFront(p)+icBack(p);document.body.appendChild(w);
+    await Promise.all([...w.querySelectorAll('img')].map(i=>i.decode?i.decode().catch(()=>{}):0));
+    const cv=await html2canvas(w,{scale:3,backgroundColor:'#ffffff',useCORS:true,logging:false,windowWidth:480,x:0,y:0,scrollX:0,scrollY:0});w.remove();w=null;
+    const blob=await new Promise(r=>cv.toBlob(r,'image/png')),fn='ID-Card-'+(p.n||'card').replace(/\s+/g,'-')+'.png',file=new File([blob],fn,{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:fn})}catch(e){if(e&&e.name!=='AbortError')throw e}}
+    else{const u=URL.createObjectURL(blob);window.open(u,'_blank')||(location.href=u)}
+  }catch(e){if(w)w.remove();alert('ছবি বানানো যায়নি ('+(e&&e.message||e)+')। নেট চালু আছে কিনা দেখুন।')}
+  btn.disabled=false;btn.textContent=old}
+V.idc=()=>{if(IC===null){icLoad();return `<div class='card'>🪪 লোড হচ্ছে...</div>`}
+  return `<div class='card'><h2>🪪 পরিচয়পত্র (ID Card)</h2><p class='mut'>মালিক ও কর্মচারীদের পরিচয়পত্র। ছবি, নাম, পদবি, আইডি নম্বর ও রক্তের গ্রুপ থাকে। দোকানের নাম, লোগো, ঠিকানা Company Management থেকে নিজে আসে। মাপ ৫৪×৮৬ মিমি (সাধারণ ID কার্ড)।</p>${IC.length?`<div style='display:flex;gap:8px;flex-wrap:wrap'><button class='g' onclick="icAll('f')">🖨 সবার সামনের পাশ একসাথে</button><button class='g' onclick="icAll('b')">🖨 সবার পিছনের পাশ একসাথে</button></div>`:''}</div>
+  ${ICE!==null?icForm(ICE?icFind(ICE):{}):icForm({})}
+  <details class='card' ontoggle='if(this.open)icPrev()'><summary style='cursor:pointer;font-weight:700'>🎨 কার্ডের ডিজাইন বদলান (রং, লেখা, কোন তথ্য থাকবে)</summary>${icCfgForm()}</details>
+  ${IC.length?IC.map(p=>`<div class='card'><div style='display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between'><div style='display:flex;gap:10px;align-items:center'>${p.pic?`<img src='${p.pic}' style='width:44px;height:44px;border-radius:50%;object-fit:cover'>`:'👤'}<div><b>${esc(p.n)}</b><div class='mut'>${esc(p.d||'')} · ${esc(p.no||'')}</div></div></div><div style='display:flex;gap:6px;flex-wrap:wrap'><button class='b' onclick="icView('${p.id}')">👁 দেখুন / প্রিন্ট</button><button class='g' onclick="icEdit('${p.id}')">✏️ বদলান</button><button class='g' style='color:#dc2626' onclick="icDel('${p.id}')">🗑</button></div></div></div>`).join(''):`<div class='card mut'>এখনো কোনো পরিচয়পত্র নেই। ওপরে প্রথমটা বানান।</div>`}`};
+if(LICM==='self'){const i=M.findIndex(m=>m[0]==='vc');M.splice(i>=0?i+1:M.length-1,0,['idc','🆔','ID Card'])}
+V.vc=()=>{if(VC===null){vcLoad();return `<div class='card'>🪪 লোড হচ্ছে...</div>`}
+  return `<div class='card'><h2>🪪 ভিজিটিং কার্ড</h2><p class='mut'>মালিক ও কর্মচারীদের জন্য আলাদা আলাদা কার্ড। দোকানের নাম, ঠিকানা ও ওয়েবসাইট Company Management থেকে নিজে আসে। প্রতিটা কার্ড ৯০×৫০ মিমি, A4 কাগজে একসাথে ১০টা ছাপা যায়।</p><button class='g' onclick='vcOwner()'>👤 মালিকের তথ্য দিয়ে শুরু করুন</button></div>
+  ${VCE!==null?vcForm(VCE?vcFind(VCE):{}):vcForm({})}
+  ${vcList().length?vcList().map(p=>`<div class='card'><div style='display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between'><div><b>${esc(p.n)}</b><div class='mut'>${esc(p.d||'')} · ${esc(p.ph||'')}</div></div><div style='display:flex;gap:6px;flex-wrap:wrap'><button class='b' onclick="vcView('${p.id}')">👁 দেখুন / প্রিন্ট</button><button class='g' onclick="vcEdit('${p.id}')">✏️ বদলান</button><button class='g' style='color:#dc2626' onclick="vcDel('${p.id}')">🗑</button></div></div></div>`).join(''):`<div class='card mut'>এখনো কোনো কার্ড নেই। ওপরে নাম ও পদবি দিয়ে প্রথম কার্ডটা বানান।</div>`}`};
+if(LICM==='self'){const i=M.findIndex(m=>m[0]==='chat');M.splice(i>=0?i+1:M.length-1,0,['vc','🪪','Visiting Card'])}
 /* ---- একাধিক ভালো মানের ছবি (সর্বোচ্চ ৩টা) ---- */
 let PG=[],PGd=false;
 const pgLoad=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=r.result};r.onerror=rej;r.readAsDataURL(f)});
